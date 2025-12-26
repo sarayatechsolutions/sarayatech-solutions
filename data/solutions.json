@@ -83,7 +83,7 @@
       "End-to-end support"
     ],
     "featuresList": ["Web", "Mobile", "PWA"],
-    "image": "dashboard-mockup",
+    "image": "/images/web-dev.jpg",
     "link": "/solutions/web-mobile-development",
     "reverse": false,
     "ctaTitle": "Ready to Digitize Your Business?",
@@ -176,7 +176,7 @@
       "Team training on tools"
     ],
     "featuresList": ["Dashboards", "ETL", "Analytics"],
-    "image": "dashboard-mockup",
+    "image": "/images/data.jpg",
     "link": "/solutions/data-bi-solutions",
     "reverse": true,
     "ctaTitle": "Unlock the Value of Your Data",
@@ -269,7 +269,7 @@
       "Complete documentation and training"
     ],
     "featuresList": ["Custom", "Integrations", "Scalable"],
-    "image": "dashboard-mockup",
+    "image": "/images/custom-software.jpg",
     "link": "/solutions/custom-business-software",
     "reverse": false,
     "ctaTitle": "Automate Your Business Processes",
@@ -362,7 +362,7 @@
       "Continuous cost optimization"
     ],
     "featuresList": ["Cloud", "DevOps", "Monitoring"],
-    "image": "architecture-illustration",
+    "image": "/images/cloud.jpg",
     "link": "/solutions/cloud-infrastructure",
     "reverse": true,
     "ctaTitle": "Modernize Your Infrastructure",
@@ -455,7 +455,7 @@
       "End-to-end support"
     ],
     "featuresList": ["Audit", "Strategy", "Management"],
-    "image": "architecture-illustration",
+    "image": "/images/digital.jpg",
     "link": "/solutions/digital-strategy-consulting",
     "reverse": false,
     "ctaTitle": "Define Your Digital Strategy",
@@ -548,12 +548,105 @@
       "Continuous threat monitoring"
     ],
     "featuresList": ["Audit", "GDPR", "Protection"],
-    "image": "architecture-illustration",
+    "image": "/images/security.jpg",
     "link": "/solutions/security-compliance",
     "reverse": true,
     "ctaTitle": "Secure Your Information System",
     "ctaDescription": "Protect your data and ensure regulatory compliance",
     "ctaButton": "Security Audit",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "ai-automation-chatbots",
+    "icon": "Bot",
+    "title": "AI Automation & Chatbot Development",
+    "subtitle": "Intelligent chatbots and AI-powered automation solutions to streamline operations and enhance customer engagement",
+    "badge": "AI & Automation",
+    "badgeIcon": "Bot",
+    "category": "AI & Automation",
+    "description": "We build intelligent chatbots and AI-powered automation solutions to streamline your business processes and enhance customer engagement.",
+    "overview": [
+      "Leverage the power of artificial intelligence to automate repetitive tasks, provide 24/7 customer support, and enhance operational efficiency. Our team develops custom chatbots and intelligent automation workflows tailored to your specific business needs.",
+      "From simple FAQ bots to advanced AI assistants with natural language understanding, we deliver solutions that integrate seamlessly with your existing systems and deliver measurable results."
+    ],
+    "features": [
+      {
+        "icon": "Bot",
+        "title": "Custom Chatbot Development",
+        "description": "Intelligent conversational AI tailored to your brand"
+      },
+      {
+        "icon": "MessageSquare",
+        "title": "Multi-Channel Deployment",
+        "description": "Web, WhatsApp, Messenger, Telegram, and more"
+      },
+      {
+        "icon": "Brain",
+        "title": "Natural Language Processing",
+        "description": "Advanced NLP for human-like conversations"
+      },
+      {
+        "icon": "Workflow",
+        "title": "Workflow Automation",
+        "description": "AI-powered business process automation"
+      },
+      {
+        "icon": "Link2",
+        "title": "System Integration",
+        "description": "Connect with CRM, databases, and business tools"
+      },
+      {
+        "icon": "TrendingUp",
+        "title": "Continuous Learning",
+        "description": "ML models that improve over time"
+      },
+      {
+        "icon": "BarChart3",
+        "title": "Analytics & Insights",
+        "description": "Conversation analytics and performance metrics"
+      },
+      {
+        "icon": "Users",
+        "title": "Training & Support",
+        "description": "Team training and ongoing maintenance"
+      }
+    ],
+    "benefits": [
+      {
+        "metric": "24/7",
+        "label": "Availability",
+        "description": "Round-the-clock support"
+      },
+      {
+        "metric": "Scalable",
+        "label": "Solutions",
+        "description": "Grow with your business"
+      },
+      {
+        "metric": "100%",
+        "label": "Custom Built",
+        "description": "Tailored to your needs"
+      },
+      {
+        "metric": "Multi-Channel",
+        "label": "Deployment",
+        "description": "Reach customers everywhere"
+      }
+    ],
+    "benefitsList": [
+      "24/7 automated customer support",
+      "Reduced operational costs and response times",
+      "Multi-channel deployment (Web, WhatsApp, Messenger)",
+      "Seamless CRM and business tool integration"
+    ],
+    "featuresList": ["AI", "Chatbots", "Automation"],
+    "image": "/images/ai.jpg",
+    "link": "/solutions/ai-automation-chatbots",
+    "reverse": false,
+    "ctaTitle": "Ready to Automate with AI?",
+    "ctaDescription": "Discover how intelligent automation can transform your business operations",
+    "ctaButton": "Discuss Your Project",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   }

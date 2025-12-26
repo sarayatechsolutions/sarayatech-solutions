@@ -21,6 +21,9 @@ import {
   Heart,
   Share2,
   Check,
+  Bot,
+  MessageSquare,
+  Workflow,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -69,6 +72,9 @@ const SolutionDetails = () => {
       Link2,
       Palette,
       Users,
+      Bot,
+      MessageSquare,
+      Workflow,
     };
     return icons[iconName] || Cloud;
   };
@@ -149,77 +155,24 @@ const SolutionDetails = () => {
                 </div>
 
                 {/* Preview Image */}
-                <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-800/50 rounded-lg p-6 backdrop-blur-sm border border-slate-700">
-                      <div className="space-y-4">
-                        <div className="h-3 bg-slate-600 rounded w-1/3"></div>
-                        <div className="grid grid-cols-6 gap-2 h-32">
-                          {[...Array(6)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="bg-blue-500 rounded"
-                              style={{ height: `${30 + i * 15}%` }}
-                            ></div>
-                          ))}
+                <div className="relative h-96 overflow-hidden">
+                  <img
+                    src={solution.image}
+                    alt={solution.title}
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent" />
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <div className="flex gap-3 flex-wrap">
+                      {solution.featuresList.map((feature, idx) => (
+                        <div
+                          key={idx}
+                          className="px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white text-sm font-medium border border-white/20"
+                        >
+                          {feature}
                         </div>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>City Items</span>
-                          <span>2.3/unit</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="bg-slate-800/50 rounded-lg p-4 backdrop-blur-sm border border-slate-700">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-slate-400">
-                            Progress Metric
-                          </span>
-                          <span className="text-xs text-slate-300">85%</span>
-                        </div>
-                        <div className="space-y-1">
-                          {[...Array(8)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="h-2 bg-pink-500/30 rounded"
-                              style={{ width: `${(i + 1) * 12}%` }}
-                            ></div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-800/50 rounded-lg p-4 backdrop-blur-sm border border-slate-700">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs text-slate-400">
-                            Cred Type
-                          </span>
-                        </div>
-                        <div className="h-20 flex items-end justify-between gap-1">
-                          {[...Array(12)].map((_, i) => (
-                            <div
-                              key={i}
-                              className="flex-1 bg-blue-500 rounded-t"
-                              style={{ height: `${20 + Math.random() * 60}%` }}
-                            ></div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-4">
-                    <div className="w-16 h-12 bg-white rounded border-2 border-primary flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="w-16 h-12 bg-slate-800/50 rounded border border-slate-700 flex items-center justify-center">
-                      <Database className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <div className="w-16 h-12 bg-slate-800/50 rounded border border-slate-700 flex items-center justify-center">
-                      <TrendingUp className="w-6 h-6 text-slate-400" />
-                    </div>
-                    <div className="w-16 h-12 bg-slate-800/50 rounded border border-slate-700 flex items-center justify-center">
-                      <Brain className="w-6 h-6 text-slate-400" />
+                      ))}
                     </div>
                   </div>
                 </div>

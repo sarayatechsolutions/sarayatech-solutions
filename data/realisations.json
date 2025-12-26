@@ -115,7 +115,7 @@
     "author": "Muhamad Soumaré",
     "role": "CEO, SarayaTech Senegal",
     "image": "/images/SarayaTechSenegal.png",
-    "isActive": true,
+    "isActive": false,
     "link": "https://sarayatechsenegal.com/"
   }
 ]

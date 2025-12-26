@@ -68,9 +68,9 @@ const HeroSection = () => {
             >
               Your Partner for{" "}
               <span className="bg-gradient-to-r from-gold to-accent bg-clip-text text-transparent">
-                Digital
+                Digital Transformation
               </span>{" "}
-              Transformation
+              & AI Innovation
             </motion.h1>
 
             <motion.p

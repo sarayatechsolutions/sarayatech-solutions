@@ -1,16 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Cloud, Database, Cpu, Globe, Server, Shield, Zap, Lightbulb, LucideIcon } from "lucide-react";
+import { ArrowRight, Cloud, Database, Cpu, Globe, Server, Shield, Zap, Lightbulb, Bot, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
-import dashboardMockup from "@/assets/dashboard-mockup.jpg";
-import architectureIllustration from "@/assets/architecture-illustration.jpg";
 import { fadeInUpVariants, staggerItemVariants } from "@/constants/animations";
-
-const imageMap = {
-  "architecture-illustration": architectureIllustration,
-  "dashboard-mockup": dashboardMockup,
-};
 
 const iconMap = {
   Cloud,
@@ -21,13 +14,14 @@ const iconMap = {
   Shield,
   Zap,
   Lightbulb,
+  Bot,
 };
 
 const SolutionsShowcase = () => {
   const solutions = [
     SOLUTIONS_DATA["web-mobile-development"],
+    SOLUTIONS_DATA["ai-automation-chatbots"],
     SOLUTIONS_DATA["data-bi-solutions"],
-    SOLUTIONS_DATA["custom-business-software"],
   ];
 
   return (
@@ -135,9 +129,10 @@ const SolutionsShowcase = () => {
                     whileHover={{ y: -8 }}
                   >
                     <img
-                      src={imageMap[solution.image as keyof typeof imageMap]}
+                      src={solution.image}
                       alt={solution.title}
-                      className="w-full h-auto"
+                      className="w-full h-auto object-cover aspect-video"
+                      loading="lazy"
                     />
                   </motion.div>
                   {/* Decorative Element */}

@@ -9,6 +9,7 @@ import {
   Zap,
   Globe,
   Lightbulb,
+  Bot,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import solutionsData from "../../data/solutions.json";
@@ -27,6 +28,7 @@ const iconMap = {
   Zap,
   Globe,
   Lightbulb,
+  Bot,
 };
 
 const Solutions = () => {
@@ -38,6 +40,7 @@ const Solutions = () => {
     "All Services",
     "Development",
     "Data & Analytics",
+    "AI & Automation",
     "Infrastructure",
     "Consulting",
   ];
@@ -152,23 +155,30 @@ const Solutions = () => {
                     className="bg-card rounded-xl shadow-card border border-border hover-lift group overflow-hidden"
                     whileHover={{ y: -8 }}
                   >
-                    {/* Image placeholder */}
-                    <motion.div
-                      className="h-48 bg-gradient-to-br from-primary/20 to-accent/20 relative flex items-center justify-center"
-                      whileHover={{
-                        backgroundColor: "rgba(220, 70%, 25%, 0.15)",
-                      }}
-                    >
-                      <motion.div whileHover={{ scale: 1.1 }}>
-                        <Icon className="w-16 h-16 text-primary/60" />
-                      </motion.div>
+                    {/* Image */}
+                    <motion.div className="relative h-48 overflow-hidden">
+                      <img
+                        src={solution.image}
+                        alt={solution.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <motion.div
-                        className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-semibold"
+                        className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs px-3 py-1 rounded-full font-semibold shadow-lg"
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                       >
                         {solution.category}
+                      </motion.div>
+                      <motion.div
+                        className="absolute bottom-3 left-3"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                          <Icon className="w-6 h-6 text-primary" />
+                        </div>
                       </motion.div>
                     </motion.div>
 
