@@ -57,11 +57,15 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-4">
-            <Link to="/contact">
+            <a
+              href="https://calendly.com/saraya-info"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Button className="bg-accent hover:bg-accent-light shadow-card">
-                Get in touch
+                Book a Meeting
               </Button>
-            </Link>
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -118,15 +122,17 @@ const Header = () => {
                     Contact Us
                   </Button>
                 </Link>
-                <Link
-                  to="/contact"
+                <a
+                  href="https://calendly.com/saraya-info"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="block"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <Button className="w-full bg-accent hover:bg-accent-light">
-                    Discuss My Project
+                    Book a Meeting
                   </Button>
-                </Link>
+                </a>
               </motion.div>
             </motion.div>
           )}
