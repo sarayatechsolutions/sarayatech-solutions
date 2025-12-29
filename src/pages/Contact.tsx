@@ -16,7 +16,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, CheckCircle2, XCircle } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Contact = () => {
@@ -30,8 +37,8 @@ const Contact = () => {
   });
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<'success' | 'error'>('success');
-  const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState<"success" | "error">("success");
+  const [modalMessage, setModalMessage] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,11 +47,11 @@ const Contact = () => {
 
     try {
       // Use API URL from environment variable (production) or proxy (development)
-      const API_URL = import.meta.env.VITE_API_URL || '';
+      const API_URL = import.meta.env.VITE_API_URL || "";
       const response = await fetch(`${API_URL}/api/contact`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -52,8 +59,10 @@ const Contact = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setModalType('success');
-        setModalMessage("Thank you for contacting us! We've received your message and will get back to you within 24-48 hours.");
+        setModalType("success");
+        setModalMessage(
+          "Thank you for contacting us! We've received your message and will get back to you within 24-48 hours."
+        );
         setModalOpen(true);
 
         setFormData({
@@ -65,11 +74,15 @@ const Contact = () => {
           message: "",
         });
       } else {
-        throw new Error(data.message || 'Failed to send message');
+        throw new Error(data.message || "Failed to send message");
       }
     } catch (error) {
-      setModalType('error');
-      setModalMessage(error instanceof Error ? error.message : "An error occurred. Please try again later or contact us directly at info@sarayatech.com");
+      setModalType("error");
+      setModalMessage(
+        error instanceof Error
+          ? error.message
+          : "An error occurred. Please try again later or contact us directly at info@sarayatech.com"
+      );
       setModalOpen(true);
     } finally {
       setLoading(false);
@@ -208,7 +221,7 @@ const Contact = () => {
                         </label>
                         <Input
                           type="tel"
-                          placeholder="+1 (555) 123-4567"
+                          placeholder="+1 (614)-783-0443"
                           value={formData.phone}
                           onChange={(e) =>
                             setFormData({ ...formData, phone: e.target.value })
@@ -223,7 +236,10 @@ const Contact = () => {
                           placeholder="Your company name"
                           value={formData.company}
                           onChange={(e) =>
-                            setFormData({ ...formData, company: e.target.value })
+                            setFormData({
+                              ...formData,
+                              company: e.target.value,
+                            })
                           }
                         />
                       </div>
@@ -294,7 +310,8 @@ const Contact = () => {
                     </Button>
 
                     <p className="text-sm text-secondary text-center">
-                      We respect your privacy. Your information will never be shared.
+                      We respect your privacy. Your information will never be
+                      shared.
                     </p>
                   </form>
                 </div>
@@ -325,7 +342,7 @@ const Contact = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="mx-auto mb-4">
-              {modalType === 'success' ? (
+              {modalType === "success" ? (
                 <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
                   <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
@@ -336,7 +353,9 @@ const Contact = () => {
               )}
             </div>
             <DialogTitle className="text-center text-2xl">
-              {modalType === 'success' ? 'Message Sent Successfully!' : 'Oops! Something Went Wrong'}
+              {modalType === "success"
+                ? "Message Sent Successfully!"
+                : "Oops! Something Went Wrong"}
             </DialogTitle>
             <DialogDescription className="text-center text-base pt-2">
               {modalMessage}
@@ -347,7 +366,7 @@ const Contact = () => {
               onClick={() => setModalOpen(false)}
               className="w-full sm:w-auto bg-accent hover:bg-accent-light"
             >
-              {modalType === 'success' ? 'Great, Thanks!' : 'Close'}
+              {modalType === "success" ? "Great, Thanks!" : "Close"}
             </Button>
           </div>
         </DialogContent>

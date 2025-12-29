@@ -94,7 +94,11 @@ const HeroSection = () => {
               animate="visible"
             >
               <motion.div variants={staggerItemVariants}>
-                <Link to="/contact">
+                <a
+                  href="https://calendly.com/saraya-info"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -107,7 +111,7 @@ const HeroSection = () => {
                       <ArrowRight className="ml-2 group-hover:translate-x-1 transition-smooth" />
                     </Button>
                   </motion.div>
-                </Link>
+                </a>
               </motion.div>
               <motion.div variants={staggerItemVariants}>
                 <Link to="/realisation">
@@ -125,22 +129,6 @@ const HeroSection = () => {
                         size={20}
                       />
                       View Case Studies
-                    </Button>
-                  </motion.div>
-                </Link>
-              </motion.div>
-              <motion.div variants={staggerItemVariants}>
-                <Link to="/contact">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      size="lg"
-                      variant="ghost"
-                      className="text-white hover:bg-white/10 text-lg px-8 h-14"
-                    >
-                      Talk to an Expert
                     </Button>
                   </motion.div>
                 </Link>

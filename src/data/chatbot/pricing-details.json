@@ -1,0 +1,323 @@
+{
+  "website_development": [
+    {
+      "tier": "Basic Brochure Website",
+      "cost": "$1,000 - $3,500",
+      "timeline": "2-4 weeks",
+      "includes": [
+        "5-10 pages (Home, About, Services, Contact, Blog)",
+        "Mobile responsive design",
+        "Basic SEO setup",
+        "Contact form",
+        "CMS (WordPress/Webflow)",
+        "1 year hosting + domain"
+      ]
+    },
+    {
+      "tier": "Corporate/Business Website",
+      "cost": "$3,500 - $10,000",
+      "timeline": "4-8 weeks",
+      "includes": [
+        "10-25 pages with custom design",
+        "Advanced responsive design",
+        "E-commerce functionality (basic)",
+        "Blog with categories",
+        "Portfolio/gallery",
+        "Newsletter integration",
+        "Analytics setup",
+        "3-6 months support"
+      ]
+    },
+    {
+      "tier": "E-commerce Website",
+      "cost": "$5,000 - $20,000+",
+      "timeline": "6-12 weeks",
+      "includes": [
+        "Product catalog (50-500 products)",
+        "Shopping cart & checkout",
+        "Payment gateway integration",
+        "Inventory management",
+        "User accounts/order history",
+        "Shipping calculation",
+        "Admin dashboard",
+        "SEO optimization"
+      ]
+    }
+  ],
+  "mobile_apps": [
+    {
+      "tier": "Basic App (Both Platforms)",
+      "cost": "$15,000 - $40,000",
+      "timeline": "3-4 months",
+      "features": [
+        "Simple UI/UX",
+        "Basic functionality",
+        "User authentication",
+        "API integration",
+        "Push notifications",
+        "App store deployment"
+      ]
+    },
+    {
+      "tier": "Medium Complexity App",
+      "cost": "$40,000 - $80,000",
+      "timeline": "4-6 months",
+      "features": [
+        "Custom UI/animations",
+        "Payment integration",
+        "Social features",
+        "Real-time updates",
+        "Admin panel",
+        "Analytics",
+        "Multiple user roles"
+      ]
+    },
+    {
+      "tier": "Complex/Enterprise App",
+      "cost": "$80,000 - $200,000+",
+      "timeline": "6-12 months",
+      "features": [
+        "Advanced algorithms",
+        "Real-time chat/video",
+        "Offline functionality",
+        "Custom animations/UI",
+        "Complex backend",
+        "Third-party integrations",
+        "Scalable architecture"
+      ]
+    }
+  ],
+  "ai_chatbot_development": [
+    {
+      "tier": "Basic Rule-Based Chatbot",
+      "cost": "$500 - $2,500",
+      "timeline": "1-2 weeks",
+      "features": "Pre-defined Q&A, button navigation"
+    },
+    {
+      "tier": "Standard AI Chatbot (NLP)",
+      "cost": "$2,000 - $8,000",
+      "timeline": "3-6 weeks",
+      "features": "Understands natural language, learns from content"
+    },
+    {
+      "tier": "Advanced AI Chatbot (LLM Integration)",
+      "cost": "$8,000 - $25,000",
+      "timeline": "6-10 weeks",
+      "features": "GPT-4 integration, multi-language, complex queries"
+    },
+    {
+      "tier": "Enterprise AI Assistant",
+      "cost": "$20,000 - $60,000+",
+      "timeline": "10-16 weeks",
+      "features": "Custom training, CRM integration, voice interface"
+    }
+  ],
+  "ai_email_automation": [
+    {
+      "tier": "Basic Email Automation Setup",
+      "cost": "$1,000 - $4,000",
+      "includes": [
+        "Welcome sequence",
+        "Drip campaigns",
+        "Basic segmentation",
+        "Analytics setup",
+        "Template design"
+      ]
+    },
+    {
+      "tier": "Advanced AI Email Marketing",
+      "cost": "$4,000 - $15,000",
+      "includes": [
+        "AI-driven personalization",
+        "Predictive sending times",
+        "Behavior-based triggers",
+        "A/B testing automation",
+        "Advanced analytics",
+        "Integration with CRM"
+      ]
+    },
+    {
+      "tier": "Complete Marketing Automation Suite",
+      "cost": "$10,000 - $30,000",
+      "includes": [
+        "Multi-channel automation",
+        "Lead scoring AI",
+        "Customer journey mapping",
+        "Revenue attribution",
+        "Custom AI models",
+        "Team training"
+      ]
+    }
+  ],
+  "bundled_packages": [
+    {
+      "name": "Bronze Package: Startup Solution",
+      "total_cost": "$5,600",
+      "items": [
+        { "item": "Responsive Website", "price": "$3,000" },
+        { "item": "Basic SEO Setup", "price": "$500" },
+        { "item": "Email Automation", "price": "$1,500" },
+        { "item": "3 Months Support", "price": "$600" }
+      ]
+    },
+    {
+      "name": "Silver Package: Growing Business",
+      "total_cost": "$44,400",
+      "items": [
+        { "item": "Custom Web App", "price": "$15,000" },
+        { "item": "Mobile App (One Platform)", "price": "$20,000" },
+        { "item": "AI Chatbot", "price": "$4,000" },
+        { "item": "Email Marketing Setup", "price": "$3,000" },
+        { "item": "6 Months Support", "price": "$2,400" }
+      ]
+    },
+    {
+      "name": "Gold Package: Enterprise Solution",
+      "total_cost": "$157,000",
+      "items": [
+        { "item": "Fullstack Platform", "price": "$50,000" },
+        { "item": "iOS + Android Apps", "price": "$60,000" },
+        { "item": "Advanced AI Chatbot", "price": "$15,000" },
+        { "item": "Complete Marketing Automation", "price": "$20,000" },
+        { "item": "Year-long Support", "price": "$12,000" }
+      ]
+    }
+  ],
+  "specialized_solutions": [
+    {
+      "name": "AI-Powered Business Website",
+      "cost": "$4,000 - $8,000",
+      "description": "Website + basic AI chatbot + SEO"
+    },
+    {
+      "name": "Banking Tech MVP",
+      "cost": "$15,000 - $30,000",
+      "description": "Web app + basic mobile + secure features"
+    },
+    {
+      "name": "Complete Digital Transformation",
+      "cost": "$25,000 - $60,000",
+      "description": "Fullstack + mobile + AI automation + training"
+    }
+  ],
+  "cloud_system_services": {
+    "roi_focused_pricing": {
+      "note": "We anchor our cloud digitalization fees to your expected ROI. We typically save clients 30-40% in operational costs, with our fee representing just 20% of first-year savings."
+    },
+    "discovery_and_strategy_packages": [
+      {
+        "name": "Strategy Workshop",
+        "cost": "$5,000",
+        "duration": "2 Days Intensive",
+        "description": "Align stakeholders and define high-level cloud goals."
+      },
+      {
+        "name": "Technical Assessment",
+        "cost": "$15,000",
+        "duration": "1-2 Weeks",
+        "description": "Deep dive into current infrastructure with gap analysis."
+      },
+      {
+        "name": "Architecture Blueprint",
+        "cost": "$30,000",
+        "duration": "3-4 Weeks",
+        "description": "Complete technical roadmap and implementation plan."
+      }
+    ],
+    "service_categories": [
+      {
+        "category": "Cloud Digitalization & Strategy",
+        "services": [
+          { "name": "Discovery & Roadmapping", "price": "$15,000 - $50,000" },
+          { "name": "Proof of Concept (PoC)", "price": "$25,000 - $75,000" },
+          { "name": "Full Digital Transformation", "price": "$100,000 - $500,000+" }
+        ]
+      },
+      {
+        "category": "Cloud Migration Services",
+        "services": [
+          { "name": "Lift-and-Shift (Per Application)", "price": "$20,000 - $80,000" },
+          { "name": "Replatforming (Per Application)", "price": "$40,000 - $150,000" },
+          { "name": "Full Data Center Migration", "price": "$250,000 - $1M+" },
+          { "name": "Ongoing Migration Management", "price": "$10,000 - $30,000/month" }
+        ]
+      },
+      {
+        "category": "Cloud-Native Application Development",
+        "services": [
+          { "name": "Minimum Viable Product (MVP)", "price": "$75,000 - $200,000" },
+          { "name": "Enterprise Microservices Application", "price": "$200,000 - $750,000+" },
+          { "name": "Per Feature/Module Development", "price": "$15,000 - $50,000" },
+          { "name": "Monthly Retainer (DevOps + Feature Delivery)", "price": "$25,000 - $100,000/month" }
+        ]
+      },
+      {
+        "category": "AWS Connect Call Center Solutions",
+        "services": [
+          { "name": "Basic Implementation (Up to 50 agents)", "price": "$40,000 - $100,000" },
+          { "name": "Advanced Implementation (AI, CRM Integration)", "price": "$100,000 - $300,000" },
+          { "name": "Omnichannel Contact Center", "price": "$150,000 - $500,000+" },
+          { "name": "Monthly Management & Optimization", "price": "$5,000 - $25,000/month" }
+        ]
+      },
+      {
+        "category": "Application Modernization",
+        "services": [
+          { "name": "Monolith to Microservices (Per Application)", "price": "$100,000 - $400,000" },
+          { "name": "Containerization & Orchestration", "price": "$50,000 - $200,000" },
+          { "name": "Serverless Transformation", "price": "$40,000 - $150,000" },
+          { "name": "Legacy System Refactoring", "price": "$75,000 - $300,000" }
+        ]
+      },
+      {
+        "category": "Managed Cloud Services (Ongoing)",
+        "services": [
+          { "name": "Cloud Management (24/7 Monitoring, Basic)", "price": "$3,000 - $10,000/month" },
+          { "name": "DevOps as a Service (CI/CD, IaC)", "price": "$10,000 - $40,000/month" },
+          { "name": "Security & Compliance Management", "price": "$5,000 - $25,000/month" },
+          { "name": "Performance Optimization Retainer", "price": "$8,000 - $30,000/month" }
+        ]
+      }
+    ],
+    "strategic_offers": [
+      {
+        "name": "Bundle & Save",
+        "offer": "Combine Migration + Modernization + 12 Months Managed Services to unlock a 15% Discount."
+      },
+      {
+        "name": "Performance Guarantee",
+        "offer": "We guarantee 40% reduction in cloud costs or we work for free until achieved."
+      }
+    ]
+  },
+  "related_services": {
+    "ui_ux_design": [
+      { "service": "Wireframing", "price": "$500 - $3,000" },
+      { "service": "UI Design", "price": "$1,000 - $8,000" },
+      { "service": "UX Research", "price": "$2,000 - $10,000" },
+      { "service": "Design System", "price": "$3,000 - $15,000" },
+      { "service": "Complete Design Package", "price": "$5,000 - $20,000" }
+    ],
+    "devops_and_deployment": [
+      { "service": "Basic Server Setup", "price": "$500 - $2,000" },
+      { "service": "CI/CD Pipeline", "price": "$1,000 - $5,000" },
+      { "service": "Cloud Migration", "price": "$2,000 - $10,000" },
+      { "service": "Kubernetes Setup", "price": "$3,000 - $15,000" },
+      { "service": "Monitoring Setup", "price": "$1,000 - $6,000" }
+    ],
+    "seo_services": [
+      { "service": "Technical SEO Audit", "price": "$500 - $2,000" },
+      { "service": "On-page SEO Setup", "price": "$1,000 - $5,000" },
+      { "service": "Content Strategy", "price": "$2,000 - $8,000" },
+      { "service": "Monthly SEO Management", "price": "$500 - $3,000/month" },
+      { "service": "Complete SEO Package", "price": "$3,000 - $12,000" }
+    ],
+    "maintenance_and_support": [
+      { "service": "Basic Maintenance", "price": "$50 - $200/month" },
+      { "service": "Standard Support", "price": "$200 - $800/month" },
+      { "service": "Premium Support", "price": "$800 - $2,500/month" },
+      { "service": "Enterprise SLA", "price": "$2,000 - $5,000+/month" }
+    ]
+  }
+}

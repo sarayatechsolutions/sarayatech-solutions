@@ -1,0 +1,723 @@
+{
+  "intents": [
+    {
+      "id": "greeting",
+      "name": "Greeting",
+      "keywords": [
+        { "word": "hello", "weight": 10 },
+        { "word": "hi", "weight": 10 },
+        { "word": "hey", "weight": 10 },
+        { "word": "bonjour", "weight": 10 },
+        { "word": "salut", "weight": 10 },
+        { "word": "good morning", "weight": 9 },
+        { "word": "good afternoon", "weight": 9 },
+        { "word": "good evening", "weight": 9 },
+        { "word": "greetings", "weight": 9 },
+        { "word": "hey there", "weight": 9 },
+        { "word": "hiya", "weight": 8 },
+        { "word": "yo", "weight": 8 },
+        { "word": "howdy", "weight": 8 },
+        { "word": "what's up", "weight": 8 },
+        { "word": "sup", "weight": 7 }
+      ],
+      "threshold": 8,
+      "responses": [
+        "Hello! I'm Amina, your digital guide at SarayaTech Solutions. How can I assist you today?",
+        "Hi there! Welcome to SarayaTech. I'm Amina, ready to help with our services. How can I help?",
+        "Greetings! I'm Amina from SarayaTech Solutions. Happy to answer your questions about our digital solutions."
+      ]
+    },
+    {
+      "id": "services_general",
+      "name": "Services General Inquiry",
+      "keywords": [
+        { "word": "service", "weight": 10 },
+        { "word": "services", "weight": 10 },
+        { "word": "what do you do", "weight": 10 },
+        { "word": "what can you", "weight": 9 },
+        { "word": "offer", "weight": 8 },
+        { "word": "provide", "weight": 8 },
+        { "word": "solutions", "weight": 8 },
+        { "word": "help with", "weight": 7 },
+        { "word": "capabilities", "weight": 7 },
+        { "word": "expertise", "weight": 8 },
+        { "word": "specialize", "weight": 9 },
+        { "word": "portfolio of services", "weight": 9 },
+        { "word": "what are your offerings", "weight": 10 },
+        { "word": "do you build", "weight": 9 },
+        { "word": "your company does", "weight": 9 }
+      ],
+      "threshold": 7,
+      "context": "services"
+    },
+    {
+      "id": "web_development",
+      "name": "Web & Mobile Development",
+      "keywords": [
+        { "word": "website", "weight": 10 },
+        { "word": "web development", "weight": 10 },
+        { "word": "mobile app", "weight": 10 },
+        { "word": "app development", "weight": 10 },
+        { "word": "react", "weight": 8 },
+        { "word": "frontend", "weight": 8 },
+        { "word": "backend", "weight": 8 },
+        { "word": "responsive", "weight": 7 },
+        { "word": "progressive web app", "weight": 9 },
+        { "word": "pwa", "weight": 9 },
+        { "word": "ios", "weight": 7 },
+        { "word": "android", "weight": 7 },
+        { "word": "cross-platform", "weight": 8 },
+        { "word": "flutter", "weight": 8 },
+        { "word": "node", "weight": 8 },
+        { "word": "vue", "weight": 8 },
+        { "word": "angular", "weight": 8 },
+        { "word": "laravel", "weight": 8 },
+        { "word": "django", "weight": 8 },
+        { "word": "shopify", "weight": 8 },
+        { "word": "wordpress", "weight": 8 },
+        { "word": "ecommerce", "weight": 9 },
+        { "word": "web app", "weight": 10 },
+        { "word": "mobile application", "weight": 10 },
+        { "word": "ui/ux", "weight": 8 },
+        { "word": "design", "weight": 7 },
+        { "word": "full stack", "weight": 9 },
+        { "word": "native app", "weight": 8 },
+        { "word": "hybrid app", "weight": 8 },
+        { "word": "brochure site", "weight": 8 },
+        { "word": "landing page", "weight": 7 },
+        { "word": "online store", "weight": 8 },
+        { "word": "shopping cart", "weight": 7 },
+        { "word": "payment gateway", "weight": 7 },
+        { "word": "product catalog", "weight": 7 },
+        { "word": "cms", "weight": 7 },
+        { "word": "content management", "weight": 7 },
+        { "word": "saas", "weight": 8 },
+        { "word": "platform", "weight": 8 },
+        { "word": "mvp", "weight": 9 },
+        { "word": "minimum viable product", "weight": 9 },
+        { "word": "portfolio site", "weight": 7 },
+        { "word": "blog", "weight": 6 }
+      ],
+      "threshold": 7,
+      "context": "web_mobile_development"
+    },
+    {
+      "id": "ai_chatbot",
+      "name": "AI & Chatbot Services",
+      "keywords": [
+        { "word": "ai", "weight": 10 },
+        { "word": "artificial intelligence", "weight": 10 },
+        { "word": "chatbot", "weight": 10 },
+        { "word": "bot", "weight": 9 },
+        { "word": "automation", "weight": 9 },
+        { "word": "automate", "weight": 8 },
+        { "word": "machine learning", "weight": 9 },
+        { "word": "ml", "weight": 8 },
+        { "word": "nlp", "weight": 9 },
+        { "word": "natural language", "weight": 8 },
+        { "word": "conversational", "weight": 7 },
+        { "word": "intelligent", "weight": 6 },
+        { "word": "generative ai", "weight": 10 },
+        { "word": "genai", "weight": 9 },
+        { "word": "llm", "weight": 9 },
+        { "word": "large language model", "weight": 9 },
+        { "word": "openai", "weight": 8 },
+        { "word": "gpt", "weight": 8 },
+        { "word": "voice bot", "weight": 8 },
+        { "word": "virtual assistant", "weight": 9 },
+        { "word": "rpa", "weight": 8 },
+        { "word": "robotic process automation", "weight": 9 },
+        { "word": "predictive", "weight": 7 },
+        { "word": "email automation", "weight": 9 },
+        { "word": "marketing automation", "weight": 9 },
+        { "word": "drip campaign", "weight": 7 },
+        { "word": "lead scoring", "weight": 7 },
+        { "word": "customer journey", "weight": 7 },
+        { "word": "personalization", "weight": 7 },
+        { "word": "rule-based", "weight": 6 },
+        { "word": "voice interface", "weight": 7 }
+      ],
+      "threshold": 7,
+      "context": "ai_automation"
+    },
+    {
+      "id": "data_analytics",
+      "name": "Data & Analytics",
+      "keywords": [
+        { "word": "data", "weight": 10 },
+        { "word": "analytics", "weight": 10 },
+        { "word": "analytic", "weight": 10 },
+        { "word": "analysis", "weight": 9 },
+        { "word": "business intelligence", "weight": 10 },
+        { "word": "bi", "weight": 9 },
+        { "word": "dashboard", "weight": 9 },
+        { "word": "reporting", "weight": 8 },
+        { "word": "insights", "weight": 8 },
+        { "word": "visualization", "weight": 8 },
+        { "word": "power bi", "weight": 9 },
+        { "word": "tableau", "weight": 9 },
+        { "word": "kpi", "weight": 8 },
+        { "word": "big data", "weight": 9 },
+        { "word": "data warehouse", "weight": 9 },
+        { "word": "etl", "weight": 8 },
+        { "word": "data pipeline", "weight": 9 },
+        { "word": "sql", "weight": 8 },
+        { "word": "python", "weight": 7 },
+        { "word": "predictive analytics", "weight": 9 },
+        { "word": "data science", "weight": 10 },
+        { "word": "data scientist", "weight": 9 },
+        { "word": "metrics", "weight": 8 },
+        { "word": "scorecard", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "data_bi"
+    },
+    {
+      "id": "cloud_services",
+      "name": "Cloud & DevOps",
+      "keywords": [
+        { "word": "cloud", "weight": 10 },
+        { "word": "aws", "weight": 10 },
+        { "word": "azure", "weight": 10 },
+        { "word": "google cloud", "weight": 10 },
+        { "word": "gcp", "weight": 10 },
+        { "word": "devops", "weight": 10 },
+        { "word": "deployment", "weight": 8 },
+        { "word": "infrastructure", "weight": 8 },
+        { "word": "migration", "weight": 9 },
+        { "word": "ci/cd", "weight": 9 },
+        { "word": "docker", "weight": 8 },
+        { "word": "kubernetes", "weight": 8 },
+        { "word": "serverless", "weight": 9 },
+        { "word": "terraform", "weight": 8 },
+        { "word": "ansible", "weight": 8 },
+        { "word": "jenkins", "weight": 8 },
+        { "word": "cloud migration", "weight": 10 },
+        { "word": "iac", "weight": 8 },
+        { "word": "infrastructure as code", "weight": 9 },
+        { "word": "hosting", "weight": 8 },
+        { "word": "scalability", "weight": 7 },
+        { "word": "cloud strategy", "weight": 9 },
+        { "word": "digitalization", "weight": 9 },
+        { "word": "lift and shift", "weight": 8 },
+        { "word": "replatforming", "weight": 8 },
+        { "word": "microservices", "weight": 9 },
+        { "word": "containerization", "weight": 8 },
+        { "word": "cloud native", "weight": 9 },
+        { "word": "aws connect", "weight": 8 },
+        { "word": "call center", "weight": 7 },
+        { "word": "modernization", "weight": 9 },
+        { "word": "monolith", "weight": 7 },
+        { "word": "managed services", "weight": 8 },
+        { "word": "24/7 monitoring", "weight": 7 }
+      ],
+      "threshold": 7,
+      "context": "cloud_devops"
+    },
+    {
+      "id": "pricing",
+      "name": "Pricing Inquiry",
+      "keywords": [
+        { "word": "price", "weight": 10 },
+        { "word": "pricing", "weight": 10 },
+        { "word": "cost", "weight": 10 },
+        { "word": "how much", "weight": 10 },
+        { "word": "budget", "weight": 9 },
+        { "word": "quote", "weight": 9 },
+        { "word": "estimate", "weight": 9 },
+        { "word": "fees", "weight": 8 },
+        { "word": "rates", "weight": 8 },
+        { "word": "quotation", "weight": 9 },
+        { "word": "subscription", "weight": 8 },
+        { "word": "hourly rate", "weight": 9 },
+        { "word": "fixed price", "weight": 9 },
+        { "word": "cost effective", "weight": 8 },
+        { "word": "value for money", "weight": 8 },
+        { "word": "affordable", "weight": 8 },
+        { "word": "price range", "weight": 9 },
+        { "word": "investment", "weight": 8 },
+        { "word": "roi", "weight": 8 },
+        { "word": "return on investment", "weight": 9 },
+        { "word": "breakdown", "weight": 8 },
+        { "word": "tier", "weight": 7 },
+        { "word": "plan", "weight": 7 },
+        { "word": "discount", "weight": 8 },
+        { "word": "savings", "weight": 7 },
+        { "word": "starting from", "weight": 8 },
+        { "word": "brochure website", "weight": 7 },
+        { "word": "ecommerce site", "weight": 7 },
+        { "word": "corporate website", "weight": 7 }
+      ],
+      "threshold": 7,
+      "context": "pricing"
+    },
+    {
+      "id": "contact",
+      "name": "Contact Information",
+      "keywords": [
+        { "word": "contact", "weight": 10 },
+        { "word": "email", "weight": 10 },
+        { "word": "phone", "weight": 10 },
+        { "word": "call", "weight": 9 },
+        { "word": "reach", "weight": 9 },
+        { "word": "get in touch", "weight": 10 },
+        { "word": "talk to", "weight": 8 },
+        { "word": "speak with", "weight": 8 },
+        { "word": "whatsapp", "weight": 9 },
+        { "word": "linkedin", "weight": 8 },
+        { "word": "address", "weight": 8 },
+        { "word": "telephone number", "weight": 9 }
+      ],
+      "threshold": 7,
+      "context": "contact"
+    },
+    {
+      "id": "booking",
+      "name": "Book Meeting/Consultation",
+      "keywords": [
+        { "word": "book", "weight": 10 },
+        { "word": "schedule", "weight": 10 },
+        { "word": "appointment", "weight": 10 },
+        { "word": "meeting", "weight": 10 },
+        { "word": "consultation", "weight": 10 },
+        { "word": "discuss", "weight": 9 },
+        { "word": "demo", "weight": 9 },
+        { "word": "call", "weight": 8 },
+        { "word": "calendly", "weight": 10 },
+        { "word": "discovery call", "weight": 9 },
+        { "word": "free consultation", "weight": 9 },
+        { "word": "zoom call", "weight": 8 },
+        { "word": "availability", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "booking"
+    },
+    {
+      "id": "timeline",
+      "name": "Project Timeline",
+      "keywords": [
+        { "word": "timeline", "weight": 10 },
+        { "word": "how long", "weight": 10 },
+        { "word": "duration", "weight": 10 },
+        { "word": "time", "weight": 8 },
+        { "word": "deadline", "weight": 9 },
+        { "word": "delivery", "weight": 8 },
+        { "word": "how soon", "weight": 9 },
+        { "word": "timeframe", "weight": 10 },
+        { "word": "project duration", "weight": 10 },
+        { "word": "launch date", "weight": 8 },
+        { "word": "go live", "weight": 8 }
+      ],
+      "threshold": 6,
+      "context": "process"
+    },
+    {
+      "id": "process",
+      "name": "Work Process",
+      "keywords": [
+        { "word": "process", "weight": 10 },
+        { "word": "workflow", "weight": 10 },
+        { "word": "how do you work", "weight": 10 },
+        { "word": "methodology", "weight": 9 },
+        { "word": "approach", "weight": 8 },
+        { "word": "steps", "weight": 8 },
+        { "word": "agile", "weight": 7 },
+        { "word": "scrum", "weight": 7 },
+        { "word": "waterfall", "weight": 7 },
+        { "word": "development process", "weight": 10 },
+        { "word": "project management", "weight": 9 },
+        { "word": "phases", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "process"
+    },
+    {
+      "id": "technology",
+      "name": "Technology Stack",
+      "keywords": [
+        { "word": "technology", "weight": 10 },
+        { "word": "technologies", "weight": 10 },
+        { "word": "tech stack", "weight": 10 },
+        { "word": "tools", "weight": 8 },
+        { "word": "framework", "weight": 8 },
+        { "word": "stack", "weight": 9 },
+        { "word": "programming language", "weight": 9 },
+        { "word": "what do you use", "weight": 10 },
+        { "word": "preferred tech", "weight": 9 }
+      ],
+      "threshold": 6,
+      "context": "services"
+    },
+    {
+      "id": "portfolio",
+      "name": "Portfolio & Case Studies",
+      "keywords": [
+        { "word": "portfolio", "weight": 10 },
+        { "word": "case studies", "weight": 10 },
+        { "word": "projects", "weight": 9 },
+        { "word": "examples", "weight": 9 },
+        { "word": "previous work", "weight": 9 },
+        { "word": "clients", "weight": 7 },
+        { "word": "testimonials", "weight": 8 },
+        { "word": "showcase", "weight": 9 },
+        { "word": "references", "weight": 9 },
+        { "word": "success stories", "weight": 9 }
+      ],
+      "threshold": 7,
+      "context": "company"
+    },
+    {
+      "id": "location",
+      "name": "Location & Availability",
+      "keywords": [
+        { "word": "location", "weight": 10 },
+        { "word": "where", "weight": 9 },
+        { "word": "address", "weight": 10 },
+        { "word": "based", "weight": 8 },
+        { "word": "office", "weight": 9 },
+        { "word": "country", "weight": 8 },
+        { "word": "timezone", "weight": 8 },
+        { "word": "remote", "weight": 7 },
+        { "word": "headquarters", "weight": 9 },
+        { "word": "operate from", "weight": 9 },
+        { "word": "visit", "weight": 8 },
+        { "word": "columbus", "weight": 9 },
+        { "word": "ohio", "weight": 8 }
+      ],
+      "threshold": 7,
+      "responses": [
+        "We're located at **2765 S Hamilton Rd, Columbus, OH 43232, United States**.\n\nWhile we operate globally with a distributed team, our office is in Columbus, Ohio. We serve clients worldwide through remote collaboration and are happy to arrange meetings either in-person or virtually.\n\n📧 **Email:** contact@sarayatech.com\n📞 **Phone:** +1 (614)-783-0443\n📅 **Book a meeting:** https://calendly.com/saraya-info\n\n🔗 **Visit our contact page:** /contact"
+      ]
+    },
+    {
+      "id": "support",
+      "name": "Support & Maintenance",
+      "keywords": [
+        { "word": "support", "weight": 10 },
+        { "word": "maintenance", "weight": 10 },
+        { "word": "help", "weight": 8 },
+        { "word": "assistance", "weight": 8 },
+        { "word": "after launch", "weight": 9 },
+        { "word": "updates", "weight": 8 },
+        { "word": "bugs", "weight": 8 },
+        { "word": "post-launch", "weight": 9 },
+        { "word": "ongoing support", "weight": 10 },
+        { "word": "sla", "weight": 8 },
+        { "word": "service level agreement", "weight": 9 },
+        { "word": "retainer", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "process"
+    },
+    {
+      "id": "custom_solution",
+      "name": "Custom Software",
+      "keywords": [
+        { "word": "custom", "weight": 10 },
+        { "word": "bespoke", "weight": 10 },
+        { "word": "tailored", "weight": 9 },
+        { "word": "specific needs", "weight": 9 },
+        { "word": "unique", "weight": 8 },
+        { "word": "enterprise", "weight": 8 },
+        { "word": "custom software", "weight": 10 },
+        { "word": "made to order", "weight": 9 },
+        { "word": "personalized", "weight": 9 }
+      ],
+      "threshold": 7,
+      "context": "custom_software"
+    },
+    {
+      "id": "security",
+      "name": "Security & Compliance",
+      "keywords": [
+        { "word": "security", "weight": 10 },
+        { "word": "secure", "weight": 10 },
+        { "word": "cybersecurity", "weight": 10 },
+        { "word": "compliance", "weight": 10 },
+        { "word": "gdpr", "weight": 9 },
+        { "word": "encryption", "weight": 9 },
+        { "word": "protection", "weight": 8 },
+        { "word": "data privacy", "weight": 10 },
+        { "word": "iso", "weight": 8 },
+        { "word": "soc", "weight": 8 },
+        { "word": "penetration testing", "weight": 9 },
+        { "word": "vulnerability", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "cybersecurity"
+    },
+    {
+      "id": "company_info",
+      "name": "Company Information",
+      "keywords": [
+        { "word": "company", "weight": 10 },
+        { "word": "about", "weight": 10 },
+        { "word": "who are you", "weight": 10 },
+        { "word": "history", "weight": 9 },
+        { "word": "team size", "weight": 9 },
+        { "word": "founded", "weight": 8 },
+        { "word": "about us", "weight": 10 },
+        { "word": "your story", "weight": 9 },
+        { "word": "mission", "weight": 8 },
+        { "word": "vision", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "company"
+    },
+    {
+      "id": "experience",
+      "name": "Experience & References",
+      "keywords": [
+        { "word": "experience", "weight": 10 },
+        { "word": "references", "weight": 10 },
+        { "word": "similar projects", "weight": 9 },
+        { "word": "done before", "weight": 9 },
+        { "word": "years in business", "weight": 9 },
+        { "word": "track record", "weight": 9 },
+        { "word": "past clients", "weight": 9 }
+      ],
+      "threshold": 7,
+      "context": "company"
+    },
+    {
+      "id": "integration",
+      "name": "Integrations",
+      "keywords": [
+        { "word": "integration", "weight": 10 },
+        { "word": "integrate", "weight": 10 },
+        { "word": "api", "weight": 9 },
+        { "word": "existing system", "weight": 9 },
+        { "word": "third-party", "weight": 8 },
+        { "word": "connect", "weight": 9 },
+        { "word": "zapier", "weight": 8 },
+        { "word": "webhook", "weight": 8 },
+        { "word": "crm", "weight": 8 },
+        { "word": "erp", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "services"
+    },
+    {
+      "id": "scalability",
+      "name": "Scalability",
+      "keywords": [
+        { "word": "scale", "weight": 10 },
+        { "word": "scalability", "weight": 10 },
+        { "word": "grow", "weight": 9 },
+        { "word": "high traffic", "weight": 8 },
+        { "word": "performance", "weight": 8 },
+        { "word": "load balancing", "weight": 8 },
+        { "word": "future proof", "weight": 9 }
+      ],
+      "threshold": 7,
+      "context": "services"
+    },
+    {
+      "id": "team",
+      "name": "Team Expertise",
+      "keywords": [
+        { "word": "team", "weight": 10 },
+        { "word": "developers", "weight": 10 },
+        { "word": "experts", "weight": 9 },
+        { "word": "who works", "weight": 9 },
+        { "word": "engineers", "weight": 9 },
+        { "word": "specialists", "weight": 9 },
+        { "word": "staff", "weight": 8 }
+      ],
+      "threshold": 7,
+      "context": "company"
+    },
+    {
+      "id": "payment",
+      "name": "Payment Terms",
+      "keywords": [
+        { "word": "payment", "weight": 10 },
+        { "word": "payment terms", "weight": 10 },
+        { "word": "pay", "weight": 9 },
+        { "word": "milestone", "weight": 9 },
+        { "word": "installment", "weight": 10 },
+        { "word": "installments", "weight": 10 },
+        { "word": "deposit", "weight": 9 },
+        { "word": "invoice", "weight": 8 },
+        { "word": "payment schedule", "weight": 10 },
+        { "word": "payment plan", "weight": 10 },
+        { "word": "upfront", "weight": 8 },
+        { "word": "down payment", "weight": 9 },
+        { "word": "financing", "weight": 9 },
+        { "word": "split payment", "weight": 9 }
+      ],
+      "threshold": 8,
+      "context": "pricing"
+    },
+    {
+      "id": "contract",
+      "name": "Contract & Terms",
+      "keywords": [
+        { "word": "contract", "weight": 10 },
+        { "word": "terms", "weight": 10 },
+        { "word": "agreement", "weight": 9 },
+        { "word": "warranty", "weight": 8 },
+        { "word": "nda", "weight": 9 },
+        { "word": "ip rights", "weight": 9 },
+        { "word": "intellectual property", "weight": 9 },
+        { "word": "terms and conditions", "weight": 10 }
+      ],
+      "threshold": 7,
+      "context": "process"
+    },
+    {
+      "id": "packages",
+      "name": "Service Packages & Bundles",
+      "keywords": [
+        { "word": "package", "weight": 10 },
+        { "word": "bundle", "weight": 10 },
+        { "word": "combo", "weight": 9 },
+        { "word": "starter package", "weight": 10 },
+        { "word": "bronze", "weight": 9 },
+        { "word": "silver", "weight": 9 },
+        { "word": "gold", "weight": 9 },
+        { "word": "complete solution", "weight": 9 },
+        { "word": "all-in-one", "weight": 9 },
+        { "word": "startup solution", "weight": 9 },
+        { "word": "enterprise solution", "weight": 9 },
+        { "word": "digital transformation", "weight": 9 },
+        { "word": "turnkey", "weight": 8 },
+        { "word": "full package", "weight": 9 }
+      ],
+      "threshold": 7,
+      "responses": [
+        "We offer comprehensive packages designed for different business needs:\n\n**Bronze Package - Startup Solution** ($5,600)\n• Responsive Website + Basic SEO + Email Automation + 3 Months Support\n\n**Silver Package - Growing Business** ($44,400)\n• Custom Web App + Mobile App + AI Chatbot + Email Marketing + 6 Months Support\n\n**Gold Package - Enterprise Solution** ($157,000)\n• Fullstack Platform + iOS/Android Apps + Advanced AI + Marketing Automation + Year Support\n\nWe also offer specialized bundles like AI-Powered Business Website, Banking Tech MVP, and Complete Digital Transformation solutions.\n\nInterested in learning more about a specific package? I'd be happy to provide detailed breakdowns!"
+      ]
+    },
+    {
+      "id": "out_of_scope",
+      "name": "Out of Scope / Fallback",
+      "keywords": [],
+      "threshold": 0,
+      "responses": [
+        "Sorry, I'm not sure I understand. Can you clarify? Or would you prefer to speak with a human?"
+      ]
+    },
+    {
+      "id": "thanks",
+      "name": "Gratitude",
+      "keywords": [
+        { "word": "thank", "weight": 10 },
+        { "word": "thanks", "weight": 10 },
+        { "word": "appreciate", "weight": 9 },
+        { "word": "grateful", "weight": 8 },
+        { "word": "thank you", "weight": 10 },
+        { "word": "thanks a lot", "weight": 10 }
+      ],
+      "threshold": 8,
+      "responses": [
+        "You're welcome! Feel free to ask if you have more questions.",
+        "My pleasure! I'm here if you need anything else.",
+        "Glad to help! Reach out for more info."
+      ]
+    },
+    {
+      "id": "problem_online_presence",
+      "name": "Online Presence Problem",
+      "keywords": [
+        { "word": "online presence", "weight": 10 },
+        { "word": "not found online", "weight": 10 },
+        { "word": "invisible online", "weight": 9 },
+        { "word": "no website", "weight": 9 },
+        { "word": "web visibility", "weight": 8 },
+        { "word": "local customers can't find", "weight": 9 }
+      ],
+      "threshold": 8,
+      "context": "online_presence"
+    },
+    {
+      "id": "problem_lead_generation",
+      "name": "Lead Generation Problem",
+      "keywords": [
+        { "word": "not converting", "weight": 10 },
+        { "word": "generate leads", "weight": 10 },
+        { "word": "poor conversion", "weight": 9 },
+        { "word": "traffic not converting", "weight": 10 },
+        { "word": "need more sales", "weight": 8 },
+        { "word": "improve sales", "weight": 8 }
+      ],
+      "threshold": 8,
+      "context": "lead_generation"
+    },
+    {
+      "id": "problem_customer_engagement",
+      "name": "Customer Engagement Problem",
+      "keywords": [
+        { "word": "customer retention", "weight": 10 },
+        { "word": "engagement", "weight": 9 },
+        { "word": "interact with customers", "weight": 9 },
+        { "word": "user churn", "weight": 9 },
+        { "word": "keep customers", "weight": 8 },
+        { "word": "customer service", "weight": 7 }
+      ],
+      "threshold": 7,
+      "context": "customer_engagement"
+    },
+    {
+      "id": "problem_automation",
+      "name": "Automation Problem",
+      "keywords": [
+        { "word": "repetitive", "weight": 10 },
+        { "word": "same questions", "weight": 10 },
+        { "word": "automate", "weight": 9 },
+        { "word": "manual process", "weight": 9 },
+        { "word": "support queries", "weight": 8 },
+        { "word": "time consuming", "weight": 8 }
+      ],
+      "threshold": 8,
+      "context": "automation"
+    },
+    {
+      "id": "problem_scalability",
+      "name": "Scalability Problem",
+      "keywords": [
+        { "word": "scale", "weight": 10 },
+        { "word": "peak loads", "weight": 10 },
+        { "word": "infrastructure", "weight": 9 },
+        { "word": "growth", "weight": 8 },
+        { "word": "high traffic", "weight": 9 },
+        { "word": "can't handle", "weight": 8 }
+      ],
+      "threshold": 8,
+      "context": "scalability"
+    },
+    {
+      "id": "problem_legacy_systems",
+      "name": "Legacy Systems Problem",
+      "keywords": [
+        { "word": "legacy", "weight": 10 },
+        { "word": "outdated", "weight": 10 },
+        { "word": "monolithic", "weight": 9 },
+        { "word": "technical debt", "weight": 10 },
+        { "word": "old system", "weight": 9 },
+        { "word": "slow release", "weight": 8 }
+      ],
+      "threshold": 8,
+      "context": "legacy_systems"
+    },
+    {
+      "id": "goodbye",
+      "name": "Farewell",
+      "keywords": [
+        { "word": "bye", "weight": 10 },
+        { "word": "goodbye", "weight": 10 },
+        { "word": "see you", "weight": 9 },
+        { "word": "later", "weight": 7 },
+        { "word": "take care", "weight": 9 },
+        { "word": "farewell", "weight": 9 },
+        { "word": "catch you later", "weight": 8 }
+      ],
+      "threshold": 7,
+      "responses": [
+        "Goodbye! Come back if you have more questions. Have a great day!",
+        "Take care! We're here whenever you need us.",
+        "See you soon! Book a meeting if you'd like to discuss your project: https://calendly.com/saraya-info"
+      ]
+    }
+  ]
+}

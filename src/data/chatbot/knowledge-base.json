@@ -1,0 +1,550 @@
+{
+  "company": {
+    "name": "SarayaTech Solutions",
+    "description": "A leading digital transformation and AI innovation company specializing in custom software development, data solutions, and cloud services.",
+    "mission": "To design and develop custom digital solutions that precisely meet our clients' needs, simplifying technology rather than complicating it.",
+    "founded": "2020",
+    "location": "Operates globally with a distributed team serving clients worldwide",
+    "stats": {
+      "projects_delivered": "250+",
+      "enterprise_clients": "50+",
+      "years_experience": "20+",
+      "client_satisfaction": "97%",
+      "countries_served": "20+",
+      "industries_served": "6+"
+    },
+    "contact": {
+      "email": "info@saraya.tech",
+      "phone": "+1 (614)-783-0443",
+      "calendly": "https://calendly.com/saraya-info",
+      "address": {
+        "street": "2765 S Hamilton Rd",
+        "city": "Columbus",
+        "state": "OH",
+        "zip": "43232",
+        "country": "United States",
+        "full": "2765 S Hamilton Rd, Columbus, OH 43232, United States"
+      },
+      "social": {
+        "linkedin": "linkedin.com/company/sarayatech",
+        "twitter": "@sarayatech"
+      }
+    },
+    "team": {
+      "size": "Expert team with 8+ years of experience",
+      "leadership": [
+        {
+          "name": "Cheikh Ahmed Tidiani Top",
+          "role": "Tech Lead",
+          "experience": "8+ years in full stack development, specializing in React/Node.js architectures",
+          "education": "Graduate of École Polytechnique de Thiès"
+        },
+        {
+          "name": "Souleymane Sanokho",
+          "role": "Senior Software Engineer",
+          "expertise": "Full stack development with React, Next.js, TypeScript and PostgreSQL",
+          "contributions": "Contributor to numerous open source projects and technical training programs in Senegal"
+        },
+        {
+          "name": "Issa Diané",
+          "role": "Senior Software Engineer",
+          "expertise": "High-performance and scalable web applications",
+          "education": "Computer Engineering from UCAD"
+        },
+        {
+          "name": "Baye Lam",
+          "role": "DevOps Engineer",
+          "experience": "6+ years in DevOps and cloud infrastructure",
+          "expertise": "Kubernetes, Docker, CI/CD, AWS/Azure"
+        }
+      ]
+    }
+  },
+  "services": {
+    "web_mobile_development": {
+      "name": "Web & Mobile Development",
+      "subtitle": "Custom web and mobile applications tailored to your business needs",
+      "description": "We design and develop high-performance, scalable web and mobile applications perfectly aligned with your business objectives.",
+      "technologies": [
+        "React",
+        "Vue.js",
+        "Angular",
+        "Node.js",
+        "Python",
+        ".NET",
+        "React Native",
+        "Flutter",
+        "TypeScript",
+        "Next.js"
+      ],
+      "use_cases": [
+        "Modern Web Applications",
+        "Native Mobile Apps (iOS/Android)",
+        "Progressive Web Apps (PWA)",
+        "E-commerce platforms",
+        "SaaS applications"
+      ],
+      "pricing_range": "Starting from $15,000",
+      "timeline": "3 months average from idea to launch",
+      "stats": {
+        "projects_delivered": "50+",
+        "client_satisfaction": "95%",
+        "average_timeline": "3 months",
+        "custom_built": "100%"
+      },
+      "benefits": [
+        "Modern and performant technologies",
+        "Agile and iterative approach",
+        "Quality and maintainable code",
+        "End-to-end support",
+        "Cross-platform compatibility",
+        "UI/UX design included",
+        "Third-party integrations",
+        "Post-launch training & support"
+      ]
+    },
+    "ai_automation": {
+      "name": "AI Automation & Chatbot Development",
+      "subtitle": "Intelligent chatbots and AI-powered automation solutions",
+      "description": "We build intelligent chatbots and AI-powered automation solutions to streamline your business processes and enhance customer engagement.",
+      "features": [
+        "Custom chatbot development with NLP",
+        "Multi-channel deployment (Web, WhatsApp, Messenger, Telegram)",
+        "Workflow automation",
+        "CRM and business tool integration",
+        "24/7 automated customer support",
+        "Continuous learning ML models",
+        "Analytics & conversation insights"
+      ],
+      "technologies": [
+        "OpenAI GPT",
+        "NLP",
+        "Machine Learning",
+        "Python",
+        "TensorFlow",
+        "Natural Language Processing"
+      ],
+      "use_cases": [
+        "Customer service automation",
+        "Lead qualification",
+        "FAQ automation",
+        "Booking systems",
+        "Virtual assistants"
+      ],
+      "pricing_range": "Starting from $10,000",
+      "benefits": [
+        "Reduce operational costs by 60%",
+        "24/7 availability",
+        "Multi-language support",
+        "Seamless integration with existing systems",
+        "Scalable solutions that grow with your business",
+        "100% custom built for your brand"
+      ]
+    },
+    "data_bi": {
+      "name": "Data & Business Intelligence Solutions",
+      "subtitle": "Transform your data into strategic insights",
+      "description": "We develop data analysis and business intelligence solutions tailored to your business needs for informed decision-making.",
+      "features": [
+        "Custom BI dashboards (Power BI, Tableau, custom)",
+        "Data warehouse design and implementation",
+        "Predictive analytics and ML models",
+        "Real-time reporting",
+        "ETL pipelines and automation",
+        "Multi-source data integration",
+        "Data governance and GDPR compliance"
+      ],
+      "technologies": [
+        "Power BI",
+        "Tableau",
+        "Apache Spark",
+        "SQL",
+        "Python",
+        "AWS Redshift",
+        "ETL tools"
+      ],
+      "use_cases": [
+        "Sales analytics",
+        "Financial reporting",
+        "Marketing insights",
+        "Operational dashboards",
+        "Predictive models"
+      ],
+      "pricing_range": "Starting from $12,000",
+      "stats": {
+        "data_projects": "30+",
+        "time_saved": "70%",
+        "complete_vision": "360°",
+        "live_data": "Real-time updates"
+      },
+      "benefits": [
+        "Custom dashboards with Power BI, Tableau, or custom solutions",
+        "Automated data pipelines",
+        "Predictive analytics and Machine Learning",
+        "Team training on tools",
+        "70% time saved in data analysis",
+        "Real-time updated dashboards"
+      ]
+    },
+    "custom_software": {
+      "name": "Custom Business Software Development",
+      "subtitle": "Tailored software solutions for your specific processes",
+      "description": "We design custom business software that perfectly adapts to your processes and specific needs including ERP, CRM, management systems, and specialized platforms.",
+      "features": [
+        "Modular and scalable architecture",
+        "Full-stack development (Frontend, Backend, Database)",
+        "System integrations with existing tools",
+        "Process automation and workflows",
+        "Multi-user management with roles and permissions",
+        "Cloud or on-premise deployment",
+        "Enhanced security (authentication, encryption, audit)",
+        "Long-term support and maintenance"
+      ],
+      "technologies": [
+        "Java",
+        "Python",
+        ".NET",
+        "Go",
+        "Kubernetes",
+        "Docker",
+        "React",
+        "Node.js"
+      ],
+      "pricing_range": "Starting from $20,000",
+      "stats": {
+        "software_created": "40+",
+        "productivity_gain": "60%",
+        "customization": "100%"
+      },
+      "benefits": [
+        "In-depth analysis of your business needs",
+        "Robust and scalable technical architecture",
+        "Agile development with continuous feedback",
+        "Complete documentation and training",
+        "60% average productivity gain",
+        "100% customized to your processes"
+      ]
+    },
+    "cloud_devops": {
+      "name": "Cloud & Infrastructure Services",
+      "subtitle": "Secure, high-performance and optimized cloud infrastructures",
+      "description": "We guide you in designing, deploying and optimizing your cloud infrastructure for performance, security, and cost-efficiency.",
+      "features": [
+        "Cloud consulting and strategy",
+        "Cloud migration (AWS, Azure, Google Cloud)",
+        "Containerization (Docker, Kubernetes)",
+        "CI/CD pipeline setup",
+        "Infrastructure as Code (IaC)",
+        "Monitoring and observability",
+        "Performance optimization",
+        "Cost optimization (40% average savings)",
+        "Infrastructure security and disaster recovery"
+      ],
+      "technologies": [
+        "AWS",
+        "Azure",
+        "Google Cloud",
+        "Terraform",
+        "Jenkins",
+        "GitLab CI",
+        "Docker",
+        "Kubernetes",
+        "Ansible"
+      ],
+      "pricing_range": "Starting from $8,000",
+      "stats": {
+        "infrastructures_deployed": "25+",
+        "cost_savings": "40%",
+        "availability": "99.9%",
+        "monitoring": "24/7"
+      },
+      "benefits": [
+        "Multi-cloud expertise (AWS, Azure, GCP)",
+        "Complete automation (IaC, CI/CD)",
+        "Guaranteed security and compliance",
+        "Continuous cost optimization",
+        "40% average cloud cost savings",
+        "99.9% uptime availability"
+      ]
+    },
+    "digital_transformation": {
+      "name": "Digital Strategy & Consulting",
+      "subtitle": "Strategic support for successful digital transformation",
+      "description": "We support you in defining and implementing your digital strategy for concrete and measurable results through audits, roadmaps, and expert guidance.",
+      "features": [
+        "Technical audit and system analysis",
+        "Digital roadmap creation",
+        "IT architecture design",
+        "Technology selection advice",
+        "Project management support",
+        "ROI optimization",
+        "Security and GDPR consulting",
+        "Training and change management"
+      ],
+      "pricing_range": "Starting from $5,000",
+      "stats": {
+        "consulting_missions": "60+",
+        "customization": "100%"
+      },
+      "benefits": [
+        "Industry and technical expertise",
+        "Proven methodology (Agile, Lean)",
+        "Strategic and operational vision",
+        "End-to-end support",
+        "Senior consultant expertise"
+      ]
+    },
+    "cybersecurity": {
+      "name": "Security & Compliance",
+      "subtitle": "Secure your applications and ensure regulatory compliance",
+      "description": "We secure your applications and infrastructures while ensuring compliance with GDPR and other regulations through comprehensive security solutions.",
+      "features": [
+        "Security audit and vulnerability assessment",
+        "Application security (OWASP, penetration testing)",
+        "Encryption and authentication",
+        "GDPR compliance implementation",
+        "Security monitoring and threat detection",
+        "IAM and Single Sign-On (SSO)",
+        "Data security (backup, recovery, anonymization)",
+        "Security awareness training"
+      ],
+      "technologies": [
+        "SIEM tools",
+        "Firewall management",
+        "Encryption",
+        "Zero Trust Architecture",
+        "Penetration testing tools"
+      ],
+      "pricing_range": "Starting from $7,000",
+      "stats": {
+        "security_audits": "20+",
+        "gdpr_compliance": "100%",
+        "breaches_on_projects": "0"
+      },
+      "benefits": [
+        "Certified cybersecurity expertise",
+        "Security by Design approach",
+        "Guaranteed regulatory compliance",
+        "Continuous threat monitoring",
+        "100% GDPR compliance guaranteed",
+        "Zero breaches on secured projects"
+      ]
+    }
+  },
+  "process": {
+    "consultation": {
+      "step": 1,
+      "name": "Free Consultation",
+      "description": "We start with a discovery call to understand your business needs, challenges, and goals.",
+      "duration": "30-60 minutes",
+      "deliverable": "Project scope document"
+    },
+    "proposal": {
+      "step": 2,
+      "name": "Proposal & Planning",
+      "description": "We create a detailed proposal with timeline, budget, and technical approach.",
+      "duration": "3-5 business days",
+      "deliverable": "Detailed proposal and project plan"
+    },
+    "development": {
+      "step": 3,
+      "name": "Development & Iteration",
+      "description": "Our team builds your solution with regular check-ins and progress updates using Agile methodology.",
+      "duration": "Varies by project (average 3 months)",
+      "deliverable": "Working prototype and iterations"
+    },
+    "deployment": {
+      "step": 4,
+      "name": "Testing & Deployment",
+      "description": "Rigorous testing followed by smooth deployment to production.",
+      "duration": "1-2 weeks",
+      "deliverable": "Fully deployed solution"
+    },
+    "support": {
+      "step": 5,
+      "name": "Ongoing Support",
+      "description": "Continuous monitoring, maintenance, and feature updates with 24/7 technical support.",
+      "duration": "Ongoing",
+      "deliverable": "24/7 technical support and maintenance"
+    }
+  },
+  "industries": [
+    {
+      "name": "Healthcare",
+      "solutions": [
+        "Telemedicine platforms",
+        "Clinic management systems",
+        "HIPAA-compliant applications"
+      ],
+      "example": "MIMAP - Clinic management for Mauritania Internal Medicine and Pediatrics"
+    },
+    {
+      "name": "Finance",
+      "solutions": [
+        "Fintech applications",
+        "Trading platforms",
+        "Banking solutions",
+        "Payment gateways"
+      ]
+    },
+    {
+      "name": "E-commerce",
+      "solutions": [
+        "Online stores",
+        "Marketplace platforms",
+        "Inventory management",
+        "Payment integration"
+      ],
+      "example": "iSaraya - Marketplace with 25K+ sellers and 150K+ monthly transactions"
+    },
+    {
+      "name": "Education",
+      "solutions": [
+        "E-learning platforms",
+        "Student management systems",
+        "Virtual classrooms"
+      ],
+      "example": "ASTA - American Senegalese Tech Academy with 500+ students trained"
+    },
+    {
+      "name": "Transportation",
+      "solutions": [
+        "Fleet management",
+        "Route optimization",
+        "Rental platforms"
+      ],
+      "example": "Saraya Auto Rental - P2P car rental with 10K+ users"
+    },
+    {
+      "name": "Automotive",
+      "solutions": [
+        "Inspection platforms",
+        "Booking systems",
+        "Document management"
+      ],
+      "example": "BMV Inspection - Vehicle inspection platform with OCR and payment processing"
+    }
+  ],
+  "case_studies": [
+    {
+      "name": "BMV INSPECTION",
+      "industry": "Automotive",
+      "challenge": "Streamlining vehicle inspection booking and document management",
+      "solution": "Platform with appointment booking, admin dashboard, OCR data extraction, and payment processing",
+      "results": {
+        "efficiency": "70%",
+        "satisfaction": "95%",
+        "wait_time_reduction": "50%"
+      },
+      "link": "https://inspectionfast.com"
+    },
+    {
+      "name": "iSaraya",
+      "industry": "E-commerce",
+      "challenge": "Building comprehensive marketplace connecting sellers and buyers",
+      "solution": "Marketplace enabling store creation, product/service sales, delivery management, and integrated messaging",
+      "results": {
+        "sellers": "25K+",
+        "transactions": "150K+/month",
+        "retention": "88%"
+      },
+      "link": "https://isarayas.com/"
+    },
+    {
+      "name": "MIMAP",
+      "industry": "Healthcare",
+      "challenge": "Digital transformation of clinic management",
+      "solution": "Clinic interface for consultations, prescriptions, lab tests, and medical certificates",
+      "results": {
+        "efficiency": "60%",
+        "wait_time": "-40%",
+        "accuracy": "95%"
+      },
+      "link": "https://mimapeds.com/"
+    },
+    {
+      "name": "ASTA",
+      "industry": "Education",
+      "challenge": "Creating platform for tech education",
+      "solution": "Full Stack development programs and professional training",
+      "results": {
+        "students": "500+",
+        "employment": "85%",
+        "satisfaction": "4.8/5"
+      },
+      "link": "https://asta-edu.com/"
+    }
+  ],
+  "faqs": [
+    {
+      "question": "How long does a typical project take?",
+      "answer": "Project timelines vary based on scope and complexity. A simple website takes 4-6 weeks, while complex enterprise solutions can take 3-6 months. Our average timeline is 3 months from idea to launch. We provide detailed timelines during the proposal phase."
+    },
+    {
+      "question": "What are your payment terms?",
+      "answer": "We typically work with a 50% upfront payment and 50% upon completion. For larger projects, we can arrange milestone-based payments. All payment terms are discussed during the proposal phase."
+    },
+    {
+      "question": "Do you offer maintenance and support?",
+      "answer": "Yes! We provide 24/7 technical support and maintenance packages. Our support includes bug fixes, security updates, performance monitoring, and feature enhancements. We have ongoing partnerships with all our clients."
+    },
+    {
+      "question": "Can you work with our existing systems?",
+      "answer": "Absolutely! We specialize in integrating with existing systems, modernizing legacy applications, and ensuring seamless data migration. We have experience with CRM, ERP, databases, and various third-party APIs."
+    },
+    {
+      "question": "What technologies do you use?",
+      "answer": "We use modern, industry-standard technologies including React, Next.js, Node.js, Python, TypeScript, AWS, Azure, Docker, Kubernetes and more. We choose the best tech stack based on your specific needs and requirements."
+    },
+    {
+      "question": "Do you sign NDAs?",
+      "answer": "Yes, we're happy to sign NDAs to protect your intellectual property and confidential information. We take data security and confidentiality very seriously."
+    },
+    {
+      "question": "Where is your team located?",
+      "answer": "We operate globally with a distributed team. Our leadership is based in Senegal (École Polytechnique de Thiès, UCAD graduates) but we serve clients worldwide across 20+ countries and can accommodate different time zones."
+    },
+    {
+      "question": "What is your client satisfaction rate?",
+      "answer": "We maintain a 97% client satisfaction rate with 95% of clients recommending our services. We've successfully delivered 250+ projects for 50+ enterprise clients across 6+ industries."
+    },
+    {
+      "question": "Do you have experience in my industry?",
+      "answer": "We have extensive experience across multiple industries including Healthcare (MIMAP clinic), E-commerce (iSaraya marketplace), Education (ASTA academy), Automotive (BMV Inspection), Transportation (Saraya Auto Rental), and more. We've served clients in 20+ countries."
+    }
+  ],
+  "testimonials": [
+    {
+      "client": "BMV INSPECTION",
+      "company": "BMV Inspection",
+      "role": "Operations Manager",
+      "feedback": "The BMV inspection platform has revolutionized how we handle vehicle inspections. The OCR technology and streamlined booking system have significantly improved our efficiency.",
+      "results": "70% process efficiency, 95% client satisfaction"
+    },
+    {
+      "client": "iSaraya",
+      "company": "iSaraya Marketplace",
+      "role": "Platform Manager",
+      "feedback": "iSaraya has created a vibrant marketplace ecosystem. The integrated messaging and delivery management features have been game-changers for our business.",
+      "results": "25K+ active sellers, 150K+ monthly transactions"
+    },
+    {
+      "client": "MIMAP",
+      "company": "Mauritania Internal Medicine and Pediatrics",
+      "role": "Medical Director",
+      "feedback": "The MIMAP platform has transformed our clinic operations. Managing consultations, prescriptions, and certificates is now seamless and efficient.",
+      "results": "60% efficiency gain, 40% wait time reduction"
+    },
+    {
+      "client": "ASTA",
+      "company": "American Senegalese Tech Academy",
+      "role": "Director",
+      "feedback": "ASTA has become the leading tech education platform in Senegal. Our graduates are highly sought after by employers across the region.",
+      "results": "500+ students trained, 85% employment rate"
+    }
+  ],
+  "booking": {
+    "message": "I'd be happy to help you schedule a meeting with our team! You can book a convenient time slot through our Calendly link: https://calendly.com/saraya-info",
+    "alternative": "Alternatively, you can reach us directly at info@saraya.tech or call +1 (614)-783-0443."
+  }
+}

@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Send, Minimize2, Maximize2 } from "lucide-react";
+import { Bot, X, Send, Minimize2, Maximize2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import chatbotService from "@/services/chatbot.service";
+import { useNavigate } from "react-router-dom";
+import MarkdownRenderer from "./MarkdownRenderer";
 
 interface Message {
   id: string;
@@ -13,42 +17,8 @@ interface Message {
   timestamp: Date;
 }
 
-const MOCK_RESPONSES: Record<string, string> = {
-  greeting: "Hello! I'm Amina, your digital guide at SarayaTech Solutions. How can I assist you today?",
-  services: "We offer a wide range of services including Web & Mobile Development, AI Automation & Chatbot Development, Data & BI Solutions, Custom Software Development, Cloud & DevOps Solutions, Digital Transformation Consulting, and Cybersecurity Services. Which service would you like to know more about?",
-  ai: "Our AI Automation & Chatbot Development service helps businesses streamline operations with intelligent chatbots and AI-powered automation. We build custom solutions for 24/7 customer support, multi-channel deployment, and workflow automation. Would you like to learn more?",
-  contact: "You can reach us at contact@sarayatech.com or call us at +1 (555) 123-4567. We're also available on LinkedIn and Twitter. Would you like to schedule a consultation?",
-  pricing: "Our pricing is tailored to each project's specific requirements. I'd be happy to connect you with our team for a free consultation to discuss your needs and provide a detailed quote. Shall I help you get in touch?",
-  location: "SarayaTech Solutions operates globally with a distributed team. We serve clients worldwide and can work with your timezone. Where are you located?",
-  default: "That's a great question! While I'm still learning, I'd be happy to connect you with our team who can provide detailed answers. You can also explore our services page or contact us directly at contact@sarayatech.com.",
-};
-
-const getAminaResponse = (userMessage: string): string => {
-  const message = userMessage.toLowerCase();
-
-  if (message.match(/hello|hi|hey|bonjour|salut/)) {
-    return MOCK_RESPONSES.greeting;
-  }
-  if (message.match(/service|what do you|what can you|offer/)) {
-    return MOCK_RESPONSES.services;
-  }
-  if (message.match(/ai|automation|chatbot|bot/)) {
-    return MOCK_RESPONSES.ai;
-  }
-  if (message.match(/contact|email|phone|reach/)) {
-    return MOCK_RESPONSES.contact;
-  }
-  if (message.match(/price|pricing|cost|quote/)) {
-    return MOCK_RESPONSES.pricing;
-  }
-  if (message.match(/location|where|office/)) {
-    return MOCK_RESPONSES.location;
-  }
-
-  return MOCK_RESPONSES.default;
-};
-
 const AminaChatbot = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -61,8 +31,11 @@ const AminaChatbot = () => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const quickActions = chatbotService.getQuickActions();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,12 +45,13 @@ const AminaChatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+  const handleSendMessage = async (customMessage?: string) => {
+    const messageText = customMessage || inputValue;
+    if (!messageText.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputValue,
+      text: messageText,
       sender: "user",
       timestamp: new Date(),
     };
@@ -85,18 +59,39 @@ const AminaChatbot = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsTyping(true);
+    setShowQuickActions(false);
 
-    // Simulate typing delay
-    setTimeout(() => {
+    try {
+      // Get response from chatbot service (now async with ChatGPT support)
+      const response = await chatbotService.getResponse(messageText);
+
       const aminaResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: getAminaResponse(inputValue),
+        text: response,
         sender: "amina",
         timestamp: new Date(),
       };
+
       setMessages((prev) => [...prev, aminaResponse]);
+    } catch (error) {
+      console.error('[Chatbot UI] Error getting response:', error);
+
+      // Show error message to user
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I apologize, but I encountered an error. Please try again or contact our team at info@sarayatech.com",
+        sender: "amina",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+    }
+  };
+
+  const handleQuickAction = (message: string) => {
+    handleSendMessage(message);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -225,8 +220,13 @@ const AminaChatbot = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="text-gray-900 font-semibold">Amina</h3>
-                  <p className="text-xs text-gray-600">Digital Guide</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-gray-900 font-semibold">Amina</h3>
+                    <Badge className="bg-gradient-to-r from-gold to-accent text-dark text-[10px] px-1.5 py-0 h-4">
+                      AI
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-600">Digital Guide • Powered by NLP</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -274,8 +274,19 @@ const AminaChatbot = () => {
                               : "bg-gray-900 text-white"
                           }`}
                         >
-                          <p className="text-sm leading-relaxed">{message.text}</p>
-                          <span className="text-xs opacity-60 mt-1 block">
+                          <div className="text-sm leading-relaxed">
+                            {message.sender === "user" ? (
+                              // For user messages, just display plain text
+                              <div className="whitespace-pre-line">{message.text}</div>
+                            ) : (
+                              // For Amina messages, use MarkdownRenderer
+                              <MarkdownRenderer
+                                content={message.text}
+                                onLinkClick={() => setIsOpen(false)}
+                              />
+                            )}
+                          </div>
+                          <span className="text-xs opacity-60 mt-2 block">
                             {message.timestamp.toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -312,6 +323,33 @@ const AminaChatbot = () => {
                         </div>
                       </motion.div>
                     )}
+
+                    {/* Quick Actions */}
+                    {showQuickActions && messages.length === 1 && !isTyping && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="flex flex-wrap gap-2 mt-4"
+                      >
+                        {quickActions.map((action, index) => (
+                          <motion.button
+                            key={index}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.6 + index * 0.1 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleQuickAction(action.message)}
+                            className="px-3 py-2 text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full transition-colors border border-gray-200 flex items-center gap-1"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            {action.label}
+                          </motion.button>
+                        ))}
+                      </motion.div>
+                    )}
+
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
