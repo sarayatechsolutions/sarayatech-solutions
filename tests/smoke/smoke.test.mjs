@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildRoutes, checkRouteBody, checkSeoHead, findDuplicateSeo, findGoogleFontRefs, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
+import { HOME_FORBIDDEN_PHRASES, buildRoutes, checkRouteBody, checkSeoHead, findDuplicateSeo, findGoogleFontRefs, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
 import { getPublicPaths } from "../../src/routes";
 
 // Unit tests for the smoke script's own checks, so the guard is known to have teeth.
@@ -55,6 +55,22 @@ describe("smoke h1 assertions (STS-020)", () => {
     expect(checkRouteBody(route, 200, "text/html", '<div id="root"></div>')).toHaveLength(1);
     expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1>Other</h1>')).toHaveLength(1);
     expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1 class="x">Hello</h1>')).toEqual([]);
+  });
+});
+
+describe("smoke forbidden home phrases (STS-031)", () => {
+  it("fails a page that contains a banned phrase, passes one without", () => {
+    const route = { path: "/x", forbidText: ["Digital Transformation"] };
+    expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1>Your Partner for Digital Transformation</h1>')).toHaveLength(1);
+    expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1>We build your website.</h1>')).toEqual([]);
+  });
+
+  it("guards the home route with the source's banned phrases", () => {
+    const home = buildRoutes().find((r) => r.path === "/");
+    expect(home?.forbidText).toBe(HOME_FORBIDDEN_PHRASES);
+    expect(HOME_FORBIDDEN_PHRASES).toEqual(
+      expect.arrayContaining(["Enterprise-grade", "Enterprise Technology Solutions", "Digital Transformation", "Transform your business"]),
+    );
   });
 });
 
