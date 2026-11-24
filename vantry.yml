@@ -43,7 +43,7 @@ dispatch:
 
 merge:
   authority: human
-  base: main
+  base: develop
 
 trivial_paths:
   - "*.md"
