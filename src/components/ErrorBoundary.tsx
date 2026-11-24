@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { BUSINESS, CONTACT_PATH, emailHref } from "@/config/business";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -27,6 +28,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   render() {
     if (!this.state.hasError) return this.props.children;
 
+    const email = emailHref();
+
     return (
       <main
         role="alert"
@@ -35,10 +38,22 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         <div className="max-w-md space-y-4">
           <h1 className="text-3xl font-bold text-foreground">Something went wrong</h1>
           <p className="text-secondary">
-            Sorry, this page failed to load. Please try again, or reach us at{" "}
-            <a className="text-primary underline" href="mailto:info@sarayatech.com">
-              info@sarayatech.com
-            </a>
+            Sorry, this page failed to load. Please try again, or{" "}
+            {email ? (
+              <>
+                reach us at{" "}
+                <a className="text-primary underline" href={email}>
+                  {BUSINESS.email}
+                </a>
+              </>
+            ) : (
+              <>
+                use our{" "}
+                <a className="text-primary underline" href={CONTACT_PATH}>
+                  contact form
+                </a>
+              </>
+            )}
             .
           </p>
           <div className="flex flex-col justify-center gap-3 sm:flex-row">

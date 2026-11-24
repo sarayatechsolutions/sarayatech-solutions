@@ -124,7 +124,7 @@ describe("Contact page", () => {
     expect(honeypot?.closest("[aria-hidden='true']")).not.toBeNull();
   });
 
-  it("announces a 429 with the rate-limit text and the book-a-call fallback", async () => {
+  it("announces a 429 with the rate-limit text and no unverified booking link (STS-030)", async () => {
     const user = userEvent.setup();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(429, { success: false })));
     render(<Contact />);
@@ -132,10 +132,9 @@ describe("Contact page", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveTextContent("Too many requests, please try again in a few minutes.");
-    expect(screen.getByRole("link", { name: /book a call/i })).toHaveAttribute(
-      "href",
-      "https://calendly.com/saraya-info",
-    );
+    // C15 is unverified, so the alert must not link to the booking page.
+    expect(screen.queryByRole("link", { name: /book a call/i })).not.toBeInTheDocument();
+    expect(alert.querySelector("a")).toBeNull();
     expect(alert.closest("[aria-live]")).not.toBeNull();
     expect(screen.queryByText(/message sent successfully/i)).not.toBeInTheDocument();
   });
