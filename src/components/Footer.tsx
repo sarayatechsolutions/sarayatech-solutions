@@ -35,6 +35,7 @@ const SERVICE_LINKS = SERVICE_PAGES.map((p) => ({ label: p.navLabel, to: service
 const COMPANY_LINKS = [
   { label: "About Us", to: "/about" },
   { label: "Our Work", to: "/realisation" },
+  { label: "Pricing", to: "/pricing" },
   { label: "Careers", to: "/careers" },
   { label: "Contact", to: contactHref() },
 ];

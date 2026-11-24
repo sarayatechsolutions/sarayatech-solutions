@@ -44,6 +44,12 @@ export const HOME_FORBIDDEN_PHRASES = [
  * Service pages (STS-032): the home list plus the operational promises the owner has not
  * confirmed (I-12). Prices are guarded by the unit tests, which can match a pattern.
  */
+/**
+ * Pricing page (STS-033): no price figure while C8 is open ("$" is the guard) and no fixed-price
+ * promise beyond the source wording (I-12). Drop "$" from this list once the owner sets prices.
+ */
+export const PRICING_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "$", "fixed price"];
+
 export const SERVICE_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "fixed price", "30-minute"];
 
 /**
@@ -105,6 +111,7 @@ export function buildRoutes() {
       // STS-036: banned phrases, the stock "team" photo, and claims C7 has not supplied.
       forbidText: ABOUT_FORBIDDEN_PHRASES,
     },
+    { path: "/pricing", expectH1: "Packages & Pricing", forbidText: PRICING_FORBIDDEN_PHRASES },
     {
       path: "/contact",
       expectH1: "Let's talk about your business",

@@ -19,7 +19,6 @@
  * The site is English only (C24), so there is no i18n runtime; this module is the one place a
  * future translation layer would read from.
  */
-import { CONTACT_PATH } from "@/config/business";
 
 /** Service pages (STS-032). Literal paths: content/services imports this module for PROOF. */
 const SERVICE_PAGE_PATH = {
@@ -39,12 +38,8 @@ export const PROOF_PATH = "/realisation";
  */
 export const FREE_AUDIT_PATH = "/free-audit";
 
-/**
- * Destination of the packages teaser.
- * TODO(STS-033): point to "/pricing" once the Packages & Pricing page exists, and change the
- * label to "See packages and pricing".
- */
-export const PRICING_PATH = CONTACT_PATH;
+/** Destination of the packages teaser (STS-033: the Packages & Pricing page). */
+export const PRICING_PATH = "/pricing";
 
 export const HERO = {
   headline: "We build your website. Then we bring you customers.",
@@ -190,7 +185,7 @@ export const PACKAGES = {
   },
   forLabel: "For:",
   includesLabel: "Includes:",
-  cta: "Ask for a quote",
+  cta: "See packages and pricing",
 } as const;
 
 /** Final call to action (REQ-063). "30-minute" is left out until confirmed (I-12). */

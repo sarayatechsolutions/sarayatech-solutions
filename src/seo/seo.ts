@@ -49,6 +49,12 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
     description:
       "Meet the SarayaTech team behind websites, apps and local marketing for Columbus small businesses. See how we work, then book a free consultation.",
   },
+  "/pricing": {
+    // STS-033: the h1 is "Packages & Pricing"; the title adds the place and the brand (<=60 chars).
+    title: "Website & Marketing Packages in Columbus | SarayaTech",
+    description:
+      "Three packages for Columbus small businesses, from a 5-page site to full local marketing, plus custom apps. Book a free consultation for a clear, written quote.",
+  },
   "/contact": {
     title: "Contact SarayaTech Solutions | Columbus, Ohio",
     description:
