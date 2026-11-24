@@ -46,8 +46,12 @@ class OpenAIService {
     return `${base}/api/chat`;
   }
 
+  /**
+   * The browser's fetch must not be called with this service as its receiver: Chromium
+   * rejects `this.fetcher(...)` on a detached `fetch` with "Illegal invocation".
+   */
   private get fetcher(): typeof fetch {
-    return this.options.fetchImpl ?? fetch;
+    return this.options.fetchImpl ?? ((input, init) => fetch(input, init));
   }
 
   /**
