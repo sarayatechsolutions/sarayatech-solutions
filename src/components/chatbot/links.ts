@@ -4,8 +4,9 @@
  * Bot replies are untrusted: they can come from the LLM, which a visitor can steer. So every
  * href in a reply is classified here, once, and the renderer only ever uses the result:
  *
- *  - internal : a single-slash, root-relative path that stays on this origin ("/contact").
- *               Routed with react-router, using the NORMALISED path, never the raw href.
+ *  - internal : a single-slash, root-relative path that stays on this origin ("/contact"), and
+ *               whose NORMALISED path is still single-slash (so "/.//evil.tld" is not one).
+ *               Routed with react-router, using the normalised path, never the raw href.
  *  - external : an absolute http(s) URL, or a protocol-relative "//host" (which browsers
  *               resolve to another host). Rendered as a plain new-tab link with
  *               rel="noopener noreferrer", never routed.
@@ -44,7 +45,26 @@ export function classifyHref(href: string | undefined | null): LinkTarget {
       return { kind: "text" };
     }
     if (url.origin !== SENTINEL) return { kind: "text" };
-    return { kind: "internal", href: `${url.pathname}${url.search}${url.hash}` };
+
+    // Dot segments ("/.//x", "/a/..//x", "/%2e//x", "/./\x") pass the single-slash test above
+    // but NORMALISE to "//x", which a browser reads as another host. The href we emit is the
+    // normalised path, so it is the normalised path that must stay single-slash. Such a link
+    // is never legitimate: plain text, not internal and not external.
+    const path = url.pathname;
+    if (/^[/\\]{2}/.test(path)) return { kind: "text" };
+
+    // Belt and braces: the exact string written into <a href> must itself resolve back to this
+    // origin and to the same path, or it is not internal.
+    const emitted = `${path}${url.search}${url.hash}`;
+    let check: URL;
+    try {
+      check = new URL(emitted, SENTINEL);
+    } catch {
+      return { kind: "text" };
+    }
+    if (check.origin !== SENTINEL || check.pathname !== path) return { kind: "text" };
+
+    return { kind: "internal", href: emitted };
   }
 
   return externalOrText(href);

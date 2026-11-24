@@ -96,6 +96,39 @@ describe("MarkdownRenderer links (STS-058 / REQ-154)", () => {
     expect(onLinkClick).not.toHaveBeenCalled();
   });
 
+  // Security review integrate/s2 (MEDIUM): "/.//evil.example" used to render as
+  // <a href="//evil.example"> with no target, so a middle-click or "open in new tab" left the site.
+  it("never renders a dot-segment link as a protocol-relative or off-origin same-tab href", () => {
+    const payloads = [
+      "/.//evil.example",
+      "/..//evil.example",
+      "/a/..//evil.example",
+      "/%2e//evil.example",
+      "/%2E//evil.example",
+      "/./\\evil.example",
+    ];
+    const { container } = renderMd(payloads.map((p, i) => `[link${i}](${p})`).join(" "));
+
+    for (const a of Array.from(container.querySelectorAll("a"))) {
+      const href = a.getAttribute("href") ?? "";
+      expect(href).not.toMatch(/^[/\\]{2}/);
+      // Anything that resolves off this origin must at least be a marked new-tab external link.
+      if (new URL(href, window.location.href).origin !== window.location.origin) {
+        expect(a).toHaveAttribute("target", "_blank");
+      }
+    }
+    // The five forward-slash payloads must not be links at all. The backslash one is the
+    // exception: react-markdown percent-encodes a raw "\" in a destination to "%5C", so it
+    // reaches classifyHref as "/./%5Cevil.example" and normalises to the same-origin path
+    // "/%5Cevil.example" (the URL parser never decodes %5C into a separator). That is covered
+    // by the invariants above; the raw-backslash form is covered in links.test.ts.
+    payloads.slice(0, 5).forEach((_, i) => {
+      expect(screen.getByText(`link${i}`).closest("a")).toBeNull();
+    });
+    expect(screen.getByText("link5").closest("a")?.getAttribute("href")).toBe("/%5Cevil.example");
+    expect(container.innerHTML).not.toMatch(/["'][/\\]{2}evil\.example/);
+  });
+
   it("gives no link a calendly special case", () => {
     const { container } = renderMd("[book](https://calendly.com/saraya-info) [site](https://x)");
     const [calendly, other] = Array.from(container.querySelectorAll("a"));
