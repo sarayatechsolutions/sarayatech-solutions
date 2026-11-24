@@ -2,6 +2,14 @@ import knowledgeBase from "@/data/chatbot/knowledge-base.json";
 import intentsData from "@/data/chatbot/intents.json";
 import servicesProblems from "@/data/chatbot/services-problems.json";
 import openAIService from "./openai.service";
+import {
+  bookingCta,
+  bookingReply,
+  contactReply,
+  locationReply,
+  reachUsBlock,
+  type BusinessFacts,
+} from "./chatbot-facts";
 
 interface KeywordWeight {
   word: string;
@@ -30,6 +38,14 @@ export const CHAT_UNAVAILABLE_MESSAGE =
 /** The only pricing statement the bot makes: no figures, packages or terms. */
 export const PRICING_REPLY = "Packages are quoted after a free consultation.";
 
+/** Words too short or too common to count as a partial keyword match. */
+const FILLER_WORDS = new Set([
+  "the", "and", "you", "your", "are", "can", "how", "what", "who", "why", "when", "does", "for",
+  "with", "our", "about", "like", "would", "could", "should", "will", "have", "has", "this", "that",
+  "there", "their", "from", "into", "want", "need", "please", "tell", "know", "get",
+]);
+const isMeaningfulWord = (w: string) => w.length >= 3 && !FILLER_WORDS.has(w);
+
 /** Common superset of the per-service shapes in knowledge-base.json. */
 interface ServiceInfo {
   name: string;
@@ -49,8 +65,14 @@ class ChatbotService {
   private knowledgeBase: typeof knowledgeBase;
   private servicesProblems: typeof servicesProblems;
   private useOpenAI: boolean = true; // Toggle to enable/disable ChatGPT
+  /**
+   * Contact, location, booking and social facts come from src/config/business.ts, never from
+   * the JSON knowledge base (STS-058). Undefined = the shared BUSINESS config.
+   */
+  private readonly business?: BusinessFacts;
 
-  constructor() {
+  constructor(business?: BusinessFacts) {
+    this.business = business;
     this.intents = intentsData.intents as Intent[];
     this.knowledgeBase = knowledgeBase;
     this.servicesProblems = servicesProblems;
@@ -89,10 +111,12 @@ class ChatbotService {
       if (normalizedMessage.includes(normalizedKeyword)) {
         totalScore += weight;
       }
-      // Partial match (word boundaries)
+      // Partial match (word boundaries). Short and filler words are ignored: otherwise "i" or
+      // "a" is contained in nearly every keyword and "How can I contact you?" scores highest
+      // for a service-detail intent instead of the contact intent.
       else {
-        const words = normalizedMessage.split(" ");
-        const keywordWords = normalizedKeyword.split(" ");
+        const words = normalizedMessage.split(" ").filter(isMeaningfulWord);
+        const keywordWords = normalizedKeyword.split(" ").filter(isMeaningfulWord);
 
         keywordWords.forEach(kw => {
           if (words.some(w => w.includes(kw) || kw.includes(w))) {
@@ -183,7 +207,7 @@ class ChatbotService {
     }
 
     response += `🔗 **View all our solutions:** /solutions\n\n`;
-    response += `Would you like to schedule a consultation to discuss your specific needs? Book here: ${this.knowledgeBase.company.contact.calendly}`;
+    response += `Would you like to discuss your specific needs? ${bookingCta(this.business)}`;
 
     return response;
   }
@@ -195,32 +219,28 @@ class ChatbotService {
     // No published price list: every figure is quoted per project.
     return `${PRICING_REPLY}\n\n` +
       `🔗 **Contact us:** /contact\n` +
-      `📅 **Book a free consultation:** ${this.bookingLink()}`;
-  }
-
-  private bookingLink(): string {
-    return this.knowledgeBase.company.contact.calendly || "https://calendly.com/saraya-info";
+      `📅 ${bookingCta(this.business)}`;
   }
 
   /**
    * Generates response for contact inquiry
    */
   private generateContactResponse(): string {
-    const contact = this.knowledgeBase.company.contact;
-    return `You can reach us through:\n\n` +
-      `📧 **Email:** ${contact.email}\n` +
-      `📞 **Phone:** ${contact.phone}\n` +
-      `📍 **Address:** ${contact.address.full}\n` +
-      `📅 **Book a Meeting:** ${contact.calendly}\n\n` +
-      `🔗 **Visit our contact page:** /contact\n\n` +
-      `We're available to discuss your project and answer any questions. What works best for you?`;
+    return contactReply(this.business);
+  }
+
+  /**
+   * Generates response for location inquiry (config-driven: address or service area)
+   */
+  private generateLocationResponse(): string {
+    return locationReply(this.business);
   }
 
   /**
    * Generates response for booking inquiry
    */
   private generateBookingResponse(): string {
-    return this.knowledgeBase.booking.message + "\n\n" + this.knowledgeBase.booking.alternative;
+    return bookingReply(this.business);
   }
 
   /**
@@ -238,7 +258,7 @@ class ChatbotService {
     });
 
     response += `🔗 **Learn more about us:** /about\n\n`;
-    response += `Ready to get started? Let's schedule a consultation: ${this.knowledgeBase.company.contact.calendly}`;
+    response += `Ready to get started? ${bookingCta(this.business)}`;
 
     return response;
   }
@@ -261,7 +281,7 @@ class ChatbotService {
   private generatePaymentResponse(): string {
     return `${PRICING_REPLY} Payment terms are agreed in that quote.\n\n` +
       `🔗 **Contact us:** /contact\n` +
-      `📅 **Book a free consultation:** ${this.bookingLink()}`;
+      `📅 ${bookingCta(this.business)}`;
   }
 
   /**
@@ -275,7 +295,7 @@ class ChatbotService {
       `• **Confidentiality**: NDA protection for your business ideas and data\n` +
       `• **Revisions**: Agreed-upon revision rounds included in the scope\n\n` +
       `🔗 **Contact us for contract details:** /contact\n\n` +
-      `We're happy to review our standard agreement or work with your legal team. Book a consultation: ${this.bookingLink()}`;
+      `We're happy to review our standard agreement or work with your legal team. ${bookingCta(this.business)}`;
   }
 
   /**
@@ -286,7 +306,7 @@ class ChatbotService {
       `We can support your solution after launch. The scope of that support is agreed with you during a free consultation and included in your quote.\n\n` +
       `🔗 **Learn more:** /solutions\n` +
       `🔗 **Contact us:** /contact\n\n` +
-      `Need ongoing support? Let's discuss: ${this.bookingLink()}`;
+      `Need ongoing support? ${bookingCta(this.business)}`;
   }
 
   /**
@@ -356,7 +376,7 @@ class ChatbotService {
     response += recommendations.slice(0, 3).join('\n\n');
     response += `\n\n🔗 **Explore all solutions:** /solutions\n`;
     response += `🔗 **Get a custom quote:** /contact\n\n`;
-    response += `Want to discuss which solution fits your specific situation? Book a free consultation: ${this.knowledgeBase.company.contact.calendly}`;
+    response += `Want to discuss which solution fits your specific situation? ${bookingCta(this.business)}`;
 
     return response;
   }
@@ -370,10 +390,7 @@ class ChatbotService {
       `🔗 **Learn about us:** /about\n` +
       `🔗 **View our projects:** /realisation\n` +
       `🔗 **Get in touch:** /contact\n\n` +
-      `You can also reach us directly:\n` +
-      `📧 **Email:** ${this.knowledgeBase.company.contact.email}\n` +
-      `📍 **Address:** ${this.knowledgeBase.company.contact.address.city}, ${this.knowledgeBase.company.contact.address.state}\n` +
-      `📅 **Book a meeting:** ${this.knowledgeBase.company.contact.calendly}\n\n` +
+      `${reachUsBlock(this.business)}\n\n` +
       `What else would you like to know about SarayaTech?`;
   }
 
@@ -457,8 +474,10 @@ class ChatbotService {
       case "timeline":
         return this.generateProcessResponse();
 
-      case "portfolio":
       case "location":
+        return this.generateLocationResponse();
+
+      case "portfolio":
       case "company_info":
       case "experience":
         return this.generateCompanyResponse();
@@ -544,6 +563,8 @@ class ChatbotService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance (reads the shared BUSINESS config). The class is exported so tests
+// can build an instance over a populated config.
+export { ChatbotService };
 export const chatbotService = new ChatbotService();
 export default chatbotService;

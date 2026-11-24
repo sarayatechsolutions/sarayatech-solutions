@@ -385,9 +385,8 @@
         { "word": "ohio", "weight": 8 }
       ],
       "threshold": 7,
-      "responses": [
-        "We're located at **2765 S Hamilton Rd, Columbus, OH 43232, United States**.\n\nWhile we operate globally with a distributed team, our office is in Columbus, Ohio. We serve clients worldwide through remote collaboration and are happy to arrange meetings either in-person or virtually.\n\n📧 **Email:** contact@sarayatech.com\n📞 **Phone:** +1 (614)-783-0443\n📅 **Book a meeting:** https://calendly.com/saraya-info\n\n🔗 **Visit our contact page:** /contact"
-      ]
+      "context": "location",
+      "_source": "STS-058: no canned reply. The location answer is built from src/config/business.ts by locationReply() in src/services/chatbot-facts.ts."
     },
     {
       "id": "support",
@@ -716,7 +715,7 @@
       "responses": [
         "Goodbye! Come back if you have more questions. Have a great day!",
         "Take care! We're here whenever you need us.",
-        "See you soon! Book a meeting if you'd like to discuss your project: https://calendly.com/saraya-info"
+        "See you soon! If you'd like to discuss your project, our [contact form](/contact) is the best place to start."
       ]
     }
   ]
