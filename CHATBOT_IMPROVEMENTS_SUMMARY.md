@@ -1,3 +1,5 @@
+> **Obsolete (Sprint 1, STS-012):** the browser no longer calls OpenAI. Chat goes through the backend `POST /api/chat`; the provider key lives only in the backend environment. The steps below are kept for history.
+
 # 🎉 Améliorations Complètes du Chatbot Amina
 
 ## Vue d'Ensemble
@@ -65,7 +67,7 @@ Avec Toon         : ~450 tokens de contexte
 
 1. Créer `.env`:
 ```bash
-VITE_OPENAI_API_KEY=sk-proj-votre_cle_ici
+OPENAI_API_KEY=<your-key>  # backend .env only
 ```
 
 2. Redémarrer:
@@ -295,7 +297,7 @@ console.log(data);
 
 ```bash
 # .env
-VITE_OPENAI_API_KEY=sk-proj-votre_cle_api_ici
+OPENAI_API_KEY=<your-key>  # backend .env only
 ```
 
 ### 2. Installation des Dépendances
@@ -352,7 +354,7 @@ npm run dev
 
 ### Test 1 : ChatGPT
 ```
-1. Configurer VITE_OPENAI_API_KEY
+1. Configurer OPENAI_API_KEY (backend only)
 2. Poser une question complexe : "Expliquez-moi votre processus de migration cloud"
 3. Vérifier réponse naturelle et conversationnelle
 4. Vérifier console : "[Chatbot] ChatGPT response (XXX tokens)"
@@ -383,7 +385,7 @@ npm run dev
 
 ### Test 5 : Mode Fallback
 ```
-1. Supprimer VITE_OPENAI_API_KEY
+1. Supprimer OPENAI_API_KEY (backend only)
 2. Redémarrer
 3. Vérifier console : "[Chatbot] OpenAI not available"
 4. Vérifier : Intent-based fonctionne toujours

@@ -5,7 +5,10 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  {
+    // Vantry kit machinery and generated output are not application code.
+    ignores: ["dist", "dist-ssr", "coverage", ".vantry", "scripts", "evals", "vendor", ".claude", "agents", "skills", "docs"],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

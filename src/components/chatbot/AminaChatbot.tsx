@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import chatbotService from "@/services/chatbot.service";
+import chatbotService, { CHAT_UNAVAILABLE_MESSAGE } from "@/services/chatbot.service";
 import { useNavigate } from "react-router-dom";
 import MarkdownRenderer from "./MarkdownRenderer";
 
@@ -79,7 +79,7 @@ const AminaChatbot = () => {
       // Show error message to user
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I apologize, but I encountered an error. Please try again or contact our team at info@sarayatech.com",
+        text: CHAT_UNAVAILABLE_MESSAGE,
         sender: "amina",
         timestamp: new Date(),
       };
@@ -165,6 +165,7 @@ const AminaChatbot = () => {
               {/* Main Button with Gradient Animation */}
               <motion.button
                 onClick={() => setIsOpen(true)}
+                aria-label="Open chat with Amina"
                 className="relative h-16 w-16 rounded-full shadow-lg hover:shadow-2xl hover:scale-110 transition-all duration-300 flex items-center justify-center z-10 overflow-hidden"
                 style={{
                   background: "linear-gradient(135deg, #D4AF37 0%, #FFA500 50%, #D4AF37 100%)",
@@ -234,6 +235,7 @@ const AminaChatbot = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsMinimized(!isMinimized)}
+                  aria-label={isMinimized ? "Expand chat" : "Minimize chat"}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   {isMinimized ? (
@@ -246,6 +248,7 @@ const AminaChatbot = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
+                  aria-label="Close chat"
                   className="text-gray-600 hover:text-gray-900"
                 >
                   <X className="h-4 w-4" />
@@ -356,8 +359,14 @@ const AminaChatbot = () => {
 
                 {/* Input Area */}
                 <div className="border-t border-gray-200 p-4 bg-gray-50">
+                  <p id="amina-privacy-notice" className="text-xs text-gray-600 mb-2">
+                    Messages are processed by our AI provider to answer you. Please don't share sensitive information.
+                  </p>
                   <div className="flex gap-2">
                     <Input
+                      aria-label="Message Amina"
+                      aria-describedby="amina-privacy-notice"
+                      maxLength={1000}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}
@@ -365,7 +374,8 @@ const AminaChatbot = () => {
                       className="flex-1 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:border-gold focus:ring-gold"
                     />
                     <Button
-                      onClick={handleSendMessage}
+                      onClick={() => handleSendMessage()}
+                      aria-label="Send message"
                       disabled={!inputValue.trim() || isTyping}
                       className="bg-gradient-to-r from-gold to-accent hover:opacity-90 text-dark shadow-md"
                     >

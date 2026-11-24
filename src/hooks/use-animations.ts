@@ -50,9 +50,10 @@ export const useHoverAnimation = () => {
  */
 export const useScrollFadeIn = (threshold: number = 0.2) => {
   const ref = useRef<HTMLDivElement>(null);
+  const offset = -threshold * 100;
   const isInView = useInView(ref, {
     once: true,
-    margin: `0px 0px -${threshold * 100}px 0px`,
+    margin: `0px 0px ${offset}px 0px`,
   });
 
   return { ref, isInView };

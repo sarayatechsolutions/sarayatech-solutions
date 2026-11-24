@@ -158,7 +158,7 @@ const ChatbotDebugPanel = () => {
               OpenAI not configured
             </p>
             <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-              Set <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">VITE_OPENAI_API_KEY</code> in .env file to enable ChatGPT mode
+              AI answers come from the backend <code className="bg-yellow-100 dark:bg-yellow-800 px-1 rounded">/api/chat</code> endpoint; the provider key is configured server-side only.
             </p>
           </div>
         )}
