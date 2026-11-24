@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import { motion } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { bookingHref, contactHref, hasVerifiedBooking } from "@/config/business";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,6 +18,8 @@ const Header = () => {
     // { name: "Insights", path: "/insights" },
     { name: "About", path: "/about" },
   ];
+
+  const verifiedBooking = hasVerifiedBooking();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -58,15 +61,19 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-4">
-            <a
-              href="https://calendly.com/saraya-info"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button className="bg-accent hover:bg-accent-light shadow-card">
-                Book a Meeting
-              </Button>
-            </a>
+            {verifiedBooking ? (
+              <a href={bookingHref()} target="_blank" rel="noopener noreferrer">
+                <Button className="bg-accent hover:bg-accent-light shadow-card">
+                  Book a Meeting
+                </Button>
+              </a>
+            ) : (
+              <Link to={contactHref()}>
+                <Button className="bg-accent hover:bg-accent-light shadow-card">
+                  Contact Us
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -123,17 +130,19 @@ const Header = () => {
                     Contact Us
                   </Button>
                 </Link>
-                <a
-                  href="https://calendly.com/saraya-info"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Button className="w-full bg-accent hover:bg-accent-light">
-                    Book a Meeting
-                  </Button>
-                </a>
+                {verifiedBooking && (
+                  <a
+                    href={bookingHref()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Button className="w-full bg-accent hover:bg-accent-light">
+                      Book a Meeting
+                    </Button>
+                  </a>
+                )}
               </motion.div>
             </motion.div>
           )}

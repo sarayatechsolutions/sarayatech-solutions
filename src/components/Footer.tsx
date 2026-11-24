@@ -2,8 +2,19 @@ import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Linkedin, Twitter, Facebook, Youtube } from "lucide-react";
+import { BUSINESS, emailHref, hasAddress, hasHours, hasPhone, phoneHref, socialLinks } from "@/config/business";
+
+const SOCIAL_ICONS = {
+  linkedin: { Icon: Linkedin, label: "LinkedIn" },
+  twitter: { Icon: Twitter, label: "Twitter" },
+  facebook: { Icon: Facebook, label: "Facebook" },
+  youtube: { Icon: Youtube, label: "YouTube" },
+} as const;
 
 const Footer = () => {
+  const social = socialLinks();
+  const phone = phoneHref();
+  const email = emailHref();
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -26,32 +37,48 @@ const Footer = () => {
               Your trusted partner for digital transformation. Custom solutions
               and expert support.
             </p>
-            <div className="flex space-x-4">
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-smooth"
-              >
-                <Linkedin size={18} />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-smooth"
-              >
-                <Twitter size={18} />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-smooth"
-              >
-                <Facebook size={18} />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-smooth"
-              >
-                <Youtube size={18} />
-              </a>
+            <div className="mb-6 space-y-2 text-sm text-primary-foreground/80">
+              {hasAddress() ? (
+                <p>{BUSINESS.address?.lines.join(", ")}</p>
+              ) : (
+                <p>{BUSINESS.serviceAreaText}</p>
+              )}
+              {phone && hasPhone() && (
+                <p>
+                  <a href={phone} className="hover:text-primary-foreground">
+                    {BUSINESS.phone?.display}
+                  </a>
+                </p>
+              )}
+              {email && (
+                <p>
+                  <a href={email} className="hover:text-primary-foreground">
+                    {BUSINESS.email}
+                  </a>
+                </p>
+              )}
+              {hasHours() && <p>{BUSINESS.hours?.join(" / ")}</p>}
             </div>
+            {social.length > 0 && (
+              <div className="flex space-x-4">
+                {social.map(([network, url]) => {
+                  const entry = SOCIAL_ICONS[network as keyof typeof SOCIAL_ICONS];
+                  if (!entry) return null;
+                  return (
+                    <a
+                      key={network}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={entry.label}
+                      className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-smooth"
+                    >
+                      <entry.Icon size={18} />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Column 2 - Services */}
@@ -202,7 +229,7 @@ const Footer = () => {
         <div className="pt-8 border-t border-primary-foreground/20">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-sm text-primary-foreground/60">
-              © 2024 SarayaTech Solutions. All rights reserved.
+              © 2024 {BUSINESS.name}. All rights reserved.
             </p>
             <div className="flex space-x-6">
               <Link

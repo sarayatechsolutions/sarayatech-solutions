@@ -22,8 +22,16 @@ import {
   submitContact,
   type ContactPayload,
 } from "@/lib/contact-submit";
+import {
+  BUSINESS,
+  bookingHref,
+  emailHref,
+  hasAddress,
+  hasHours,
+  hasVerifiedBooking,
+  phoneHref,
+} from "@/config/business";
 
-const CALENDLY_URL = "https://calendly.com/saraya-info";
 
 const EMPTY_FORM: ContactPayload = {
   name: "",
@@ -36,6 +44,9 @@ const EMPTY_FORM: ContactPayload = {
 };
 
 const Contact = () => {
+  const phone = phoneHref();
+  const email = emailHref();
+  const mapSrc = hasAddress() ? BUSINESS.address?.mapEmbedUrl : undefined;
   const [formData, setFormData] = useState<ContactPayload>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -102,54 +113,68 @@ const Contact = () => {
                       <MapPin className="w-6 h-6 text-primary-foreground" />
                     </div>
                     <div>
-                      <div className="font-semibold mb-1">Headquarters</div>
+                      <div className="font-semibold mb-1">
+                        {hasAddress() ? "Headquarters" : "Service area"}
+                      </div>
                       <div className="text-secondary text-sm">
-                        2765 s Hamilton
-                        <br />
-                        rd Columbus oh 43232
-                        <br />
-                        United States
+                        {hasAddress()
+                          ? BUSINESS.address?.lines.map((line, i) => (
+                              <span key={line}>
+                                {i > 0 && <br />}
+                                {line}
+                              </span>
+                            ))
+                          : BUSINESS.serviceAreaText}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <div className="font-semibold mb-1">Phone</div>
-                      <div className="text-secondary text-sm">
-                        +1 (614)-783-0443
+                  {phone && (
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-6 h-6 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <div className="font-semibold mb-1">Phone</div>
+                        <div className="text-secondary text-sm">
+                          <a href={phone}>{BUSINESS.phone?.display}</a>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <div className="font-semibold mb-1">Email</div>
-                      <div className="text-secondary text-sm">
-                        info@sarayatech.com
+                  {email && (
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-6 h-6 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <div className="font-semibold mb-1">Email</div>
+                        <div className="text-secondary text-sm">
+                          <a href={email}>{BUSINESS.email}</a>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                      <Clock className="w-6 h-6 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <div className="font-semibold mb-1">Business Hours</div>
-                      <div className="text-secondary text-sm">
-                        Monday - Friday: 9am - 6pm EST
-                        <br />
-                        Saturday - Sunday: Closed
+                  {hasHours() && (
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-6 h-6 text-primary-foreground" />
+                      </div>
+                      <div>
+                        <div className="font-semibold mb-1">Business Hours</div>
+                        <div className="text-secondary text-sm">
+                          {BUSINESS.hours?.map((line, i) => (
+                            <span key={line}>
+                              {i > 0 && <br />}
+                              {line}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -227,7 +252,7 @@ const Contact = () => {
                           autoComplete="tel"
                           maxLength={CONTACT_LIMITS.phone}
                           type="tel"
-                          placeholder="+1 (614)-783-0443"
+                          placeholder="Your phone number"
                           value={formData.phone}
                           onChange={(e) =>
                             setFormData({ ...formData, phone: e.target.value })
@@ -321,18 +346,20 @@ const Contact = () => {
                           className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
                         >
                           <p>{errorMessage}</p>
-                          <p className="mt-1">
-                            You can also{" "}
-                            <a
-                              href={CALENDLY_URL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-semibold underline"
-                            >
-                              book a call
-                            </a>
-                            .
-                          </p>
+                          {hasVerifiedBooking() && (
+                            <p className="mt-1">
+                              You can also{" "}
+                              <a
+                                href={bookingHref()}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold underline"
+                              >
+                                book a call
+                              </a>
+                              .
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -357,21 +384,23 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Map Section */}
-        <section className="h-96 bg-muted">
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3060.0877519854157!2d-82.88723862460068!3d39.91705238590096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88387d37fcc2e35d%3A0x6c3ae3509bc1bb63!2s2765%20S%20Hamilton%20Rd%2C%20Columbus%2C%20OH%2043232%2C%20%C3%89tats-Unis!5e0!3m2!1sen!2sus!4v1760957415959!5m2!1sen!2sus"
-            style={{
-              width: "100%",
-              height: "384px",
-              border: "none",
-            }}
-            loading="lazy"
-            allowFullScreen
-            title="SarayaTech Solutions Office Location"
-            referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </section>
+        {/* Map pinned to the street address: only with a confirmed address (C4) */}
+        {mapSrc && (
+          <section className="h-96 bg-muted">
+            <iframe
+              src={mapSrc}
+              style={{
+                width: "100%",
+                height: "384px",
+                border: "none",
+              }}
+              loading="lazy"
+              allowFullScreen
+              title="SarayaTech Solutions Office Location"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </section>
+          )}
       </div>
 
       {/* Success Modal (errors are shown inline, next to the form) */}
