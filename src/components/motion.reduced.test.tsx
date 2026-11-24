@@ -33,5 +33,7 @@ describe("reduced motion (STS-022)", () => {
     );
     await act(async () => show());
     expect(container.querySelector("p")?.getAttribute("style") ?? "").not.toMatch(/opacity:\s*0/);
-  });
+    // The cold dynamic import of framer-motion takes ~7s when the suite runs in parallel;
+    // the default 5s timeout made this test flaky under load.
+  }, 30000);
 });
