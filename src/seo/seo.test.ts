@@ -41,9 +41,10 @@ describe("per-route SEO data (STS-021)", () => {
     }
   });
 
-  it("derives solution and industry pages from their data", () => {
-    expect(getSeo("/solutions/cloud-infrastructure").title).toContain("Cloud & Infrastructure Services");
-    expect(getSeo("/industry/healthcare").title).toContain("Healthcare");
+  it("gives the retired solution and industry pages the 404 data, not indexable SEO (STS-039)", () => {
+    for (const p of ["/solutions", "/solutions/cloud-infrastructure", "/industries", "/industry/enterprise"]) {
+      expect(getSeo(p).noindex).toBe(true);
+    }
   });
 
   it("gives an unknown path noindex data and no canonical", () => {
@@ -96,7 +97,7 @@ describe("head tags", () => {
   });
 
   it("escapes markup in titles and descriptions", () => {
-    expect(renderHeadTags(getSeo("/solutions/web-mobile-development"))).toContain("Web &amp; Mobile Development");
+    expect(renderHeadTags(getSeo("/services"))).toContain("Websites, Apps &amp; Marketing");
   });
 });
 

@@ -33,7 +33,9 @@ describe("Header with the default (unconfirmed) business config (STS-038)", () =
     const names = within(nav)
       .getAllByRole("link")
       .map((a) => a.textContent);
-    expect(names).toEqual(["Home", "Solutions", "Industries", "Our Work", "About"]);
+    expect(names).toEqual(["Home", "Services", "Our Work", "About"]);
+    // STS-039: the retired /solutions and /industries are gone from the nav.
+    expect(within(nav).getByRole("link", { name: "Services" })).toHaveAttribute("href", "/services");
     expect(within(nav).getByRole("link", { name: "Our Work" })).toHaveAttribute("href", "/realisation");
     expect(document.body.textContent).not.toMatch(/Realisation/);
   });
@@ -54,10 +56,10 @@ describe("Header with the default (unconfirmed) business config (STS-038)", () =
   });
 
   it("highlights the section on a detail page without claiming it is the current page", () => {
-    renderAt("/solutions/web-mobile-development");
-    const solutions = within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Solutions" });
-    expect(solutions).toHaveClass("text-primary");
-    expect(solutions).not.toHaveAttribute("aria-current");
+    renderAt("/services/website-design");
+    const services = within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Services" });
+    expect(services).toHaveClass("text-primary");
+    expect(services).not.toHaveAttribute("aria-current");
   });
 
   it("opens and closes the mobile menu from a labelled toggle, and Escape returns focus", async () => {

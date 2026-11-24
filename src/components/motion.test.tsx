@@ -42,16 +42,6 @@ describe("content visible on first paint (STS-022)", () => {
     expect(prerender(p)).not.toMatch(/style="[^"]*opacity:\s*0[;"]/);
   });
 
-  it("puts every solution tab's content in the HTML, hiding only the inactive panels", () => {
-    const solutionPath = paths.find((p) => p.startsWith("/solutions/"))!;
-    const html = prerender(solutionPath);
-    for (const heading of ["Solution Overview", "All Features", "Technical Specifications", "Support &amp; Resources"]) {
-      expect(html).toContain(heading);
-    }
-    expect(html).toMatch(/role="tabpanel"[^>]*id="panel-overview"(?![^>]*\bhidden)/);
-    expect(html).toMatch(/id="panel-features"[^>]*hidden/);
-  });
-
   it("has one header, one footer and one main landmark per page", () => {
     for (const p of paths) {
       const html = prerender(p);

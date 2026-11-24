@@ -38,8 +38,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { name: "Home", path: "/" },
-  { name: "Solutions", path: "/solutions", section: ["/solutions/"] },
-  { name: "Industries", path: "/industries", section: ["/industry/"] },
+  // STS-039: /solutions and /industries are retired (301 in public/_redirects); the service hub replaces them.
+  { name: "Services", path: "/services", section: ["/services/"] },
   { name: "Our Work", path: "/realisation" },
   { name: "About", path: "/about" },
 ];

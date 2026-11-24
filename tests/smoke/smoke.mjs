@@ -16,22 +16,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..", "..");
 
-/** Every `{ id, <field> }` pair of a JSON array file under data/, so routes follow the content. */
-function jsonItems(relPath, field) {
-  const items = JSON.parse(readFileSync(join(ROOT, relPath), "utf8"));
-  const out = (Array.isArray(items) ? items : []).filter((x) => x && x.id && x[field]).map((x) => ({ id: x.id, text: x[field] }));
-  if (!out.length) throw new Error(`no item with id and ${field} in ${relPath}`);
-  return out;
-}
-
-/** Every industry `id` + `name` in the TS constants file (it is not importable from plain Node). */
-function tsIndustries(relPath) {
-  const src = readFileSync(join(ROOT, relPath), "utf8");
-  const out = [...src.matchAll(/\bid:\s*["']([^"']+)["'][\s\S]*?\bname:\s*["']([^"']+)["']/g)].map((m) => ({ id: m[1], text: m[2] }));
-  if (!out.length) throw new Error(`no industries found in ${relPath}`);
-  return out;
-}
-
 /** Visible text of the first <h1>: tags removed, entities decoded, whitespace collapsed. */
 export function firstH1Text(html) {
   const m = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
@@ -61,6 +45,13 @@ export const HOME_FORBIDDEN_PHRASES = [
  * confirmed (I-12). Prices are guarded by the unit tests, which can match a pattern.
  */
 export const SERVICE_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "fixed price", "30-minute"];
+
+/**
+ * REQ-011 (P0): no built page may contain these, whoever owns it. Matched case-insensitively.
+ * STS-039 retired the last pages that carried them (the enterprise industry pages); the
+ * prerender's own <head> replaces index.html's old title and description.
+ */
+export const SITEWIDE_FORBIDDEN_PHRASES = ["Enterprise-grade", "Enterprise Technology Solutions"];
 
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
@@ -92,18 +83,11 @@ export function buildRoutes() {
       // STS-044: no response time is promised until the owner confirms one (C16, I-12).
       forbidText: ["24 hours", "24-48 hours"],
     },
-    { path: "/solutions", expectH1: "Our Services" },
-    ...jsonItems("data/solutions.json", "title").map(({ id, text }) => ({
-      path: `/solutions/${id}`,
-      expectH1: text,
-      // Tabbed content is in the HTML (hidden panels), not only behind a click.
-      expectText: "Technical Specifications",
-    })),
-    { path: "/industries", expectH1: "Industry-Leading Solutions for Every Sector" },
-    ...tsIndustries("src/constants/industries.ts").map(({ id, text }) => ({ path: `/industry/${id}`, expectH1: text })),
     { path: "/realisation", expectH1: "Recent Realisations" },
     { path: "/insights", expectH1: "Insights & Resources" },
     { path: "/careers", expectH1: "Join Our Team" },
+    // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
+    { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
     ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),
     { path: "/404.html", expectH1: "404" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
@@ -167,6 +151,91 @@ export function findDuplicateSeo(pages) {
 /** <loc> values of a sitemap.xml. */
 export function sitemapLocs(xml) {
   return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => decodeEntities(m[1]));
+}
+
+/**
+ * Rules of a Cloudflare Pages `_redirects` file: `{ line, from, to, status }`, comments and blank
+ * lines skipped. A line that is not exactly `<from> <to> [status]` throws: Cloudflare would ignore
+ * it silently, and a redirect nobody can see failing is the bug this guards against.
+ */
+export function parseRedirects(text) {
+  const rules = [];
+  text.split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) return;
+    const parts = line.split(/\s+/);
+    if (parts.length < 2 || parts.length > 3) throw new Error(`_redirects line ${i + 1} is malformed: ${line}`);
+    const [from, to, code = "302"] = parts;
+    rules.push({ line: i + 1, from, to, status: Number(code) });
+  });
+  return rules;
+}
+
+/** True when the rule's source matches `path` (one trailing `*` splat, as Cloudflare allows). */
+export function redirectMatches(from, path) {
+  return from.endsWith("*") ? path.startsWith(from.slice(0, -1)) : path === from;
+}
+
+/** dist file a prerendered path is written to ("/" -> index.html, "/a/b" -> a/b/index.html). */
+const distPageFile = (distDir, path) => join(distDir, ...path.split("/").filter(Boolean), "index.html");
+
+/**
+ * STS-039: dist/_redirects ships, every rule is a 301, no source is still a built page (Cloudflare
+ * would redirect it anyway, hiding the page), and every target is a built page (no 301 to a 404).
+ * `vite preview` does not apply _redirects, so this reads the build output instead of the server.
+ */
+export function checkRedirectsBuild(distDir) {
+  const file = join(distDir, "_redirects");
+  if (!existsSync(file)) return { failures: [`${file} does not exist (public/_redirects not copied?)`], count: 0 };
+  let rules;
+  try {
+    rules = parseRedirects(readFileSync(file, "utf8"));
+  } catch (err) {
+    return { failures: [`dist/_redirects: ${err.message}`], count: 0 };
+  }
+  if (rules.length === 0) return { failures: ["dist/_redirects has no rule"], count: 0 };
+  const failures = [];
+  for (const r of rules) {
+    if (r.status !== 301) failures.push(`dist/_redirects line ${r.line}: ${r.from} is a ${r.status}, not a 301`);
+    if (!r.from.endsWith("*") && r.from !== "/" && existsSync(distPageFile(distDir, r.from))) {
+      failures.push(`dist/_redirects line ${r.line}: ${r.from} is still a built page`);
+    }
+    if (!existsSync(distPageFile(distDir, r.to))) failures.push(`dist/_redirects line ${r.line}: target ${r.to} is not a built page`);
+  }
+  if (!failures.length) console.log(`  ok   dist/_redirects (${rules.length} rule(s), every target built, no source built)`);
+  return { failures, count: rules.length };
+}
+
+/** Every .html file under `dir` (recursive). */
+function listHtml(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listHtml(full));
+    else if (entry.name.endsWith(".html")) out.push(full);
+  }
+  return out;
+}
+
+/** One finding per (file, phrase) where a built HTML file contains a sitewide-forbidden phrase. */
+export function findForbiddenInHtml(dir, phrases = SITEWIDE_FORBIDDEN_PHRASES) {
+  const out = [];
+  for (const file of listHtml(dir)) {
+    const text = readFileSync(file, "utf8").toLowerCase();
+    for (const phrase of phrases) if (text.includes(phrase.toLowerCase())) out.push({ file, phrase });
+  }
+  return out;
+}
+
+function checkSitewidePhrases(distDir) {
+  if (!existsSync(distDir)) return { failures: [`${distDir} does not exist (run the build first)`], count: 0 };
+  const count = listHtml(distDir).length;
+  if (count === 0) return { failures: [`no .html files in ${distDir}`], count: 0 };
+  const failures = findForbiddenInHtml(distDir).map(
+    ({ file, phrase }) => `${file.slice(distDir.length + 1)}: contains ${JSON.stringify(phrase)} (REQ-011)`,
+  );
+  if (!failures.length) console.log(`  ok   ${count} built HTML file(s) free of ${SITEWIDE_FORBIDDEN_PHRASES.join(" / ")}`);
+  return { failures, count };
 }
 
 // "sk-" as a token (not the tail of e.g. "task-"), then 20+ key characters.
@@ -332,13 +401,24 @@ async function main() {
   const assets = checkBuiltAssets(join(ROOT, "dist"));
   const images = checkImageBudget(join(ROOT, "dist"));
   const fonts = checkFonts(join(ROOT, "dist"));
-  const failures = [...routes.failures, ...assets.failures, ...images.failures, ...fonts.failures];
+  const redirects = checkRedirectsBuild(join(ROOT, "dist"));
+  const phrases = checkSitewidePhrases(join(ROOT, "dist"));
+  const failures = [
+    ...routes.failures,
+    ...assets.failures,
+    ...images.failures,
+    ...fonts.failures,
+    ...redirects.failures,
+    ...phrases.failures,
+  ];
   if (failures.length) {
     console.error(`\nsmoke FAILED (${failures.length}):`);
     for (const f of failures) console.error(`  FAIL ${f}`);
     process.exit(1);
   }
-  console.log(`\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget, ${fonts.count} woff2 font(s)`);
+  console.log(
+    `\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget, ${fonts.count} woff2 font(s), ${redirects.count} redirect(s), ${phrases.count} HTML file(s) phrase-checked`,
+  );
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

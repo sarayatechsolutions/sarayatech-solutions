@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { HOME_FORBIDDEN_PHRASES, buildRoutes, checkRouteBody, checkSeoHead, findDuplicateSeo, findGoogleFontRefs, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
+import { HOME_FORBIDDEN_PHRASES, SITEWIDE_FORBIDDEN_PHRASES, buildRoutes, checkRedirectsBuild, findForbiddenInHtml, checkRouteBody, checkSeoHead, findDuplicateSeo, findGoogleFontRefs, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
 import { getPublicPaths } from "../../src/routes";
 
 // Unit tests for the smoke script's own checks, so the guard is known to have teeth.
@@ -20,14 +20,13 @@ describe("smoke secret guard", () => {
 });
 
 describe("smoke route table", () => {
-  it("covers every public route, with one solution and one industry detail", () => {
+  it("covers every public route, and no retired one (STS-039)", () => {
     const paths = buildRoutes().map((r) => r.path);
     expect(paths.length).toBeGreaterThan(0);
-    for (const p of ["/", "/about", "/contact", "/solutions", "/industries", "/realisation", "/insights", "/careers", "/robots.txt"]) {
+    for (const p of ["/", "/about", "/contact", "/services", "/realisation", "/insights", "/careers", "/robots.txt"]) {
       expect(paths).toContain(p);
     }
-    expect(paths.some((p) => /^\/solutions\/[a-z0-9-]+$/.test(p))).toBe(true);
-    expect(paths.some((p) => /^\/industry\/[a-z0-9-]+$/.test(p))).toBe(true);
+    expect(paths.filter((p) => /^\/(solutions|industries|industry)(\/|$)/.test(p))).toEqual([]);
   });
 
   it("rejects a non-200, a missing shell and missing expected text", () => {
@@ -123,5 +122,61 @@ describe("smoke SEO assertions (STS-021)", () => {
 
   it("reads sitemap locs", () => {
     expect(sitemapLocs("<urlset><url><loc>https://x.test/</loc></url><url><loc>https://x.test/a</loc></url></urlset>")).toEqual(["https://x.test/", "https://x.test/a"]);
+  });
+});
+
+describe("smoke built-redirects guard (STS-039)", () => {
+  /** A throwaway dist/ with the given pages ("/" or "/a/b") and _redirects text. */
+  function fakeDist(pages, redirects) {
+    const dir = mkdtempSync(join(tmpdir(), "redirects-guard-"));
+    for (const p of pages) {
+      const d = join(dir, ...p.split("/").filter(Boolean));
+      mkdirSync(d, { recursive: true });
+      writeFileSync(join(d, "index.html"), "<h1>x</h1>");
+    }
+    if (redirects !== null) writeFileSync(join(dir, "_redirects"), redirects);
+    return dir;
+  }
+
+  it("passes 301s from unbuilt sources to built targets", () => {
+    const dir = fakeDist(["/", "/services"], "/solutions /services 301\n/industry/* /services 301\n");
+    try {
+      expect(checkRedirectsBuild(dir).failures).toEqual([]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("fails a missing file, a 302, a source that is still built and a target that is not", () => {
+    const missing = fakeDist(["/"], null);
+    const bad = fakeDist(["/", "/solutions"], "/solutions /services 301\n/old / 302\n");
+    try {
+      expect(checkRedirectsBuild(missing).failures).toHaveLength(1);
+      const failures = checkRedirectsBuild(bad).failures.join("\n");
+      expect(failures).toMatch(/\/solutions is still a built page/);
+      expect(failures).toMatch(/target \/services is not a built page/);
+      expect(failures).toMatch(/\/old is a 302/);
+    } finally {
+      rmSync(missing, { recursive: true, force: true });
+      rmSync(bad, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("smoke sitewide REQ-011 phrase guard (STS-039)", () => {
+  it("finds the banned phrases in any built HTML file, whatever the case", () => {
+    expect(SITEWIDE_FORBIDDEN_PHRASES).toEqual(["Enterprise-grade", "Enterprise Technology Solutions"]);
+    const dir = mkdtempSync(join(tmpdir(), "phrase-guard-"));
+    try {
+      mkdirSync(join(dir, "industry", "enterprise"), { recursive: true });
+      writeFileSync(join(dir, "index.html"), "<h1>We build your website.</h1>");
+      writeFileSync(join(dir, "industry", "enterprise", "index.html"), "<p>enterprise-grade solutions</p>");
+      const hits = findForbiddenInHtml(dir);
+      expect(hits).toHaveLength(1);
+      expect(hits[0].phrase).toBe("Enterprise-grade");
+      expect(hits[0].file).toMatch(/enterprise[\\/]index\.html$/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
