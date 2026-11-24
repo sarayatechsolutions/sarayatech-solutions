@@ -4,7 +4,7 @@
     "name": "Cheikh Ahmed Tidiani Top ",
     "role": "Tech Lead",
     "bio": "Tidiani has over 8 years of experience in full stack development, specializing in React/Node.js architectures. He has led multiple development teams on large-scale projects for Senegalese and international companies. Graduate of École Polytechnique de Thiès.",
-    "image": "/images/Tidiani.jpeg",
+    "image": "/images/Tidiani.webp",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },
@@ -13,7 +13,7 @@
     "name": "Souleymane Sanokho",
     "role": "Senior Software Engineer",
     "bio": "Souleymane is a passionate software engineer with solid expertise in full stack development. He masters modern technologies including React, Next.js, TypeScript and PostgreSQL. He has contributed to numerous open source projects and technical training programs in Senegal.",
-    "image": "/images/Sanokho.jpeg",
+    "image": "/images/Sanokho.webp",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },
@@ -22,7 +22,7 @@
     "name": "Issa Diané",
     "role": "Senior Software Engineer",
     "bio": "Issa specializes in developing high-performance and scalable web applications. With a degree in Computer Engineering from UCAD, she excels in creating intuitive user interfaces and robust backends using modern web technologies.",
-    "image": "/images/Issa.jpeg",
+    "image": "/images/Issa.webp",
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2024-01-01T00:00:00.000Z"
   },

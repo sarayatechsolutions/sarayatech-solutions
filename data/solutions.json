@@ -62,7 +62,7 @@
       "End-to-end support"
     ],
     "featuresList": ["Web", "Mobile", "PWA"],
-    "image": "/images/web-dev.jpg",
+    "image": "/images/web-dev.webp",
     "link": "/solutions/web-mobile-development",
     "reverse": false,
     "ctaTitle": "Ready to Digitize Your Business?",
@@ -134,7 +134,7 @@
       "Team training on tools"
     ],
     "featuresList": ["Dashboards", "ETL", "Analytics"],
-    "image": "/images/data.jpg",
+    "image": "/images/data.webp",
     "link": "/solutions/data-bi-solutions",
     "reverse": true,
     "ctaTitle": "Unlock the Value of Your Data",
@@ -206,7 +206,7 @@
       "Complete documentation and training"
     ],
     "featuresList": ["Custom", "Integrations", "Scalable"],
-    "image": "/images/custom-software.jpg",
+    "image": "/images/custom-software.webp",
     "link": "/solutions/custom-business-software",
     "reverse": false,
     "ctaTitle": "Automate Your Business Processes",
@@ -278,7 +278,7 @@
       "Continuous cost optimization"
     ],
     "featuresList": ["Cloud", "DevOps", "Monitoring"],
-    "image": "/images/cloud.jpg",
+    "image": "/images/cloud.webp",
     "link": "/solutions/cloud-infrastructure",
     "reverse": true,
     "ctaTitle": "Modernize Your Infrastructure",
@@ -350,7 +350,7 @@
       "End-to-end support"
     ],
     "featuresList": ["Audit", "Strategy", "Management"],
-    "image": "/images/digital.jpg",
+    "image": "/images/digital.webp",
     "link": "/solutions/digital-strategy-consulting",
     "reverse": false,
     "ctaTitle": "Define Your Digital Strategy",
@@ -422,7 +422,7 @@
       "Continuous threat monitoring"
     ],
     "featuresList": ["Audit", "GDPR", "Protection"],
-    "image": "/images/security.jpg",
+    "image": "/images/security.webp",
     "link": "/solutions/security-compliance",
     "reverse": true,
     "ctaTitle": "Secure Your Information System",
@@ -494,7 +494,7 @@
       "Seamless CRM and business tool integration"
     ],
     "featuresList": ["AI", "Chatbots", "Automation"],
-    "image": "/images/ai.jpg",
+    "image": "/images/ai.webp",
     "link": "/solutions/ai-automation-chatbots",
     "reverse": false,
     "ctaTitle": "Ready to Automate with AI?",

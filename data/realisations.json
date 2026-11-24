@@ -8,7 +8,7 @@
     "quote": "",
     "author": "",
     "role": "",
-    "image": "/images/bmv.png",
+    "image": "/images/bmv.webp",
     "isActive": true,
     "link": "https://inspectionfast.com"
   },
@@ -34,7 +34,7 @@
     "quote": "",
     "author": "",
     "role": "",
-    "image": "/images/isaraya.png",
+    "image": "/images/isaraya.webp",
     "isActive": true,
     "link": "https://isarayas.com/"
   },
@@ -47,7 +47,7 @@
     "quote": "",
     "author": "",
     "role": "",
-    "image": "/images/mimap.jpeg",
+    "image": "/images/mimap.webp",
     "isActive": true,
     "link": "https://mimapeds.com/"
   },
@@ -60,7 +60,7 @@
     "quote": "",
     "author": "",
     "role": "",
-    "image": "/images/ASTA.png",
+    "image": "/images/ASTA.webp",
     "isActive": true,
     "link": "https://asta-edu.com/"
   },
@@ -73,7 +73,7 @@
     "quote": "",
     "author": "",
     "role": "",
-    "image": "/images/SarayaTechSenegal.png",
+    "image": "/images/SarayaTechSenegal.webp",
     "isActive": false,
     "link": "https://sarayatechsenegal.com/"
   }

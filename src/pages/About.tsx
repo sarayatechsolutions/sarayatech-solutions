@@ -1,3 +1,4 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
@@ -12,7 +13,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, type ComponentType } from "react";
-import teamPhoto from "@/assets/team-photo.jpg";
+import teamPhoto from "@/assets/team-photo.webp";
 import aboutValuesData from "../../data/about-values.json";
 import leadershipTeamData from "../../data/leadership-team.json";
 import aboutStatsData from "../../data/about-stats.json";
@@ -241,8 +242,10 @@ const About = () => {
                   whileHover={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
                 >
                   <motion.img
-                    src={leader.image}
+                    {...responsiveImage(leader.image, "160px")}
                     alt={leader.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-40 h-40 rounded-full object-cover mb-4 border-4 border-white shadow-lg"
                     whileHover={{ scale: 1.05 }}
                     onError={(e) => {
