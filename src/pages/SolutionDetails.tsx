@@ -1,3 +1,4 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -172,7 +173,7 @@ const SolutionDetails = () => {
                 {/* Preview Image */}
                 <div className="relative h-96 overflow-hidden">
                   <img
-                    src={solution.image}
+                    {...responsiveImage(solution.image, "(min-width: 1280px) 1200px, 100vw")}
                     alt={solution.title}
                     className="w-full h-full object-cover"
                     loading="eager"

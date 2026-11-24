@@ -9,7 +9,7 @@
 // The route table is the extension point. Sprint 2 (prerender) adds an `expectText`
 // per route, for example the route's H1; when it is set the HTML must contain it.
 
-import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -111,6 +111,33 @@ function checkBuiltAssets(distDir) {
   return { failures, count: files.length };
 }
 
+/** Per-file budget for any raster image shipped in dist/ (STS-023). Largest today is ~175 kB. */
+export const IMAGE_BUDGET_BYTES = 400 * 1024;
+const IMAGE_EXT = /\.(png|jpe?g|webp|avif|gif)$/i;
+
+/** Every raster image under `dir` (recursive) with its size in bytes. */
+export function listImages(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listImages(full));
+    else if (IMAGE_EXT.test(entry.name)) out.push({ file: full, bytes: statSync(full).size });
+  }
+  return out;
+}
+
+function checkImageBudget(distDir) {
+  if (!existsSync(distDir)) return { failures: [`${distDir} does not exist (run the build first)`], count: 0 };
+  const images = listImages(distDir);
+  if (images.length === 0) return { failures: [`no images found in ${distDir}`], count: 0 };
+  const failures = images
+    .filter((i) => i.bytes > IMAGE_BUDGET_BYTES)
+    .map((i) => `${i.file.slice(distDir.length + 1)}: ${(i.bytes / 1024).toFixed(0)} kB exceeds the ${IMAGE_BUDGET_BYTES / 1024} kB image budget`);
+  const max = Math.max(...images.map((i) => i.bytes));
+  if (!failures.length) console.log(`  ok   ${images.length} image(s) within budget (largest ${(max / 1024).toFixed(0)} kB)`);
+  return { failures, count: images.length };
+}
+
 async function main() {
   const baseUrl = process.argv[2];
   if (!baseUrl) {
@@ -120,13 +147,14 @@ async function main() {
   console.log(`smoke: ${baseUrl}`);
   const routes = await checkRoutes(baseUrl);
   const assets = checkBuiltAssets(join(ROOT, "dist"));
-  const failures = [...routes.failures, ...assets.failures];
+  const images = checkImageBudget(join(ROOT, "dist"));
+  const failures = [...routes.failures, ...assets.failures, ...images.failures];
   if (failures.length) {
     console.error(`\nsmoke FAILED (${failures.length}):`);
     for (const f of failures) console.error(`  FAIL ${f}`);
     process.exit(1);
   }
-  console.log(`\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned`);
+  console.log(`\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

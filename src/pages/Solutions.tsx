@@ -1,3 +1,4 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import { useState } from "react";
 import {
   Cloud,
@@ -152,10 +153,11 @@ const Solutions = () => {
                     {/* Image */}
                     <motion.div className="relative h-48 overflow-hidden">
                       <img
-                        src={solution.image}
+                        {...responsiveImage(solution.image, "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw")}
                         alt={solution.title}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        decoding="async"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <motion.div

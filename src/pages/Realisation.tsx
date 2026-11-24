@@ -1,3 +1,4 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import { ExternalLink } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import realisationsData from "../../data/realisations.json";
@@ -128,11 +129,14 @@ const Realisation = () => {
                       {/* Image */}
                       <div className="col-span-1">
                         <img
-                          src={
+                          {...responsiveImage(
                             realisation.image ||
-                            "/images/placeholder-project.svg"
-                          }
+                              "/images/placeholder-project.svg",
+                            "(min-width: 1024px) 400px, 100vw",
+                          )}
                           alt={`${realisation.company} screenshot`}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-44 md:h-52 lg:h-full object-cover rounded-xl border border-border"
                         />
                       </div>

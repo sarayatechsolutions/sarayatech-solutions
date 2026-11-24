@@ -15,7 +15,9 @@ const Footer = () => {
               className="flex items-center space-x-3 transition-smooth hover:opacity-80"
             >
               <img
-                src="/logo-white.png"
+                src="/logo-white.webp"
+                width={300}
+                height={200}
                 alt="Company Logo"
                 className="h-20 w-auto scale-125"
               />

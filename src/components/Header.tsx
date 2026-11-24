@@ -28,7 +28,7 @@ const Header = () => {
             to="/"
             className="flex items-center space-x-3 transition-smooth hover:opacity-80"
           >
-            <img src="/logo.png" alt="Company Logo" className="h-16 w-auto" />
+            <img src="/logo.png" alt="Company Logo" width={989} height={373} className="h-16 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
