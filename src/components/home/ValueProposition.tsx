@@ -1,5 +1,5 @@
 import { Users, Target, Code, Award } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import {
   containerVariants,
   fadeInUpVariants,

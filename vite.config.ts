@@ -1,7 +1,24 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { assertApiUrl } from "./tools/require-api-url";
+import { existsSync } from "node:fs";
+
+// `vite preview` falls back to the root shell for /about. Serve the prerendered
+// dist/about/index.html instead, as Cloudflare Pages does (STS-020).
+const servePrerenderedRoutes: Plugin = {
+  name: "serve-prerendered-routes",
+  configurePreviewServer(server) {
+    server.middlewares.use((req, _res, next) => {
+      const [pathname, query = ""] = (req.url || "/").split("?");
+      const clean = pathname.replace(/\/+$/, "");
+      if (clean && !path.extname(clean) && existsSync(path.resolve(__dirname, "dist", `.${clean}`, "index.html"))) {
+        req.url = `${clean}/index.html${query ? `?${query}` : ""}`;
+      }
+      next();
+    });
+  },
+};
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -21,7 +38,7 @@ export default defineConfig(({ command, mode }) => {
       },
     },
   },
-  plugins: [react()],
+  plugins: [react(), servePrerenderedRoutes],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

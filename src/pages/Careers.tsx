@@ -8,7 +8,7 @@ import {
   Briefcase,
   ArrowRight,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import { useState } from "react";
 import careersData from "../../data/careers.json";
 import {

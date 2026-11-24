@@ -1,5 +1,5 @@
 import { ArrowRight, Check } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import { industries } from "@/constants/industries";
 import {
   containerVariants,
@@ -14,7 +14,7 @@ const INDUSTRY_STATS: { number: string; label: string }[] = [];
 const Industries = () => {
   return (
     <div className="min-h-screen bg-background">
-      <main>
+      <div>
         {/* Hero Section */}
         <motion.section
           className="relative py-32 bg-muted"
@@ -298,7 +298,7 @@ const Industries = () => {
             </div>
           </div>
         </motion.section>
-      </main>
+      </div>
     </div>
   );
 };

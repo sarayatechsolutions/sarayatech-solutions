@@ -11,7 +11,7 @@ import {
   Shield,
   TrendingUp,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import { useState, type ComponentType } from "react";
 import teamPhoto from "@/assets/team-photo.webp";
 import aboutValuesData from "../../data/about-values.json";

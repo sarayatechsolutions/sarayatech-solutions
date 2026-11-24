@@ -26,8 +26,6 @@ import {
   MessageSquare,
   Workflow,
 } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
 
 type Testimonial = {
@@ -53,8 +51,7 @@ const SolutionDetails = () => {
   if (!solution) {
     return (
       <div className="min-h-screen">
-        <Header />
-        <main className="pt-32 pb-20">
+        <div className="pt-32 pb-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl font-bold mb-4">Solution Not Found</h1>
             <p className="text-secondary mb-8">
@@ -64,8 +61,7 @@ const SolutionDetails = () => {
               <Button>View All Solutions</Button>
             </Link>
           </div>
-        </main>
-        <Footer />
+        </div>
       </div>
     );
   }
@@ -97,7 +93,7 @@ const SolutionDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="pt-20">
+      <div className="pt-20">
         {/* Breadcrumb */}
         <div className="bg-white border-b">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -195,8 +191,13 @@ const SolutionDetails = () => {
 
                 {/* Tabs */}
                 <div className="border-b">
-                  <div className="flex">
+                  <div className="flex" role="tablist" aria-label="Solution details">
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-overview"
+                      aria-selected={activeTab === "overview"}
+                      aria-controls="panel-overview"
                       onClick={() => setActiveTab("overview")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "overview"
@@ -207,6 +208,11 @@ const SolutionDetails = () => {
                       Overview
                     </button>
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-features"
+                      aria-selected={activeTab === "features"}
+                      aria-controls="panel-features"
                       onClick={() => setActiveTab("features")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "features"
@@ -217,6 +223,11 @@ const SolutionDetails = () => {
                       Features
                     </button>
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-specifications"
+                      aria-selected={activeTab === "specifications"}
+                      aria-controls="panel-specifications"
                       onClick={() => setActiveTab("specifications")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "specifications"
@@ -228,6 +239,11 @@ const SolutionDetails = () => {
                     </button>
                     {TESTIMONIALS.length > 0 && (
                       <button
+                        type="button"
+                        role="tab"
+                        id="tab-reviews"
+                        aria-selected={activeTab === "reviews"}
+                        aria-controls="panel-reviews"
                         onClick={() => setActiveTab("reviews")}
                         className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                           activeTab === "reviews"
@@ -239,6 +255,11 @@ const SolutionDetails = () => {
                       </button>
                     )}
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-support"
+                      aria-selected={activeTab === "support"}
+                      aria-controls="panel-support"
                       onClick={() => setActiveTab("support")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "support"
@@ -253,8 +274,13 @@ const SolutionDetails = () => {
 
                 {/* Tab Content */}
                 <div className="p-6">
-                  {activeTab === "overview" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-overview"
+                      aria-labelledby="tab-overview"
+                      hidden={activeTab !== "overview"}
+                    >
                       <h2 className="text-2xl font-bold mb-4">
                         Solution Overview
                       </h2>
@@ -286,8 +312,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "features" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-features"
+                      aria-labelledby="tab-features"
+                      hidden={activeTab !== "features"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">All Features</h2>
                       <div className="grid md:grid-cols-2 gap-6">
                         {solution.features.map((feature) => (
@@ -314,8 +345,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "specifications" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-specifications"
+                      aria-labelledby="tab-specifications"
+                      hidden={activeTab !== "specifications"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">
                         Technical Specifications
                       </h2>
@@ -378,8 +414,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "reviews" && TESTIMONIALS.length > 0 && (
-                    <div>
+                  {TESTIMONIALS.length > 0 && (
+                    <div
+                      role="tabpanel"
+                      id="panel-reviews"
+                      aria-labelledby="tab-reviews"
+                      hidden={activeTab !== "reviews"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">
                         Client Success Stories
                       </h2>
@@ -419,8 +460,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "support" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-support"
+                      aria-labelledby="tab-support"
+                      hidden={activeTab !== "support"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">
                         Support & Resources
                       </h2>
@@ -659,7 +705,7 @@ const SolutionDetails = () => {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
