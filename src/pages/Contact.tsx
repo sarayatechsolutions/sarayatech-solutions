@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRef, useState } from "react";
-import { MapPin, Phone, Mail, Clock, CheckCircle2 } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, CheckCircle2, CalendarDays } from "lucide-react";
 import {
   CONTACT_LIMITS,
   submitContact,
@@ -32,6 +32,22 @@ import {
   phoneHref,
 } from "@/config/business";
 
+/**
+ * The business facts this page reads. Production always uses BUSINESS; tests pass a populated
+ * copy so the "owner filled the config" rendering is proven without mutating the shared constant.
+ */
+export type ContactConfig = NonNullable<Parameters<typeof phoneHref>[0]> & {
+  name: string;
+  serviceAreaText: string;
+};
+
+const DEFAULT_CONFIG = BUSINESS as unknown as ContactConfig;
+
+/**
+ * Reply-time copy. C16 / I-12 (06-OWNER-INPUTS.md) are OPEN, so no response time is promised.
+ * Replace with the confirmed wording once the owner commits to one.
+ */
+const REPLY_COPY = "We'll reply as soon as we can.";
 
 const EMPTY_FORM: ContactPayload = {
   name: "",
@@ -43,10 +59,17 @@ const EMPTY_FORM: ContactPayload = {
   nickname: "",
 };
 
-const Contact = () => {
-  const phone = phoneHref();
-  const email = emailHref();
-  const mapSrc = hasAddress() ? BUSINESS.address?.mapEmbedUrl : undefined;
+type ContactProps = { config?: ContactConfig };
+
+const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
+  // Every fact goes through a business.ts helper: a slot renders only when its value is confirmed.
+  const phone = phoneHref(config);
+  const email = emailHref(config);
+  const address = hasAddress(config) ? config.address : null;
+  const hours = hasHours(config) ? config.hours : null;
+  const booking = hasVerifiedBooking(config) ? bookingHref(config) : null;
+  // A map is pinned to the street address, so it needs a confirmed address too (C4).
+  const mapSrc = address?.mapEmbedUrl || null;
   const [formData, setFormData] = useState<ContactPayload>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -82,12 +105,12 @@ const Contact = () => {
         <section className="pt-32 pb-20 gradient-primary text-primary-foreground">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-3xl mx-auto text-center space-y-6 animate-fade-in-up">
-              <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
-                Let's Start a Conversation
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
+                Let's talk about your business
               </h1>
               <p className="text-xl md:text-2xl text-primary-foreground/90 leading-relaxed">
-                Our team is ready to help you transform your business. Reach out
-                today.
+                Tell us what you're working on and what you need help with.{" "}
+                {REPLY_COPY}
               </p>
             </div>
           </div>
@@ -97,47 +120,85 @@ const Contact = () => {
         <section className="py-24 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-3 gap-12">
-              {/* Contact Information */}
+              {/* Contact Information: every block below renders only from confirmed config. */}
               <div className="space-y-8">
                 <div>
                   <h2 className="text-3xl font-bold mb-6">Get in Touch</h2>
                   <p className="text-secondary leading-relaxed">
-                    Have questions? We're here to help. Our team typically
-                    responds within 24 hours.
+                    {booking
+                      ? "Send us a message using the form, or book a free consultation at a time that suits you."
+                      : "Send us a message using the form and tell us a little about your business."}
                   </p>
                 </div>
 
+                {/* C15: shown only once the owner confirms the booking link; otherwise the form is the primary action. */}
+                {booking && (
+                  <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                        <CalendarDays className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold mb-1">Prefer to talk?</h3>
+                        <p className="text-secondary text-sm mb-4">
+                          Pick a time for a free consultation.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full bg-accent hover:bg-accent-light"
+                    >
+                      <a href={booking} target="_blank" rel="noopener noreferrer">
+                        Book a Free Consultation
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    </Button>
+                  </div>
+                )}
+
                 <div className="space-y-6">
+                  {/* C4: the street address when confirmed, otherwise the service-area fallback. */}
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-primary-foreground" />
+                      <MapPin className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="font-semibold mb-1">
-                        {hasAddress() ? "Headquarters" : "Service area"}
+                        {address ? "Office" : "Service area"}
                       </div>
-                      <div className="text-secondary text-sm">
-                        {hasAddress()
-                          ? BUSINESS.address?.lines.map((line, i) => (
-                              <span key={line}>
-                                {i > 0 && <br />}
-                                {line}
-                              </span>
-                            ))
-                          : BUSINESS.serviceAreaText}
-                      </div>
+                      {address ? (
+                        <address className="text-secondary text-sm not-italic">
+                          {address.lines.map((line, i) => (
+                            <span key={line}>
+                              {i > 0 && <br />}
+                              {line}
+                            </span>
+                          ))}
+                        </address>
+                      ) : (
+                        <div className="text-secondary text-sm">
+                          {config.serviceAreaText}
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   {phone && (
                     <div className="flex items-start space-x-4">
                       <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <Phone className="w-6 h-6 text-primary-foreground" />
+                        <Phone className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="font-semibold mb-1">Phone</div>
                         <div className="text-secondary text-sm">
-                          <a href={phone}>{BUSINESS.phone?.display}</a>
+                          <a
+                            href={phone}
+                            className="inline-flex min-h-[44px] items-center underline-offset-4 hover:underline"
+                          >
+                            {config.phone?.display}
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -146,26 +207,31 @@ const Contact = () => {
                   {email && (
                     <div className="flex items-start space-x-4">
                       <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-6 h-6 text-primary-foreground" />
+                        <Mail className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="font-semibold mb-1">Email</div>
                         <div className="text-secondary text-sm">
-                          <a href={email}>{BUSINESS.email}</a>
+                          <a
+                            href={email}
+                            className="inline-flex min-h-[44px] items-center break-all underline-offset-4 hover:underline"
+                          >
+                            {config.email}
+                          </a>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  {hasHours() && (
+                  {hours && (
                     <div className="flex items-start space-x-4">
                       <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-6 h-6 text-primary-foreground" />
+                        <Clock className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="font-semibold mb-1">Business Hours</div>
                         <div className="text-secondary text-sm">
-                          {BUSINESS.hours?.map((line, i) => (
+                          {hours.map((line, i) => (
                             <span key={line}>
                               {i > 0 && <br />}
                               {line}
@@ -177,11 +243,10 @@ const Contact = () => {
                   )}
                 </div>
               </div>
-
               {/* Contact Form */}
               <div className="lg:col-span-2">
                 <div className="bg-card rounded-2xl p-8 shadow-elegant border border-border">
-                  <h3 className="text-2xl font-bold mb-6">Send us a Message</h3>
+                  <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
 
                   <form onSubmit={handleSubmit} className="space-y-6" aria-busy={loading}>
                     {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
@@ -213,7 +278,6 @@ const Contact = () => {
                           name="name"
                           autoComplete="name"
                           maxLength={CONTACT_LIMITS.name}
-                          placeholder="John Doe"
                           required
                           value={formData.name}
                           onChange={(e) =>
@@ -231,7 +295,6 @@ const Contact = () => {
                           autoComplete="email"
                           maxLength={CONTACT_LIMITS.email}
                           type="email"
-                          placeholder="john@company.com"
                           required
                           value={formData.email}
                           onChange={(e) =>
@@ -346,16 +409,17 @@ const Contact = () => {
                           className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
                         >
                           <p>{errorMessage}</p>
-                          {hasVerifiedBooking() && (
+                          {booking && (
                             <p className="mt-1">
                               You can also{" "}
                               <a
-                                href={bookingHref()}
+                                href={booking}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="font-semibold underline"
                               >
                                 book a call
+                                <span className="sr-only"> (opens in a new tab)</span>
                               </a>
                               .
                             </p>
@@ -396,7 +460,7 @@ const Contact = () => {
               }}
               loading="lazy"
               allowFullScreen
-              title="SarayaTech Solutions Office Location"
+              title={`Map of the ${config.name} office location`}
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
           </section>
@@ -416,7 +480,7 @@ const Contact = () => {
               Message Sent Successfully!
             </DialogTitle>
             <DialogDescription className="text-center text-base pt-2">
-              Thank you for contacting us! We've received your message and will get back to you within 24-48 hours.
+              Thank you for contacting us! We've received your message. {REPLY_COPY}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-4">
