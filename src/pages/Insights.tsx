@@ -10,7 +10,6 @@ const Insights = () => {
       category: "Cloud Computing",
       title: "The Future of Multi-Cloud Architecture in Enterprise",
       excerpt: "Explore how leading organizations are leveraging multi-cloud strategies to achieve unprecedented scalability and resilience.",
-      author: "Michael Chen",
       date: "December 15, 2024",
       readTime: "8 min read",
       image: "bg-gradient-to-br from-primary to-primary-light"
@@ -19,7 +18,6 @@ const Insights = () => {
       category: "Data Analytics",
       title: "Turning Data into Strategic Advantage",
       excerpt: "Learn how advanced analytics and AI are transforming raw data into actionable business intelligence.",
-      author: "Sarah Martinez",
       date: "December 10, 2024",
       readTime: "6 min read",
       image: "bg-gradient-to-br from-accent to-accent-light"
@@ -28,7 +26,6 @@ const Insights = () => {
       category: "Digital Transformation",
       title: "Enterprise Digital Transformation: A Roadmap",
       excerpt: "A comprehensive guide to successfully navigating digital transformation in large organizations.",
-      author: "David Thompson",
       date: "December 5, 2024",
       readTime: "10 min read",
       image: "bg-gradient-to-br from-primary-light to-accent"
@@ -37,7 +34,6 @@ const Insights = () => {
       category: "Security",
       title: "Zero Trust Security in the Cloud Era",
       excerpt: "Understanding and implementing zero trust security models for modern cloud infrastructure.",
-      author: "Emily Rodriguez",
       date: "November 28, 2024",
       readTime: "7 min read",
       image: "bg-gradient-to-br from-secondary to-primary"
@@ -46,7 +42,6 @@ const Insights = () => {
       category: "AI & Machine Learning",
       title: "AI-Powered Business Intelligence",
       excerpt: "How artificial intelligence is revolutionizing business decision-making and predictive analytics.",
-      author: "James Anderson",
       date: "November 20, 2024",
       readTime: "9 min read",
       image: "bg-gradient-to-br from-primary to-accent"
@@ -55,7 +50,6 @@ const Insights = () => {
       category: "Industry Trends",
       title: "2025 Technology Trends for Enterprises",
       excerpt: "Key technology trends that will shape enterprise IT strategies in the coming year.",
-      author: "Maria Kim",
       date: "November 15, 2024",
       readTime: "12 min read",
       image: "bg-gradient-to-br from-accent-light to-primary-light"
@@ -139,7 +133,6 @@ const Insights = () => {
                     <div className="pt-4 border-t border-border">
                       <div className="flex items-center justify-between text-xs text-secondary">
                         <div>
-                          <div className="font-semibold text-foreground">{article.author}</div>
                           <div>{article.date}</div>
                         </div>
                         <div className="flex items-center space-x-1">

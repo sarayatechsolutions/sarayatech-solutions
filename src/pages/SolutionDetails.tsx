@@ -29,6 +29,17 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
 
+type Testimonial = {
+  name: string;
+  company: string;
+  role: string;
+  comment: string;
+};
+
+// Only real, permissioned client quotes belong here (name, business, written
+// consent). The Reviews tab stays hidden while this list is empty.
+const TESTIMONIALS: Testimonial[] = [];
+
 const SolutionDetails = () => {
   const { solutionId } = useParams();
   const solution = SOLUTIONS_DATA[solutionId as keyof typeof SOLUTIONS_DATA];
@@ -210,16 +221,18 @@ const SolutionDetails = () => {
                     >
                       Specifications
                     </button>
-                    <button
-                      onClick={() => setActiveTab("reviews")}
-                      className={`px-6 py-3 border-b-2 font-medium transition-colors ${
-                        activeTab === "reviews"
-                          ? "border-primary text-primary"
-                          : "border-transparent text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      Reviews
-                    </button>
+                    {TESTIMONIALS.length > 0 && (
+                      <button
+                        onClick={() => setActiveTab("reviews")}
+                        className={`px-6 py-3 border-b-2 font-medium transition-colors ${
+                          activeTab === "reviews"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-gray-600 hover:text-gray-900"
+                        }`}
+                      >
+                        Reviews
+                      </button>
+                    )}
                     <button
                       onClick={() => setActiveTab("support")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
@@ -366,7 +379,7 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "reviews" && (
+                  {activeTab === "reviews" && TESTIMONIALS.length > 0 && (
                     <div>
                       <h2 className="text-2xl font-bold mb-6">
                         Client Success Stories
@@ -380,39 +393,12 @@ const SolutionDetails = () => {
                       </div>
 
                       <div className="space-y-6">
-                        {[
-                          {
-                            name: "Sarah Johnson",
-                            company: "TechCorp Inc.",
-                            role: "CTO",
-                            comment:
-                              "Working with SarayaTech was a game-changer. They took the time to understand our unique challenges and built a solution that perfectly fits our workflow. The team's expertise and dedication were exceptional.",
-                          },
-                          {
-                            name: "Michael Chen",
-                            company: "HealthPlus",
-                            role: "Director of Operations",
-                            comment:
-                              "The custom dashboard they developed has transformed how we monitor patient data. The solution exceeded our expectations, and their ongoing support has been outstanding.",
-                          },
-                          {
-                            name: "Emily Rodriguez",
-                            company: "FinanceFlow",
-                            role: "Product Manager",
-                            comment:
-                              "SarayaTech delivered a robust data platform that scales with our needs. Their agile approach and constant communication made the entire process smooth and efficient.",
-                          },
-                        ].map((testimonial, i) => (
+                        {TESTIMONIALS.map((testimonial, i) => (
                           <div
                             key={i}
                             className="p-6 border rounded-lg bg-white"
                           >
                             <div className="flex items-start gap-4 mb-4">
-                              <img
-                                src={`https://i.pravatar.cc/48?img=${i + 10}`}
-                                alt={testimonial.name}
-                                className="w-12 h-12 rounded-full"
-                              />
                               <div className="flex-1">
                                 <h4 className="font-semibold">
                                   {testimonial.name}
