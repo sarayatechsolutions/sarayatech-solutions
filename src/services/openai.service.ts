@@ -133,7 +133,7 @@ Remember: You represent SarayaTech Solutions. Be helpful, accurate, and encourag
       // Call ChatGPT API
       const completion = await this.client.chat.completions.create({
         model: "gpt-4o-mini", // Fast and cost-effective model
-        messages: messages as any,
+        messages,
         temperature: 0.7, // Balanced creativity and consistency
         max_tokens: 500, // Limit response length
         top_p: 0.9,
@@ -153,8 +153,9 @@ Remember: You represent SarayaTech Solutions. Be helpful, accurate, and encourag
         message: responseMessage,
         tokensUsed: completion.usage?.total_tokens,
       };
-    } catch (error: any) {
-      console.error("[OpenAI Service] Chat error:", error);
+    } catch (caught: unknown) {
+      const error = caught as { status?: number; message?: string } | undefined;
+      console.error("[OpenAI Service] Chat error:", caught);
 
       // Handle specific error cases
       if (error?.status === 401) {

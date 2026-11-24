@@ -126,9 +126,12 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
         ),
 
         // Code (inline and blocks with syntax highlighting)
-        code: ({ node, inline, className, children, ...props }) => {
+        code: ({ node, className, children, ...props }) => {
           const match = /language-(\w+)/.exec(className || '');
           const language = match ? match[1] : '';
+          // react-markdown v10 dropped the `inline` prop: fenced blocks carry a
+          // language class or end in a newline, inline code does neither.
+          const inline = !match && !String(children).includes('\n');
 
           return !inline && language ? (
             // Code block with syntax highlighting
@@ -143,7 +146,6 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
                 fontSize: '0.875rem',
                 border: '1px solid rgba(212, 175, 55, 0.2)',
               }}
-              {...props}
             >
               {String(children).replace(/\n$/, '')}
             </SyntaxHighlighter>

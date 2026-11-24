@@ -24,6 +24,16 @@ interface IntentMatch {
   confidence: number;
 }
 
+/** Common superset of the per-service shapes in knowledge-base.json. */
+interface ServiceInfo {
+  name: string;
+  description: string;
+  features?: string[];
+  technologies?: string[];
+  pricing_range?: string;
+  benefits?: string[];
+}
+
 /**
  * Chatbot Service
  * Intelligent chatbot service with NLP capabilities for intent detection and response generation
@@ -145,7 +155,9 @@ class ChatbotService {
    */
   private generateServiceDetailResponse(context: string): string {
     const serviceKey = context as keyof typeof this.knowledgeBase.services;
-    const service = this.knowledgeBase.services[serviceKey];
+    // The knowledge base is a union of per-service shapes; read it through the
+    // common superset so optional fields (features, technologies) type-check.
+    const service = this.knowledgeBase.services[serviceKey] as ServiceInfo | undefined;
 
     if (!service) return this.generateDefaultResponse();
 
@@ -254,7 +266,7 @@ class ChatbotService {
       `• ${stats.projects_delivered} projects successfully delivered\n` +
       `• ${stats.years_experience} of industry experience\n` +
       `• ${stats.client_satisfaction} client satisfaction rate\n` +
-      `• ${stats.active_clients} active users across our platforms\n\n` +
+      `• ${stats.enterprise_clients} enterprise clients served\n\n` +
       `We've worked with clients across various industries including Healthcare, Finance, E-commerce, and more.\n\n` +
       `🔗 **Learn more about our team:** /about\n` +
       `🔗 **View our case studies:** /realisation`;

@@ -67,11 +67,12 @@ export function encodePricingContext(categories?: string[]): string {
     return encode(pricingDetails);
   }
 
-  const selectedPricing: Record<string, any> = {};
+  const selectedPricing: Record<string, unknown> = {};
+  const allPricing = pricingDetails as Record<string, unknown>;
 
   categories.forEach(category => {
-    if (category in pricingDetails) {
-      selectedPricing[category] = (pricingDetails as any)[category];
+    if (category in allPricing) {
+      selectedPricing[category] = allPricing[category];
     }
   });
 
