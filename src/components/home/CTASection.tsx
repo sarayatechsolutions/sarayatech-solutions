@@ -25,8 +25,7 @@ const CTASection = () => {
           </h2>
 
           <p className="text-xl md:text-2xl text-primary-foreground/90 leading-relaxed max-w-2xl mx-auto">
-            Join 50+ leading organizations that trust SarayaTech to power their
-            digital transformation.
+            Websites, apps and custom software for growing businesses.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">

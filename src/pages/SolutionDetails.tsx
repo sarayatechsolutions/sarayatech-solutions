@@ -40,10 +40,14 @@ type Testimonial = {
 // consent). The Reviews tab stays hidden while this list is empty.
 const TESTIMONIALS: Testimonial[] = [];
 
+type SolutionBenefit = { metric: string; label: string; description: string };
+
 const SolutionDetails = () => {
   const { solutionId } = useParams();
   const solution = SOLUTIONS_DATA[solutionId as keyof typeof SOLUTIONS_DATA];
   const [activeTab, setActiveTab] = useState("overview");
+  // Per-service metrics render only when documented figures exist (STS-018).
+  const benefits = (solution?.benefits ?? []) as SolutionBenefit[];
 
   if (!solution) {
     return (
@@ -338,14 +342,6 @@ const SolutionDetails = () => {
                             </div>
                             <div className="p-4 bg-gray-50 rounded-lg">
                               <p className="text-sm font-medium text-gray-900 mb-1">
-                                Security
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                SOC 2, GDPR, ISO 27001
-                              </p>
-                            </div>
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <p className="text-sm font-medium text-gray-900 mb-1">
                                 Scalability
                               </p>
                               <p className="text-sm text-gray-600">
@@ -355,12 +351,13 @@ const SolutionDetails = () => {
                           </div>
                         </div>
 
+                        {benefits.length > 0 && (
                         <div>
                           <h3 className="font-semibold text-lg mb-3">
                             Performance Metrics
                           </h3>
                           <div className="space-y-3">
-                            {solution.benefits.map((benefit) => (
+                            {benefits.map((benefit) => (
                               <div
                                 key={benefit.label}
                                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
@@ -375,6 +372,7 @@ const SolutionDetails = () => {
                             ))}
                           </div>
                         </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -431,11 +429,11 @@ const SolutionDetails = () => {
                             <Shield className="w-6 h-6 text-primary" />
                           </div>
                           <h3 className="font-semibold text-lg mb-2">
-                            24/7 Support
+                            Support
                           </h3>
                           <p className="text-gray-600 mb-4">
-                            Our dedicated support team is available round the
-                            clock to help you with any questions or issues.
+                            Contact our team with any questions or issues about
+                            your project.
                           </p>
                           <Button variant="outline" size="sm">
                             Contact Support
@@ -574,7 +572,7 @@ const SolutionDetails = () => {
                         Expert Team
                       </h4>
                       <p className="text-xs text-gray-600">
-                        20+ years of industry experience
+                        Meet the people behind your project
                       </p>
                     </div>
                   </div>
@@ -585,24 +583,10 @@ const SolutionDetails = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-sm mb-1">
-                        Proven Track Record
+                        Live Projects
                       </h4>
                       <p className="text-xs text-gray-600">
-                        250+ successful projects delivered
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Shield className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm mb-1">
-                        Quality Assurance
-                      </h4>
-                      <p className="text-xs text-gray-600">
-                        97% client satisfaction rate
+                        See projects we have built and launched
                       </p>
                     </div>
                   </div>

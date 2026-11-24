@@ -31,6 +31,10 @@ const iconMap = {
   Bot,
 };
 
+// Only documented, owner-verified figures belong here (STS-018). The stats
+// row is not rendered while this list is empty.
+const SERVICE_STATS: { value: string; label: string; color: string }[] = [];
+
 const Solutions = () => {
   const [activeFilter, setActiveFilter] = useState("All Services");
   const [solutions, setSolutions] = useState(solutionsData);
@@ -71,6 +75,7 @@ const Solutions = () => {
           </motion.div>
 
           {/* Stats */}
+          {SERVICE_STATS.length > 0 && (
           <motion.div
             className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mt-12"
             variants={containerVariants}
@@ -78,19 +83,7 @@ const Solutions = () => {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {[
-              {
-                value: "250+",
-                label: "Projects Delivered",
-                color: "text-primary",
-              },
-              {
-                value: "97%",
-                label: "Client Satisfaction",
-                color: "text-accent",
-              },
-              { value: "20+", label: "Years Experience", color: "text-gold" },
-            ].map((stat) => (
+            {SERVICE_STATS.map((stat) => (
               <motion.div
                 key={stat.label}
                 variants={staggerItemVariants}
@@ -105,6 +98,7 @@ const Solutions = () => {
               </motion.div>
             ))}
           </motion.div>
+          )}
         </div>
       </section>
 

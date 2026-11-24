@@ -7,6 +7,10 @@ import {
   staggerItemVariants,
 } from "@/constants/animations";
 
+// Only documented, owner-verified figures belong here (STS-018). The stats
+// section is not rendered while this list is empty.
+const INDUSTRY_STATS: { number: string; label: string }[] = [];
+
 const Industries = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -189,6 +193,7 @@ const Industries = () => {
         </section>
 
         {/* Stats Section */}
+        {INDUSTRY_STATS.length > 0 && (
         <motion.section
           className="relative py-20 bg-foreground text-primary-foreground"
           initial={{ opacity: 0 }}
@@ -219,12 +224,7 @@ const Industries = () => {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {[
-                { number: "50+", label: "Enterprise Clients" },
-                { number: "99.9%", label: "Uptime Guarantee" },
-                { number: "1M+", label: "Transactions Processed" },
-                { number: "24/7", label: "Support Available" },
-              ].map((stat, idx) => (
+              {INDUSTRY_STATS.map((stat, idx) => (
                 <motion.div
                   key={idx}
                   variants={staggerItemVariants}
@@ -237,6 +237,7 @@ const Industries = () => {
             </motion.div>
           </div>
         </motion.section>
+        )}
 
         {/* CTA Section */}
         <motion.section
@@ -266,8 +267,7 @@ const Industries = () => {
                   Ready to Transform Your Industry?
                 </h2>
                 <p className="text-lg text-primary-foreground/90">
-                  Join hundreds of companies that trust our industry-specific
-                  solutions to drive their digital transformation.
+                  Websites, apps and custom software for growing businesses.
                 </p>
               </motion.div>
 

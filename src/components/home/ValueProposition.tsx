@@ -29,7 +29,7 @@ const VALUES = [
     icon: Award,
     title: "Trusted Partner",
     description:
-      "97% client satisfaction, responsive support, complete transparency. We build long-term relationships.",
+      "Responsive support and complete transparency. We build long-term relationships.",
   },
 ];
 

@@ -42,12 +42,8 @@ export const ABOUT_VALUES = [
 // the live About page reads data/leadership-team.json.
 export const LEADERSHIP_TEAM: { name: string; role: string; bio: string }[] = [];
 
-export const ABOUT_STATS = [
-  { icon: "Users", value: "50+", label: "Clients" },
-  { icon: "Globe", value: "20+", label: "Countries" },
-  { icon: "Award", value: "20+", label: "Years" },
-  { icon: "Zap", value: "97%", label: "Satisfaction" },
-];
+// Unverified figures removed (STS-018). Add only documented, owner-verified stats.
+export const ABOUT_STATS: { icon: string; value: string; label: string }[] = [];
 
 // Navigation data
 export const NAVIGATION_ITEMS = [
