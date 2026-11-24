@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { Routes, Route } from "react-router-dom";
 import Layout from "@/components/Layout";
+import Seo from "@/components/Seo";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -65,7 +66,9 @@ export function getPublicPaths(): string[] {
 }
 
 export const AppRoutes = () => (
-  <Routes>
+  <>
+    <Seo />
+    <Routes>
     {APP_ROUTES.map((r) => (
       <Route key={r.path} path={r.path} element={<Layout>{r.element}</Layout>} />
     ))}
@@ -78,5 +81,6 @@ export const AppRoutes = () => (
         </Layout>
       }
     />
-  </Routes>
+    </Routes>
+  </>
 );

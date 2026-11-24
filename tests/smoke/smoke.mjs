@@ -78,6 +78,62 @@ export function buildRoutes() {
 // framer-motion writes an `initial` of opacity 0 into the HTML (STS-022).
 const HIDDEN_AT_FIRST_PAINT = /style="[^"]*opacity:\s*0[;"]/;
 
+/** Canonical host: VITE_SITE_URL at build time, else the documented fallback (B2). Mirrors src/seo/seo.ts, kept equal by a unit test. */
+export const DEFAULT_SITE_URL = "https://sarayatechsolutions.com";
+export function siteUrlFromEnv(env = process.env) {
+  const v = (env.VITE_SITE_URL || "").trim().replace(/\/+$/, "");
+  return /^https?:\/\/[^\s/]+$/i.test(v) ? v : DEFAULT_SITE_URL;
+}
+
+const decodeEntities = (t) =>
+  t.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&#x27;|&#39;/g, "'").replace(/&amp;/g, "&");
+
+/** Reads the SEO head of a served page: title count/text, description, canonical hrefs. */
+export function readSeoHead(html) {
+  const head = (/<head[\s\S]*?<\/head>/i.exec(html) || [""])[0];
+  const titles = [...head.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)].map((m) => decodeEntities(m[1]).trim());
+  const descriptions = [...head.matchAll(/<meta\b(?=[^>]*\bname=["']description["'])[^>]*>/gi)].map((m) => {
+    const c = /\bcontent="([^"]*)"/i.exec(m[0]);
+    return c ? decodeEntities(c[1]).trim() : "";
+  });
+  const canonicals = [...head.matchAll(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/gi)].map((m) => {
+    const h = /\bhref="([^"]*)"/i.exec(m[0]);
+    return h ? h[1] : "";
+  });
+  return { titles, descriptions, canonicals };
+}
+
+/** STS-021: exactly one title, a non-empty description, one canonical equal to the route's absolute URL. */
+export function checkSeoHead(html, expectedCanonical) {
+  const { titles, descriptions, canonicals } = readSeoHead(html);
+  const errors = [];
+  if (titles.length !== 1) errors.push(`expected exactly one <title>, found ${titles.length}`);
+  else if (!titles[0]) errors.push("empty <title>");
+  if (descriptions.length !== 1) errors.push(`expected exactly one meta description, found ${descriptions.length}`);
+  else if (!descriptions[0]) errors.push("empty meta description");
+  if (canonicals.length !== 1) errors.push(`expected exactly one canonical, found ${canonicals.length}`);
+  else if (canonicals[0] !== expectedCanonical) errors.push(`canonical ${canonicals[0]} is not ${expectedCanonical}`);
+  return errors;
+}
+
+/** Titles and descriptions must be unique across pages. `pages` is [{ path, title, description }]. */
+export function findDuplicateSeo(pages) {
+  const out = [];
+  for (const field of ["title", "description"]) {
+    const seen = new Map();
+    for (const pg of pages) {
+      if (seen.has(pg[field])) out.push(`duplicate ${field} on ${seen.get(pg[field])} and ${pg.path}`);
+      else seen.set(pg[field], pg.path);
+    }
+  }
+  return out;
+}
+
+/** <loc> values of a sitemap.xml. */
+export function sitemapLocs(xml) {
+  return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => decodeEntities(m[1]));
+}
+
 // "sk-" as a token (not the tail of e.g. "task-"), then 20+ key characters.
 export const SECRET_PATTERNS = [
   { name: "OpenAI-style secret key", re: /(?<![A-Za-z0-9_-])sk-(?:proj-)?[A-Za-z0-9_-]{20,}/ },
@@ -115,19 +171,45 @@ export function checkRouteBody(route, status, contentType, body) {
 async function checkRoutes(baseUrl) {
   const failures = [];
   const routes = buildRoutes();
+  const siteUrl = siteUrlFromEnv();
+  const seoPages = [];
   for (const route of routes) {
     const url = new URL(route.path, baseUrl).toString();
     try {
       const res = await fetch(url, { redirect: "manual" });
       const body = await res.text();
       const errors = checkRouteBody(route, res.status, res.headers.get("content-type"), body);
+      if (route.expectH1 !== undefined && route.path !== "/404.html") {
+        errors.push(...checkSeoHead(body, `${siteUrl}${route.path}`));
+        const h = readSeoHead(body);
+        seoPages.push({ path: route.path, title: h.titles[0], description: h.descriptions[0] });
+      }
       if (errors.length) failures.push(`${route.path}: ${errors.join("; ")}`);
       else console.log(`  ok   ${route.path}`);
     } catch (err) {
       failures.push(`${route.path}: request failed (${err.message})`);
     }
   }
+  failures.push(...findDuplicateSeo(seoPages));
+  failures.push(...(await checkSitemap(baseUrl, siteUrl, routes)));
   return { failures, count: routes.length };
+}
+
+/** /sitemap.xml lists exactly the prerendered public paths, absolute on the canonical host. */
+async function checkSitemap(baseUrl, siteUrl, routes) {
+  const res = await fetch(new URL("/sitemap.xml", baseUrl), { redirect: "manual" });
+  if (res.status !== 200) return [`/sitemap.xml: expected HTTP 200, got ${res.status}`];
+  const locs = sitemapLocs(await res.text());
+  const expected = routes.filter((r) => r.expectH1 !== undefined && r.path !== "/404.html").map((r) => `${siteUrl}${r.path}`);
+  const missing = expected.filter((u) => !locs.includes(u));
+  const extra = locs.filter((u) => !expected.includes(u));
+  const dup = locs.length !== new Set(locs).size;
+  const errors = [];
+  if (missing.length) errors.push(`/sitemap.xml is missing ${missing.join(", ")}`);
+  if (extra.length) errors.push(`/sitemap.xml lists unexpected ${extra.join(", ")}`);
+  if (dup) errors.push("/sitemap.xml has duplicate URLs");
+  if (!errors.length) console.log(`  ok   /sitemap.xml (${locs.length} URLs)`);
+  return errors;
 }
 
 function checkBuiltAssets(distDir) {
