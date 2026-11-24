@@ -62,9 +62,10 @@ export async function prerender({ distDir, serverEntry }) {
 
   const template = readFileSync(shellPath, "utf8");
   const entry = await import(/* @vite-ignore */ pathToFileURL(serverEntry).href);
-  const { render, paths, NOT_FOUND_PATH, getSeo, renderHeadTags, buildSitemapXml, SITE_URL } = entry;
+  const { render, paths, sitemapPaths, NOT_FOUND_PATH, getSeo, renderHeadTags, buildSitemapXml, SITE_URL } = entry;
   if (!getSeo || !renderHeadTags || !buildSitemapXml) throw new Error("the SSR entry exports no SEO helpers (src/seo/seo.ts)");
   if (!paths?.length) throw new Error("the SSR entry exported no paths; refusing to prerender nothing");
+  if (!Array.isArray(sitemapPaths)) throw new Error("the SSR entry exports no sitemapPaths; refusing to guess which pages are indexable");
 
   const written = [];
   const write = (rel, html) => {
@@ -79,8 +80,9 @@ export async function prerender({ distDir, serverEntry }) {
   }
   write("404.html", inject(template, render(NOT_FOUND_PATH), renderHeadTags(getSeo(NOT_FOUND_PATH))));
 
-  // Sitemap: exactly the prerendered public paths, on the canonical host. lastmod is the build date.
-  write("sitemap.xml", buildSitemapXml(paths, SITE_URL, new Date().toISOString().slice(0, 10)));
+  // Sitemap: the prerendered public paths minus noindex pages (STS-037), on the canonical host.
+  // lastmod is the build date.
+  write("sitemap.xml", buildSitemapXml(sitemapPaths, SITE_URL, new Date().toISOString().slice(0, 10)));
   const robotsPath = join(distDir, "robots.txt");
   if (existsSync(robotsPath)) write("robots.txt", withSitemapLine(readFileSync(robotsPath, "utf8"), SITE_URL));
   return written;

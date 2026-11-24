@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRef, useState } from "react";
+import FormPrivacyNote from "@/components/FormPrivacyNote";
 import { MapPin, Phone, Mail, Clock, CheckCircle2, CalendarDays } from "lucide-react";
 import {
   CONTACT_LIMITS,
@@ -437,10 +438,8 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                       {loading ? "Sending..." : "Send Message"}
                     </Button>
 
-                    <p className="text-sm text-secondary text-center">
-                      We respect your privacy. Your information will never be
-                      shared.
-                    </p>
+                    {/* REQ-173: replaces "Your information will never be shared.", which /privacy contradicts. */}
+                    <FormPrivacyNote className="text-center" />
                   </form>
                 </div>
               </div>

@@ -63,9 +63,19 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
 
   it("drops the links whose pages do not exist", () => {
     const { container } = renderFooter();
-    for (const dead of ["/newsroom", "/documentation", "/support", "/privacy", "/terms", "/cookies"]) {
+    // /privacy and /terms exist since STS-037 (see the test below); /cookies still does not.
+    for (const dead of ["/newsroom", "/documentation", "/support", "/cookies"]) {
       expect(container.querySelector(`a[href="${dead}"]`)).toBeNull();
     }
+  });
+
+  it("links the Privacy Policy and Terms of Use in a Legal landmark (STS-037, REQ-046)", () => {
+    renderFooter();
+    const legal = screen.getByRole("navigation", { name: "Legal" });
+    expect(within(legal).getByRole("link", { name: "Privacy Policy" })).toHaveAttribute("href", "/privacy");
+    expect(within(legal).getByRole("link", { name: "Terms of Use" })).toHaveAttribute("href", "/terms");
+    const routed = new Set(getPublicPaths());
+    expect(routed.has("/privacy") && routed.has("/terms")).toBe(true);
   });
 
   it("labels its link groups as navigation landmarks", () => {

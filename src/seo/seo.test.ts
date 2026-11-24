@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { getPublicPaths } from "@/routes";
+import { LEGAL_PAGES_APPROVED } from "@/content/legal/legal";
 import {
   DEFAULT_SITE_URL,
   NOT_FOUND_SEO_PATH,
@@ -21,9 +22,10 @@ describe("per-route SEO data (STS-021)", () => {
   it.each(paths)("has its own title and description for %s", (p) => {
     const seo = getSeo(p);
     expect(seo.path).toBe(p);
-    // STS-040: /insights is noindex until the first article exists.
-    if (p === "/insights") expect(seo.noindex).toBe(true);
-    else expect(seo.noindex).toBeUndefined();
+    // Noindex only where intended: /insights until its first article (STS-040) and the
+    // STS-037 legal drafts until C23 approval.
+    const expectNoindex = p === "/insights" || (!LEGAL_PAGES_APPROVED && (p === "/privacy" || p === "/terms"));
+    expect(seo.noindex).toBe(expectNoindex ? true : undefined);
     expect(seo.title.length).toBeGreaterThanOrEqual(35);
     expect(seo.title.length).toBeLessThanOrEqual(60);
     expect(seo.description.length).toBeGreaterThanOrEqual(100);

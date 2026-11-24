@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Facebook, Youtube } from "lucide-react";
 import { BUSINESS, contactHref, emailHref, hasAddress, hasHours, phoneHref, socialLinks } from "@/config/business";
 import { SERVICE_PAGES, servicePath } from "@/content/services/services";
+import { PRIVACY_PATH, TERMS_PATH } from "@/content/legal/legal";
 
 /**
  * Site footer (STS-038).
@@ -38,6 +39,11 @@ const COMPANY_LINKS = [
   { label: "Pricing", to: "/pricing" },
   { label: "Careers", to: "/careers" },
   { label: "Contact", to: contactHref() },
+];
+
+const LEGAL_LINKS = [
+  { label: "Privacy Policy", to: PRIVACY_PATH },
+  { label: "Terms of Use", to: TERMS_PATH },
 ];
 
 const focusRing =
@@ -156,10 +162,22 @@ const Footer = ({ config = BUSINESS }: { config?: FooterConfig }) => {
           </nav>
         </div>
 
-        <div className="pt-8 border-t border-primary-foreground/20">
+        <div className="pt-8 border-t border-primary-foreground/20 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-primary-foreground/70">
             © <span suppressHydrationWarning>{COPYRIGHT_YEAR}</span> {config.name}. All rights reserved.
           </p>
+          {/* STS-037 (REQ-046): legal pages; drafts are noindex until C23, but the links always resolve. */}
+          <nav aria-label="Legal">
+            <ul className="flex flex-wrap gap-x-6">
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.to}>
+                  <Link to={link.to} className={linkClass}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </div>
     </footer>

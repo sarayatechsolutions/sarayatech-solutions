@@ -82,6 +82,9 @@ export const INSIGHTS_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Read Arti
  */
 export const SITEWIDE_FORBIDDEN_PHRASES = ["Enterprise-grade", "Enterprise Technology Solutions"];
 
+/** Legal drafts (STS-037): no compliance claim (C21) and no blanket "never shared" promise. */
+export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compliant", "never be shared", "never share"];
+
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
   { path: "/services/website-design", expectH1: "Websites that win customers" },
@@ -95,7 +98,9 @@ export const SERVICE_ROUTES = [
  * Public routes: every path src/routes.tsx prerenders (STS-020), each with the page's
  * real <h1> text, so an empty client-rendered shell fails. A unit test keeps this list
  * in step with getPublicPaths().
- * @type {{ path: string, noindex?: boolean, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean }[]}
+ * `noindex: true` (STS-037 legal drafts): the page must carry a robots noindex meta and no
+ * canonical, and must NOT be in the sitemap.
+ * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean }[]}
  */
 export function buildRoutes() {
   return [
@@ -131,6 +136,9 @@ export function buildRoutes() {
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
     { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
     ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),
+    // STS-037: legal drafts, served but noindex and out of the sitemap until C23 approval.
+    { path: "/privacy", expectH1: "Privacy Policy", noindex: true, expectText: "Draft — pending legal review", forbidText: LEGAL_FORBIDDEN_PHRASES },
+    { path: "/terms", expectH1: "Terms of Use", noindex: true, expectText: "Draft — pending legal review", forbidText: LEGAL_FORBIDDEN_PHRASES },
     { path: "/404.html", expectH1: "404" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];
@@ -177,13 +185,18 @@ export function checkSeoHead(html, expectedCanonical) {
   return errors;
 }
 
-/** STS-040: a noindex page has one title, one description, a robots noindex tag and no canonical. */
+/**
+ * A noindex page (STS-037 legal drafts, STS-040 /insights): exactly one robots meta that
+ * contains "noindex", no canonical, and one non-empty title and meta description.
+ */
 export function checkNoindexHead(html) {
   const head = (/<head[\s\S]*?<\/head>/i.exec(html) || [""])[0];
+  const robots = [...head.matchAll(/<meta\b(?=[^>]*\bname=["']robots["'])[^>]*>/gi)].map((m) => (/\bcontent="([^"]*)"/i.exec(m[0]) || [])[1] || "");
   const errors = [];
-  if (!/<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="[^"]*noindex)[^>]*>/i.test(head)) errors.push('missing <meta name="robots" content="noindex...">');
-  if (/<link\b[^>]*\brel=["']canonical["']/i.test(head)) errors.push("a noindex page must not declare a canonical");
-  const { titles, descriptions } = readSeoHead(html);
+  if (robots.length !== 1) errors.push(`expected exactly one robots meta, found ${robots.length}`);
+  else if (!/\bnoindex\b/i.test(robots[0])) errors.push(`robots meta is ${JSON.stringify(robots[0])}, not noindex`);
+  const { titles, descriptions, canonicals } = readSeoHead(html);
+  if (canonicals.length) errors.push("a noindex page must not declare a canonical");
   if (titles.length !== 1 || !titles[0]) errors.push("expected exactly one non-empty <title>");
   if (descriptions.length !== 1 || !descriptions[0]) errors.push("expected exactly one non-empty meta description");
   return errors;
@@ -356,7 +369,7 @@ async function checkRoutes(baseUrl) {
   return { failures, count: routes.length };
 }
 
-/** /sitemap.xml lists exactly the prerendered public paths, absolute on the canonical host. */
+/** /sitemap.xml lists exactly the prerendered indexable paths (noindex ones excluded), absolute on the canonical host. */
 async function checkSitemap(baseUrl, siteUrl, routes) {
   const res = await fetch(new URL("/sitemap.xml", baseUrl), { redirect: "manual" });
   if (res.status !== 200) return [`/sitemap.xml: expected HTTP 200, got ${res.status}`];

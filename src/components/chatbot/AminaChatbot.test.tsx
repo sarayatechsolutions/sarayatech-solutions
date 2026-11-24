@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import AminaChatbot from "./AminaChatbot";
 import chatbotService from "@/services/chatbot.service";
+import { CHAT_PRIVACY_NOTICE } from "@/content/legal/legal";
 
 function LocationProbe() {
   return <output data-testid="location">{useLocation().pathname}</output>;
@@ -45,16 +46,39 @@ describe("AminaChatbot Send button (FE live bug: TypeError on click)", () => {
     expect(screen.getByRole("button", { name: /send message/i })).toBeInTheDocument();
   });
 
-  it("shows the AI privacy notice above the input and links it to the field (STS-012)", async () => {
+  it("shows the AI privacy notice above the input and links it to the field (STS-012, REQ-149)", async () => {
     const user = userEvent.setup();
+    const getResponse = vi.spyOn(chatbotService, "getResponse").mockResolvedValue("ok");
     renderChatbot();
     await user.click(screen.getByRole("button", { name: /open chat/i }));
-    const notice = screen.getByText(
-      "Messages are processed by our AI provider to answer you. Please don't share sensitive information.",
-    );
+    // Visible before the first message: nothing has been sent yet.
+    expect(getResponse).not.toHaveBeenCalled();
+    const notice = document.getElementById("amina-privacy-notice") as HTMLElement;
+    expect(notice).toBeVisible();
+    expect(notice).toHaveTextContent(CHAT_PRIVACY_NOTICE.text);
+    // It names the same processor the Privacy Policy names.
+    expect(notice).toHaveTextContent(/OpenAI/);
     const input = screen.getByRole("textbox", { name: /message amina/i });
     expect(input).toHaveAttribute("aria-describedby", notice.id);
     expect(input).toHaveAttribute("maxLength", "1000");
+    // It sits above the input, so it is read before typing.
+    expect(notice.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("links the notice to /privacy in a new tab, so the open conversation is not lost (REQ-149)", async () => {
+    const user = userEvent.setup();
+    renderChatbot();
+    await user.click(screen.getByRole("button", { name: /open chat/i }));
+    const link = screen.getByRole("link", { name: /privacy policy/i });
+    expect(document.getElementById("amina-privacy-notice")).toContainElement(link);
+    expect(link).toHaveAttribute("href", "/privacy");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link.getAttribute("rel")?.split(" ")).toEqual(expect.arrayContaining(["noopener", "noreferrer"]));
+    expect(link).toHaveAccessibleName(/opens in a new tab/i);
+    await user.click(link);
+    // No in-app navigation: the chat stays where it was.
+    expect(screen.getByTestId("location")).toHaveTextContent("/");
+    expect(screen.getByRole("textbox", { name: /message amina/i })).toBeInTheDocument();
   });
 });
 
