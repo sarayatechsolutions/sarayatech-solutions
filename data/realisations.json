@@ -3,15 +3,11 @@
     "company": "BMV INSPECTION",
     "industry": "Automotive",
     "challenge": "Streamlining vehicle inspection booking and document management for BMV processes",
-    "solution": "A platform that allows users to book appointments for BVM inspections. It includes an admin dashboard for managing appointments and documents, a client portal for uploading files, OCR data extraction or manual entry, and integrated payment processing.",
-    "results": [
-      { "metric": "70%", "label": "Process Efficiency" },
-      { "metric": "95%", "label": "Client Satisfaction" },
-      { "metric": "50%", "label": "Reduced Wait Times" }
-    ],
-    "quote": "The BMV inspection platform has revolutionized how we handle vehicle inspections. The OCR technology and streamlined booking system have significantly improved our efficiency.",
-    "author": "Marie Dubois",
-    "role": "Operations Manager, BMV Inspection",
+    "solution": "A platform that allows users to book appointments for BMV inspections. It includes an admin dashboard for managing appointments and documents, a client portal for uploading files, OCR data extraction or manual entry, and integrated payment processing.",
+    "results": [],
+    "quote": "",
+    "author": "",
+    "role": "",
     "image": "/images/bmv.png",
     "isActive": true,
     "link": "https://inspectionfast.com"
@@ -21,14 +17,10 @@
     "industry": "Transportation",
     "challenge": "Creating a peer-to-peer car rental platform to compete with major players like Turo",
     "solution": "A complete peer-to-peer car rental platform inspired by Turo, built on a modern microservices architecture.",
-    "results": [
-      { "metric": "10K+", "label": "Registered Users" },
-      { "metric": "85%", "label": "Platform Utilization" },
-      { "metric": "92%", "label": "User Satisfaction" }
-    ],
-    "quote": "Saraya Auto Rental has transformed the car rental landscape in our region. The microservices architecture ensures scalability and reliability.",
-    "author": "Ahmed Diallo",
-    "role": "CEO, Saraya Auto Rental",
+    "results": [],
+    "quote": "",
+    "author": "",
+    "role": "",
     "image": "/images/placeholder-project.svg",
     "isActive": false,
     "link": null
@@ -38,14 +30,10 @@
     "industry": "E-commerce",
     "challenge": "Building a comprehensive marketplace connecting sellers and buyers with advanced features",
     "solution": "A modern marketplace that connects sellers and buyers. It enables store creation, product and service sales, delivery management, and integrated messaging between clients and vendors.",
-    "results": [
-      { "metric": "25K+", "label": "Active Sellers" },
-      { "metric": "150K+", "label": "Monthly Transactions" },
-      { "metric": "88%", "label": "Seller Retention" }
-    ],
-    "quote": "iSaraya has created a vibrant marketplace ecosystem. The integrated messaging and delivery management features have been game-changers for our business.",
-    "author": "Fatou Ndiaye",
-    "role": "Platform Manager, iSaraya",
+    "results": [],
+    "quote": "",
+    "author": "",
+    "role": "",
     "image": "/images/isaraya.png",
     "isActive": true,
     "link": "https://isarayas.com/"
@@ -55,14 +43,10 @@
     "industry": "Healthcare",
     "challenge": "Digital transformation of clinic management for Mauritania Internal Medicine and Pediatrics",
     "solution": "A clinic management interface for Mauritania Internal Medicine and Pediatrics (MIMAP). It supports management of consultations, prescriptions, lab tests, and medical certificates.",
-    "results": [
-      { "metric": "60%", "label": "Administrative Efficiency" },
-      { "metric": "40%", "label": "Patient Wait Time Reduction" },
-      { "metric": "95%", "label": "Data Accuracy" }
-    ],
-    "quote": "The MIMAP platform has transformed our clinic operations. Managing consultations, prescriptions, and certificates is now seamless and efficient.",
-    "author": "Dr. Mohamed Lemine",
-    "role": "Medical Director, MIMAP",
+    "results": [],
+    "quote": "",
+    "author": "",
+    "role": "",
     "image": "/images/mimap.jpeg",
     "isActive": true,
     "link": "https://mimapeds.com/"
@@ -72,14 +56,10 @@
     "industry": "Education",
     "challenge": "Creating a comprehensive platform for tech education and training programs",
     "solution": "Official website of the American Senegalese Tech Academy (ASTA), offering intensive Full Stack development programs and professional training tailored to regional market needs.",
-    "results": [
-      { "metric": "500+", "label": "Students Trained" },
-      { "metric": "85%", "label": "Employment Rate" },
-      { "metric": "4.8/5", "label": "Student Satisfaction" }
-    ],
-    "quote": "ASTA has become the leading tech education platform in Senegal. Our graduates are highly sought after by employers across the region.",
-    "author": "Professor Amadou Ba",
-    "role": "Director, American Senegalese Tech Academy",
+    "results": [],
+    "quote": "",
+    "author": "",
+    "role": "",
     "image": "/images/ASTA.png",
     "isActive": true,
     "link": "https://asta-edu.com/"
@@ -89,14 +69,10 @@
     "industry": "Technology",
     "challenge": "Creating a professional online presence for SarayaTech Senegal's services and portfolio",
     "solution": "Official website of Saraya Tech Senegal presenting the company, its services, projects, and team.",
-    "results": [
-      { "metric": "100K+", "label": "Monthly Visitors" },
-      { "metric": "300+", "label": "Project Inquiries" },
-      { "metric": "95%", "label": "Lead Conversion" }
-    ],
-    "quote": "Our new website perfectly represents SarayaTech's expertise and innovation. It has significantly increased our project inquiries and brand visibility.",
-    "author": "Muhamad Soumaré",
-    "role": "CEO, SarayaTech Senegal",
+    "results": [],
+    "quote": "",
+    "author": "",
+    "role": "",
     "image": "/images/SarayaTechSenegal.png",
     "isActive": false,
     "link": "https://sarayatechsenegal.com/"

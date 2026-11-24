@@ -183,6 +183,8 @@ const Realisation = () => {
                           </motion.div>
                         </div>
 
+                        {/* Client quote: rendered only for a real, permissioned quote (STS-018) */}
+                        {realisation.quote ? (
                         <div className="mt-2">
                           <blockquote className="text-foreground italic leading-relaxed mb-2">
                             "{realisation.quote}"
@@ -194,14 +196,21 @@ const Realisation = () => {
                             {realisation.role}
                           </div>
                         </div>
+                        ) : null}
 
-                        {/* Results badges */}
+                        {/* Results badges: rendered only for documented results (STS-018) */}
+                        {realisation.results.length > 0 ? (
                         <div className="pt-2">
                           <h4 className="text-sm font-semibold mb-3">
                             Results
                           </h4>
                           <div className="flex flex-wrap gap-3">
-                            {realisation.results.map((result) => (
+                            {(
+                              realisation.results as {
+                                metric: string;
+                                label: string;
+                              }[]
+                            ).map((result) => (
                               <div
                                 key={result.label}
                                 className="inline-flex items-center gap-2 bg-muted rounded-lg px-3 py-2 border border-border"
@@ -217,6 +226,7 @@ const Realisation = () => {
                             ))}
                           </div>
                         </div>
+                        ) : null}
 
                         {/* CTA */}
                         {realisation.link ? (
