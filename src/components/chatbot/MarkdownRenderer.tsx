@@ -1,6 +1,7 @@
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNavigate } from 'react-router-dom';
+import { isInternalHref } from './links';
 
 interface MarkdownRendererProps {
   content: string;
@@ -27,7 +28,7 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
     e.preventDefault();
 
     // Check if it's an internal route
-    if (href.startsWith('/')) {
+    if (isInternalHref(href)) {
       navigate(href);
       onLinkClick?.(); // Notify parent (e.g., to close chatbot)
     } else {
@@ -42,7 +43,7 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
       components={{
         // Custom link rendering
         a: ({ node, href, children, ...props }) => {
-          const isInternal = href?.startsWith('/');
+          const isInternal = isInternalHref(href);
           const isCalendly = href?.includes('calendly.com');
 
           return (

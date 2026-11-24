@@ -16,8 +16,6 @@ import Industries from "./pages/Industries";
 import IndustryDetails from "./pages/IndustryDetails";
 import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -114,8 +112,7 @@ const App = () => (
               </Layout>
             }
           />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* /auth and /dashboard are intentionally not routed (STS-016); the page files are kept. */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route
             path="*"
