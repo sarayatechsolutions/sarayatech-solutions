@@ -18,6 +18,13 @@ describe("MarkdownRenderer safety", () => {
     expect(container.querySelector("script")).toBeNull();
     expect(container.querySelector("[onerror]")).toBeNull();
   });
+
+  it("never keeps a script or data URL in a link from an AI reply", () => {
+    const { container } = renderMd("[a](javascript:alert(1)) [b](data:text/html,<b>x</b>) [c](vbscript:x)");
+    const hrefs = Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href") ?? "");
+    expect(hrefs).toHaveLength(3);
+    for (const href of hrefs) expect(href).not.toMatch(/^\s*(javascript|data|vbscript):/i);
+  });
 });
 
 describe("MarkdownRenderer code", () => {
