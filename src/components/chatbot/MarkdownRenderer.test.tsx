@@ -11,6 +11,15 @@ function renderMd(content: string) {
   );
 }
 
+describe("MarkdownRenderer safety", () => {
+  it("never renders raw HTML from a reply", () => {
+    const { container } = renderMd('Hi <img src="x" onerror="alert(1)"> <script>alert(2)</script>');
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("script")).toBeNull();
+    expect(container.querySelector("[onerror]")).toBeNull();
+  });
+});
+
 describe("MarkdownRenderer code", () => {
   it("renders a fenced block as plain <pre><code> keeping the text", () => {
     const { container } = renderMd("```ts\nconst a = 1;\n```");

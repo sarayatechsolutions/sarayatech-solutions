@@ -39,4 +39,16 @@ describe("AminaChatbot Send button (FE live bug: TypeError on click)", () => {
     expect(screen.getByRole("button", { name: /close chat/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /send message/i })).toBeInTheDocument();
   });
+
+  it("shows the AI privacy notice above the input and links it to the field (STS-012)", async () => {
+    const user = userEvent.setup();
+    renderChatbot();
+    await user.click(screen.getByRole("button", { name: /open chat/i }));
+    const notice = screen.getByText(
+      "Messages are processed by our AI provider to answer you. Please don't share sensitive information.",
+    );
+    const input = screen.getByRole("textbox", { name: /message amina/i });
+    expect(input).toHaveAttribute("aria-describedby", notice.id);
+    expect(input).toHaveAttribute("maxLength", "1000");
+  });
 });

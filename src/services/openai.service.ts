@@ -1,207 +1,138 @@
-import OpenAI from "openai";
-import { encodeKnowledgeBase } from "@/utils/toon-encoder";
-
 /**
- * OpenAI ChatGPT Integration Service
- * Natural conversation handling with Toon-encoded context for token efficiency
+ * AI chat client: talks to OUR backend (`POST /api/chat`), never to an AI provider.
+ *
+ * The provider key, model, system prompt and token limits live on the server. The
+ * browser sends only the visitor's message and a short, capped history:
+ *
+ *   request  { message: string 1..1000, history?: [{ role: "user"|"assistant", content ≤2000 }] ≤10 }
+ *   response 200 { success: true, reply }   |   400/429/502/503 { success: false, message }
+ *
+ * Any failure returns `{ error }` so the caller can fall back to local answers.
+ * The file keeps its historical name so existing imports do not change.
  */
 
-interface ChatMessage {
-  role: "system" | "user" | "assistant";
+export interface ChatHistoryItem {
+  role: "user" | "assistant";
   content: string;
 }
 
-interface ChatResponse {
+export interface ChatResponse {
   message: string;
   tokensUsed?: number;
   error?: string;
 }
 
+export const CHAT_LIMITS = {
+  message: 1000,
+  historyItems: 10,
+  historyContent: 2000,
+} as const;
+
+interface ChatClientOptions {
+  apiUrl?: string;
+  fetchImpl?: typeof fetch;
+}
+
 class OpenAIService {
-  private client: OpenAI | null = null;
-  private encodedContext: string = "";
-  private conversationHistory: ChatMessage[] = [];
-  private maxHistoryLength = 10; // Keep last 10 messages for context
+  private conversationHistory: ChatHistoryItem[] = [];
+  private readonly options: ChatClientOptions;
 
-  constructor() {
-    this.initialize();
+  constructor(options: ChatClientOptions = {}) {
+    this.options = options;
+  }
+
+  private get endpoint(): string {
+    const base = this.options.apiUrl ?? (import.meta.env.VITE_API_URL || "");
+    return `${base}/api/chat`;
+  }
+
+  private get fetcher(): typeof fetch {
+    return this.options.fetchImpl ?? fetch;
   }
 
   /**
-   * Initializes OpenAI client and prepares encoded context
+   * The last N turns in the exact shape the backend accepts: only user/assistant
+   * roles, content 1..2000 characters, at most 10 entries.
    */
-  private initialize() {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+  private cappedHistory(): ChatHistoryItem[] {
+    return this.conversationHistory
+      .filter(
+        (item) =>
+          (item.role === "user" || item.role === "assistant") &&
+          typeof item.content === "string" &&
+          item.content.trim().length > 0,
+      )
+      .slice(-CHAT_LIMITS.historyItems)
+      .map(({ role, content }) => ({
+        role,
+        content: content.slice(0, CHAT_LIMITS.historyContent),
+      }));
+  }
 
-    if (!apiKey) {
-      console.warn(
-        "[OpenAI Service] API key not configured. ChatGPT integration disabled."
-      );
-      return;
+  private remember(item: ChatHistoryItem): void {
+    this.conversationHistory.push(item);
+    if (this.conversationHistory.length > CHAT_LIMITS.historyItems) {
+      this.conversationHistory = this.conversationHistory.slice(-CHAT_LIMITS.historyItems);
     }
-
-    try {
-      this.client = new OpenAI({
-        apiKey,
-        dangerouslyAllowBrowser: true, // For client-side usage (consider using backend proxy in production)
-      });
-
-      // Encode knowledge base once during initialization
-      const { toonData, tokenEstimate } = encodeKnowledgeBase();
-      this.encodedContext = toonData;
-
-      console.log(
-        `[OpenAI Service] Initialized. Context size: ~${tokenEstimate} tokens (Toon-encoded)`
-      );
-    } catch (error) {
-      console.error("[OpenAI Service] Initialization failed:", error);
-    }
   }
 
-  /**
-   * Checks if OpenAI service is available
-   */
-  public isAvailable(): boolean {
-    return this.client !== null;
-  }
-
-  /**
-   * Gets system prompt with Toon-encoded knowledge base
-   */
-  private getSystemPrompt(): string {
-    return `You are Amina, a friendly and knowledgeable AI assistant for SarayaTech Solutions, a leading digital transformation company.
-
-Your role is to help visitors learn about our services, pricing, process, and answer their questions naturally and conversationally.
-
-**IMPORTANT INSTRUCTIONS:**
-- Be warm, professional, and helpful
-- Provide accurate information based on the context below
-- If asked about pricing, provide specific ranges and timelines
-- When users describe business problems, match them to our services that solve those problems
-- Reference the servicesProblems data to understand which services address specific pain points
-- Encourage users to book a consultation for detailed discussions
-- Use markdown formatting for better readability (bold, lists, etc.)
-- Include relevant links using this format: /solutions, /about, /realisation, /contact
-- Keep responses concise but informative (2-4 paragraphs max)
-- If you don't know something, offer to connect them with the team
-
-**COMPANY CONTEXT (Toon-encoded for efficiency):**
-
-${this.encodedContext}
-
-**KEY CONTACT INFORMATION:**
-- Email: contact@sarayatech.com
-- Phone: +1 (614)-783-0443
-- Address: 2765 S Hamilton Rd, Columbus, OH 43232, United States
-- Calendly: https://calendly.com/saraya-info
-
-Remember: You represent SarayaTech Solutions. Be helpful, accurate, and encourage meaningful engagement.`;
-  }
-
-  /**
-   * Sends a message to ChatGPT and gets a natural response
-   */
   public async chat(userMessage: string): Promise<ChatResponse> {
-    if (!this.client) {
-      return {
-        message:
-          "I apologize, but I'm currently unable to connect to my AI brain. Please contact our team directly at contact@sarayatech.com or book a meeting: https://calendly.com/saraya-info",
-        error: "OpenAI service not initialized",
-      };
-    }
+    const message = (userMessage ?? "").trim().slice(0, CHAT_LIMITS.message);
+    if (!message) return { message: "", error: "empty_message" };
 
+    let response: Response;
     try {
-      // Add user message to history
-      this.conversationHistory.push({
-        role: "user",
-        content: userMessage,
+      response = await this.fetcher(this.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, history: this.cappedHistory() }),
       });
-
-      // Trim history if too long
-      if (this.conversationHistory.length > this.maxHistoryLength * 2) {
-        this.conversationHistory = this.conversationHistory.slice(
-          -this.maxHistoryLength * 2
-        );
-      }
-
-      // Prepare messages for API call
-      const messages: ChatMessage[] = [
-        { role: "system", content: this.getSystemPrompt() },
-        ...this.conversationHistory,
-      ];
-
-      // Call ChatGPT API
-      const completion = await this.client.chat.completions.create({
-        model: "gpt-4o-mini", // Fast and cost-effective model
-        messages,
-        temperature: 0.7, // Balanced creativity and consistency
-        max_tokens: 500, // Limit response length
-        top_p: 0.9,
-      });
-
-      const responseMessage =
-        completion.choices[0]?.message?.content ||
-        "I'm having trouble generating a response. Please try again or contact our team.";
-
-      // Add assistant response to history
-      this.conversationHistory.push({
-        role: "assistant",
-        content: responseMessage,
-      });
-
-      return {
-        message: responseMessage,
-        tokensUsed: completion.usage?.total_tokens,
-      };
-    } catch (caught: unknown) {
-      const error = caught as { status?: number; message?: string } | undefined;
-      console.error("[OpenAI Service] Chat error:", caught);
-
-      // Handle specific error cases
-      if (error?.status === 401) {
-        return {
-          message:
-            "Authentication error. Please contact our team at info@sarayatech.com",
-          error: "Invalid API key",
-        };
-      }
-
-      if (error?.status === 429) {
-        return {
-          message:
-            "I'm currently experiencing high demand. Please try again in a moment or contact us directly: https://calendly.com/saraya-info",
-          error: "Rate limit exceeded",
-        };
-      }
-
-      return {
-        message:
-          "I encountered an error while processing your message. Please try again or reach out to our team at info@sarayatech.com",
-        error: error?.message || "Unknown error",
-      };
+    } catch {
+      return { message: "", error: "network" };
     }
+
+    if (!response.ok) return { message: "", error: `http_${response.status}` };
+
+    const contentType = (response.headers.get("content-type") || "").toLowerCase();
+    if (!contentType.includes("application/json")) return { message: "", error: "bad_response" };
+
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      return { message: "", error: "bad_response" };
+    }
+
+    const reply = (body as { success?: unknown; reply?: unknown } | null) ?? {};
+    if (reply.success !== true || typeof reply.reply !== "string" || !reply.reply.trim()) {
+      return { message: "", error: "bad_response" };
+    }
+
+    // History records only turns the backend actually answered.
+    this.remember({ role: "user", content: message });
+    this.remember({ role: "assistant", content: reply.reply });
+    return { message: reply.reply };
   }
 
-  /**
-   * Resets conversation history (useful for new chat sessions)
-   */
-  public resetConversation() {
+  public resetConversation(): void {
     this.conversationHistory = [];
-    console.log("[OpenAI Service] Conversation history reset");
   }
 
-  /**
-   * Gets current token usage statistics
-   */
   public getStats() {
     return {
-      contextTokens: Math.ceil(this.encodedContext.length / 4),
+      // The knowledge-base context is assembled on the server now.
+      contextTokens: 0,
       conversationLength: this.conversationHistory.length,
       isAvailable: this.isAvailable(),
     };
   }
+
+  /** Whether a backend call can be attempted; failures are handled per request. */
+  public isAvailable(): boolean {
+    return typeof this.options.fetchImpl === "function" || typeof fetch === "function";
+  }
 }
 
-// Export singleton instance
+export { OpenAIService };
 export const openAIService = new OpenAIService();
 export default openAIService;

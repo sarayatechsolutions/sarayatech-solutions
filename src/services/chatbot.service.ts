@@ -24,6 +24,10 @@ interface IntentMatch {
   confidence: number;
 }
 
+/** Shown when neither the AI backend nor a local answer is available. */
+export const CHAT_UNAVAILABLE_MESSAGE =
+  "Chat is unavailable right now — use the contact form or book a call.";
+
 /** Common superset of the per-service shapes in knowledge-base.json. */
 interface ServiceInfo {
   name: string;
@@ -127,7 +131,7 @@ class ChatbotService {
 
     // Debug log (can be removed in production)
     if (intentMatches.length > 0) {
-      console.log(`[Amina] Detected intents for "${userMessage}":`,
+      console.debug('[Amina] Detected intents:',
         intentMatches.map(m => ({
           id: m.intent.id,
           score: m.score,
@@ -418,25 +422,26 @@ class ChatbotService {
    * Now supports both ChatGPT (natural responses) and intent-based (fallback)
    */
   public async getResponse(userMessage: string): Promise<string> {
-    // If OpenAI is enabled and available, use it for natural responses
+    // AI answers come from our backend (/api/chat); the browser holds no provider key.
     if (this.useOpenAI && openAIService.isAvailable()) {
       try {
         const response = await openAIService.chat(userMessage);
-
-        if (!response.error) {
-          console.log(`[Chatbot] ChatGPT response (${response.tokensUsed} tokens)`);
-          return response.message;
-        }
-
-        // If there's an error, fall back to intent-based
-        console.warn('[Chatbot] ChatGPT error, falling back to intent-based:', response.error);
-      } catch (error) {
-        console.error('[Chatbot] ChatGPT exception, falling back to intent-based:', error);
+        if (!response.error) return response.message;
+        // Log the failure class only, never the visitor's message.
+        console.warn('[Chatbot] AI backend unavailable, using local answers:', response.error);
+      } catch {
+        console.warn('[Chatbot] AI backend call failed, using local answers');
       }
     }
 
-    // Fallback to intent-based response system
-    return this.getIntentBasedResponse(userMessage);
+    // Fallback: local rule-based answers.
+    try {
+      const local = this.getIntentBasedResponse(userMessage);
+      if (local && local.trim()) return local;
+    } catch {
+      // fall through to the unavailable message
+    }
+    return CHAT_UNAVAILABLE_MESSAGE;
   }
 
   /**

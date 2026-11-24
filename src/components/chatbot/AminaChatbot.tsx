@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import chatbotService from "@/services/chatbot.service";
+import chatbotService, { CHAT_UNAVAILABLE_MESSAGE } from "@/services/chatbot.service";
 import { useNavigate } from "react-router-dom";
 import MarkdownRenderer from "./MarkdownRenderer";
 
@@ -79,7 +79,7 @@ const AminaChatbot = () => {
       // Show error message to user
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I apologize, but I encountered an error. Please try again or contact our team at info@sarayatech.com",
+        text: CHAT_UNAVAILABLE_MESSAGE,
         sender: "amina",
         timestamp: new Date(),
       };
@@ -359,8 +359,14 @@ const AminaChatbot = () => {
 
                 {/* Input Area */}
                 <div className="border-t border-gray-200 p-4 bg-gray-50">
+                  <p id="amina-privacy-notice" className="text-xs text-gray-600 mb-2">
+                    Messages are processed by our AI provider to answer you. Please don't share sensitive information.
+                  </p>
                   <div className="flex gap-2">
                     <Input
+                      aria-label="Message Amina"
+                      aria-describedby="amina-privacy-notice"
+                      maxLength={1000}
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyPress={handleKeyPress}

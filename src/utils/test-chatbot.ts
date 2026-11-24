@@ -27,7 +27,7 @@ export async function testChatbotIntegration() {
     console.log(`   📊 Context tokens: ${stats.contextTokens}`);
     console.log(`   💬 Conversation length: ${stats.conversationLength}\n`);
   } else {
-    console.log(`   ℹ️ Set VITE_OPENAI_API_KEY in .env to enable ChatGPT mode\n`);
+    console.log(`   ℹ️ AI answers need the backend /api/chat endpoint (provider key is server-side only)\n`);
   }
 
   // Test 3: Chatbot Service Status
