@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import chatbotService, { CHAT_UNAVAILABLE_MESSAGE } from "@/services/chatbot.service";
 import { useNavigate } from "react-router-dom";
 import MarkdownRenderer from "./MarkdownRenderer";
+import { CHAT_PRIVACY_NOTICE, PRIVACY_PATH } from "@/content/legal/legal";
 
 interface Message {
   id: string;
@@ -359,8 +360,19 @@ const AminaChatbot = () => {
 
                 {/* Input Area */}
                 <div className="border-t border-gray-200 p-4 bg-gray-50">
-                  <p id="amina-privacy-notice" className="text-xs text-gray-600 mb-2">
-                    Messages are processed by our AI provider to answer you. Please don't share sensitive information.
+                  {/* REQ-149 (STS-037): visible before the first message; names the processor like /privacy
+                      does. The link opens a new tab so the open conversation is not lost. */}
+                  <p id="amina-privacy-notice" data-chat-privacy-notice className="text-xs text-gray-600 mb-2">
+                    {CHAT_PRIVACY_NOTICE.text}{" "}
+                    <a
+                      href={PRIVACY_PATH}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-gray-800 underline underline-offset-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                    >
+                      {CHAT_PRIVACY_NOTICE.linkText}
+                      <span className="sr-only"> (opens in a new tab)</span>
+                    </a>
                   </p>
                   <div className="flex gap-2">
                     <Input

@@ -2,6 +2,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import FormPrivacyNote from "@/components/FormPrivacyNote";
 import { AUDIT_FORM, AUDIT_HERO, AUDIT_INCLUDES } from "@/content/audit/audit";
 import { CONTACT_LIMITS, submitAudit, type AuditPayload } from "@/lib/contact-submit";
 
@@ -294,6 +295,8 @@ const FreeAudit = () => {
               >
                 {loading ? AUDIT_FORM.sending : AUDIT_FORM.submit}
               </Button>
+              {/* REQ-173: privacy link next to the submit button, worded to agree with /privacy. */}
+              <FormPrivacyNote />
             </form>
           </div>
         </div>
