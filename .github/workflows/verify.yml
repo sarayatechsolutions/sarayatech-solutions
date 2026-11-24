@@ -135,6 +135,10 @@ jobs:
           if [ -n "$CMD" ]; then eval "$CMD"; else echo "no run.install declared — skipping"; fi
 
       - name: Verify (runs the real contract, ignores any local receipt)
+        env:
+          # Placeholder so the STS-049 production-build check passes in CI.
+          # Not a deploy value; real value lives in Cloudflare Pages.
+          VITE_API_URL: http://localhost:3001
         run: bash scripts/verify.sh --ci
 
       - name: Publish the receipt
