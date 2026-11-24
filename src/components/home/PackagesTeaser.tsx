@@ -5,8 +5,7 @@ import { PACKAGES, PRICING_PATH } from "./content";
 
 /**
  * Packages teaser (STS-031, REQ-021, REQ-065): 3 package cards plus 1 custom-quote card.
- * No prices until C8 supplies them; the CTA goes to the contact form until /pricing exists
- * (TODO(STS-033) in content.ts).
+ * No prices until C8 supplies them; the CTA goes to /pricing (STS-033).
  */
 const PackagesTeaser = () => {
   const cards = [...PACKAGES.packages, PACKAGES.custom];

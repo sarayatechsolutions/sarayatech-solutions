@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import Seo from "@/components/Seo";
 import Index from "./pages/Index";
 import About from "./pages/About";
+import Pricing from "./pages/Pricing";
 import Contact from "./pages/Contact";
 import FreeAudit from "./pages/FreeAudit";
 import Realisation from "./pages/Realisation";
@@ -40,6 +41,8 @@ export interface AppRoute {
 export const APP_ROUTES: AppRoute[] = [
   { path: "/", element: <Index /> },
   { path: "/about", element: <About /> },
+  // STS-033: packages and pricing (quote-based until the owner sets prices, C8).
+  { path: "/pricing", element: <Pricing /> },
   { path: "/contact", element: <Contact /> },
   // STS-034: the free audit offer and its lead form.
   { path: "/free-audit", element: <FreeAudit /> },
