@@ -54,9 +54,9 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
       "Start a conversation with SarayaTech Solutions in Columbus, Ohio. Send a message through our contact form and tell us about your project.",
   },
   "/realisation": {
-    title: "Our Work and Recent Projects | SarayaTech Solutions",
+    title: "Websites and Apps We Have Built | SarayaTech Solutions",
     description:
-      "See recent projects from SarayaTech Solutions, a Columbus, Ohio digital agency, including what each one is and what we built for it.",
+      "Four websites and apps built by SarayaTech Solutions in Columbus, Ohio: what each one is, what we built, and a link to see it live.",
   },
   "/insights": {
     title: "Insights and Resources | SarayaTech Solutions",
