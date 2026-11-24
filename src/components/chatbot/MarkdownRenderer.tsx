@@ -1,8 +1,6 @@
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNavigate } from 'react-router-dom';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MarkdownRendererProps {
   content: string;
@@ -125,33 +123,24 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
           </h3>
         ),
 
-        // Code (inline and blocks with syntax highlighting)
+        // Fenced code blocks: react-markdown renders <pre><code>. Plain, unhighlighted
+        // markup keeps a syntax highlighter (and its grammars) out of the bundle.
+        pre: ({ node, children, ...props }) => (
+          <pre className="overflow-x-auto rounded-lg" {...props}>
+            {children}
+          </pre>
+        ),
+
+        // Code (inline and blocks)
         code: ({ node, className, children, ...props }) => {
           const match = /language-(\w+)/.exec(className || '');
-          const language = match ? match[1] : '';
           // react-markdown v10 dropped the `inline` prop: fenced blocks carry a
           // language class or end in a newline, inline code does neither.
           const inline = !match && !String(children).includes('\n');
 
-          return !inline && language ? (
-            // Code block with syntax highlighting
-            <SyntaxHighlighter
-              style={vscDarkPlus}
-              language={language}
-              PreTag="div"
-              className="rounded-lg my-2 text-sm"
-              customStyle={{
-                margin: '0.5rem 0',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                border: '1px solid rgba(212, 175, 55, 0.2)',
-              }}
-            >
-              {String(children).replace(/\n$/, '')}
-            </SyntaxHighlighter>
-          ) : (
-            // Inline code or code block without language
+          return (
             <code
+              data-language={match ? match[1] : undefined}
               className={`
                 ${inline
                   ? 'bg-gray-800 px-2 py-0.5 rounded text-sm font-mono text-gold border border-gold/30'
