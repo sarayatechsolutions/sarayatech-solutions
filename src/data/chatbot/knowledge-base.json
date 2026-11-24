@@ -4,7 +4,8 @@
     "description": "A digital transformation and AI company specializing in custom software development, data solutions, and cloud services.",
     "mission": "To design and develop custom digital solutions that precisely meet our clients' needs, simplifying technology rather than complicating it.",
     "founded": "",
-    "location": "Distributed team working with local and international clients",
+    "location": null,
+    "_location_source": "STS-058: location / service area comes from src/config/business.ts (address, serviceAreaText) via src/services/chatbot-facts.ts. Do not hard-code it here.",
     "stats": {
       "projects_delivered": "",
       "enterprise_clients": "",
@@ -14,21 +15,7 @@
       "industries_served": ""
     },
     "contact": {
-      "email": "info@saraya.tech",
-      "phone": "+1 (614)-783-0443",
-      "calendly": "https://calendly.com/saraya-info",
-      "address": {
-        "street": "2765 S Hamilton Rd",
-        "city": "Columbus",
-        "state": "OH",
-        "zip": "43232",
-        "country": "United States",
-        "full": "2765 S Hamilton Rd, Columbus, OH 43232, United States"
-      },
-      "social": {
-        "linkedin": "linkedin.com/company/sarayatech",
-        "twitter": "@sarayatech"
-      }
+      "_source": "STS-058: email, phone, address, booking link and social profiles come ONLY from src/config/business.ts (helpers hasEmail, hasPhone, hasAddress, bookingHref/hasVerifiedBooking, socialLinks) via src/services/chatbot-facts.ts. An unconfirmed value is never stated; the bot points to the /contact form. Do not add contact facts here."
     },
     "team": {
       "size": "",
@@ -447,7 +434,8 @@
     },
     {
       "question": "Where is your team located?",
-      "answer": "We have a distributed team. Our leadership is based in Senegal (École Polytechnique de Thiès, UCAD graduates), and we work with local and international clients across different time zones."
+      "answer": null,
+      "_source": "STS-058: answered from src/config/business.ts (address, else serviceAreaText) by locationReply() in src/services/chatbot-facts.ts."
     },
     {
       "question": "Do you have experience in my industry?",
@@ -456,7 +444,6 @@
   ],
   "testimonials": [],
   "booking": {
-    "message": "I'd be happy to help you schedule a meeting with our team! You can book a convenient time slot through our Calendly link: https://calendly.com/saraya-info",
-    "alternative": "Alternatively, you can reach us directly at info@saraya.tech or call +1 (614)-783-0443."
+    "_source": "STS-058: the booking answer is built by bookingReply() in src/services/chatbot-facts.ts from bookingHref()/hasVerifiedBooking() in src/config/business.ts. Unverified booking = the /contact form."
   }
 }

@@ -88,3 +88,27 @@ describe("chat client -> backend /api/chat (STS-012)", () => {
     expect(await client(fetchImpl).chat("Hello")).toEqual({ message: "", error: "network" });
   });
 });
+
+describe("chat client uses the browser fetch correctly", () => {
+  it("calls the global fetch with a valid receiver (a browser throws 'Illegal invocation' otherwise)", async () => {
+    // A real browser fetch must be called on the window (or with no receiver). Reproduce that
+    // check, because a detached `this.fetcher(...)` call passed every mocked test while the
+    // AI path failed with "network" on every request in Chromium.
+    const calls: unknown[] = [];
+    const browserLikeFetch = function (this: unknown, ...args: unknown[]) {
+      if (this !== undefined && this !== globalThis) {
+        return Promise.reject(new TypeError("Failed to execute 'fetch' on 'Window': Illegal invocation"));
+      }
+      calls.push(args[0]);
+      return Promise.resolve(json(200, { success: true, reply: "Hi there" }));
+    };
+    vi.stubGlobal("fetch", browserLikeFetch);
+    try {
+      const result = await new OpenAIService({ apiUrl: "https://api.example.test" }).chat("Hello");
+      expect(result).toEqual({ message: "Hi there" });
+      expect(calls).toEqual(["https://api.example.test/api/chat"]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});

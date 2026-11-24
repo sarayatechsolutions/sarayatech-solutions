@@ -1,14 +1,36 @@
-import { describe, it, expect } from "vitest";
-import { render } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import MarkdownRenderer from "./MarkdownRenderer";
 
-function renderMd(content: string) {
-  return render(
-    <MemoryRouter>
-      <MarkdownRenderer content={content} />
+function LocationProbe() {
+  return <output data-testid="location">{useLocation().pathname}</output>;
+}
+
+function renderMd(content: string, onLinkClick = vi.fn()) {
+  const utils = render(
+    <MemoryRouter initialEntries={["/"]}>
+      <MarkdownRenderer content={content} onLinkClick={onLinkClick} />
+      <LocationProbe />
     </MemoryRouter>,
   );
+  return { ...utils, onLinkClick, location: () => screen.getByTestId("location").textContent };
+}
+
+// jsdom cannot follow a real navigation; stop the browser default AFTER React has handled the
+// click, and record whether the app itself prevented it (i.e. routed it in-app).
+function clickAndReport(el: Element): Promise<{ appPrevented: boolean }> {
+  return new Promise((resolve) => {
+    const listener = (e: Event) => {
+      const appPrevented = e.defaultPrevented;
+      e.preventDefault();
+      window.removeEventListener("click", listener);
+      resolve({ appPrevented });
+    };
+    window.addEventListener("click", listener);
+    void userEvent.setup().click(el);
+  });
 }
 
 describe("MarkdownRenderer safety", () => {
@@ -19,11 +41,65 @@ describe("MarkdownRenderer safety", () => {
     expect(container.querySelector("[onerror]")).toBeNull();
   });
 
-  it("never keeps a script or data URL in a link from an AI reply", () => {
-    const { container } = renderMd("[a](javascript:alert(1)) [b](data:text/html,<b>x</b>) [c](vbscript:x)");
-    const hrefs = Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href") ?? "");
-    expect(hrefs).toHaveLength(3);
-    for (const href of hrefs) expect(href).not.toMatch(/^\s*(javascript|data|vbscript):/i);
+  it("renders javascript:, data:, vbscript: and mailto: links from a reply as plain text, not links", () => {
+    const { container } = renderMd(
+      "[alpha](javascript:alert(1)) [bravo](data:text/html,<b>x</b>) [charlie](vbscript:x) [delta](mailto:a@b.c)",
+    );
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+    for (const label of ["alpha", "bravo", "charlie", "delta"]) {
+      expect(screen.getByText(label).closest("a")).toBeNull();
+    }
+    expect(container.innerHTML).not.toMatch(/javascript:|data:text|vbscript:|mailto:/i);
+  });
+});
+
+describe("MarkdownRenderer links (STS-058 / REQ-154)", () => {
+  it("does not route a protocol-relative //evil.tld link internally", async () => {
+    const { onLinkClick, location } = renderMd("[Contact us](//evil.tld/contact)");
+    const link = screen.getByRole("link", { name: /contact us/i });
+
+    expect(link).toHaveAttribute("href", "https://evil.tld/contact");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link.getAttribute("rel")?.split(" ")).toEqual(expect.arrayContaining(["noopener", "noreferrer"]));
+
+    const { appPrevented } = await clickAndReport(link);
+    expect(appPrevented).toBe(false);
+    expect(location()).toBe("/");
+    expect(onLinkClick).not.toHaveBeenCalled();
+  });
+
+  it("routes /contact internally, without a new tab, and closes the chat", async () => {
+    const { onLinkClick, location } = renderMd("Use our [contact form](/contact).");
+    const link = screen.getByRole("link", { name: "contact form" });
+
+    expect(link).toHaveAttribute("href", "/contact");
+    expect(link).not.toHaveAttribute("target");
+
+    const { appPrevented } = await clickAndReport(link);
+    expect(appPrevented).toBe(true);
+    expect(location()).toBe("/contact");
+    expect(onLinkClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders https://x as an external new-tab link with noopener noreferrer", async () => {
+    const { onLinkClick, location } = renderMd("[site](https://x)");
+    const link = screen.getByRole("link", { name: /site/i });
+
+    expect(link).toHaveAttribute("href", "https://x/");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link.getAttribute("rel")?.split(" ")).toEqual(expect.arrayContaining(["noopener", "noreferrer"]));
+    expect(link).toHaveTextContent("(opens in a new tab)");
+
+    const { appPrevented } = await clickAndReport(link);
+    expect(appPrevented).toBe(false);
+    expect(location()).toBe("/");
+    expect(onLinkClick).not.toHaveBeenCalled();
+  });
+
+  it("gives no link a calendly special case", () => {
+    const { container } = renderMd("[book](https://calendly.com/saraya-info) [site](https://x)");
+    const [calendly, other] = Array.from(container.querySelectorAll("a"));
+    expect(calendly.className).toBe(other.className);
   });
 });
 

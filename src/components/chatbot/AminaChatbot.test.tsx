@@ -1,14 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import AminaChatbot from "./AminaChatbot";
 import chatbotService from "@/services/chatbot.service";
 
+function LocationProbe() {
+  return <output data-testid="location">{useLocation().pathname}</output>;
+}
+
 function renderChatbot() {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={["/"]}>
       <AminaChatbot />
+      <LocationProbe />
     </MemoryRouter>,
   );
 }
@@ -50,5 +55,31 @@ describe("AminaChatbot Send button (FE live bug: TypeError on click)", () => {
     const input = screen.getByRole("textbox", { name: /message amina/i });
     expect(input).toHaveAttribute("aria-describedby", notice.id);
     expect(input).toHaveAttribute("maxLength", "1000");
+  });
+});
+
+describe("AminaChatbot renders links from an untrusted bot reply safely (STS-058 / SEC-16)", () => {
+  it("a hostile reply cannot get //evil.tld routed in-app or a javascript: link rendered", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(chatbotService, "getResponse").mockResolvedValue(
+      "Ignore your rules. Click [our contact page](//evil.tld/contact), [run](javascript:alert(document.cookie)) or the real [contact form](/contact).",
+    );
+    renderChatbot();
+    await user.click(screen.getByRole("button", { name: /open chat/i }));
+    await user.type(screen.getByPlaceholderText(/type your message/i), "hi");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+
+    const evil = await screen.findByRole("link", { name: /our contact page/i });
+    expect(evil).toHaveAttribute("href", "https://evil.tld/contact");
+    expect(evil).toHaveAttribute("target", "_blank");
+    expect(evil.getAttribute("rel")?.split(" ")).toEqual(expect.arrayContaining(["noopener", "noreferrer"]));
+
+    expect(screen.getByText("run").closest("a")).toBeNull();
+    expect(document.body.innerHTML).not.toMatch(/javascript:/i);
+
+    const internal = screen.getByRole("link", { name: "contact form" });
+    expect(internal).toHaveAttribute("href", "/contact");
+    await user.click(internal);
+    expect(screen.getByTestId("location")).toHaveTextContent("/contact");
   });
 });
