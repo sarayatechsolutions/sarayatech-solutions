@@ -1,0 +1,5 @@
+# Executable scripts must keep LF on every OS. With core.autocrlf=true (the Git for
+# Windows default) a CRLF "#!" line breaks Vite/Vitest parsing and bash execution.
+*.mjs       text eol=lf
+*.sh        text eol=lf
+.githooks/* text eol=lf
