@@ -59,8 +59,10 @@ describe("public/_headers (STS-015)", () => {
     expect(csp["script-src"]).toEqual(["'self'"]);
     expect(csp["connect-src"]).toEqual(["'self'", "https://*.sarayatechsolutions.com"]);
     expect(csp["frame-src"]).toEqual(["https://www.google.com"]);
-    expect(csp["style-src"]).toContain("https://fonts.googleapis.com");
-    expect(csp["font-src"]).toContain("https://fonts.gstatic.com");
+    // Fonts are self-hosted (STS-048): no Google font origin may come back.
+    expect(csp["style-src"]).toEqual(["'self'", "'unsafe-inline'"]);
+    expect(csp["font-src"]).toEqual(["'self'"]);
+    expect(site["content-security-policy-report-only"]).not.toMatch(/fonts\.(googleapis|gstatic)\.com/);
     expect(csp["object-src"]).toEqual(["'none'"]);
   });
 

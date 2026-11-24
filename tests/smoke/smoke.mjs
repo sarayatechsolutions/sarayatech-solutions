@@ -173,6 +173,34 @@ function checkImageBudget(distDir) {
   return { failures, count: images.length };
 }
 
+/** Third-party font hosts that must not appear in the shipped HTML/CSS (STS-048). */
+export const GOOGLE_FONT_HOSTS = /fonts\.googleapis\.com|fonts\.gstatic\.com/;
+
+/** One finding per built .html/.css file under `dir` (recursive) that references a Google font host. */
+export function findGoogleFontRefs(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...findGoogleFontRefs(full));
+    else if (/\.(html|css)$/i.test(entry.name) && GOOGLE_FONT_HOSTS.test(readFileSync(full, "utf8"))) out.push(full);
+  }
+  return out;
+}
+
+function listWoff2(dir) {
+  const assets = join(dir, "assets");
+  return existsSync(assets) ? readdirSync(assets).filter((f) => f.endsWith(".woff2")) : [];
+}
+
+function checkFonts(distDir) {
+  if (!existsSync(distDir)) return { failures: [`${distDir} does not exist (run the build first)`], count: 0 };
+  const failures = findGoogleFontRefs(distDir).map((f) => `${f.slice(distDir.length + 1)}: references a Google font host (fonts must be self-hosted)`);
+  const woff2 = listWoff2(distDir);
+  if (woff2.length === 0) failures.push("no .woff2 emitted in dist/assets (self-hosted fonts missing)");
+  if (!failures.length) console.log(`  ok   ${woff2.length} woff2 font(s) self-hosted, no Google font host in HTML/CSS`);
+  return { failures, count: woff2.length };
+}
+
 async function main() {
   const baseUrl = process.argv[2];
   if (!baseUrl) {
@@ -183,13 +211,14 @@ async function main() {
   const routes = await checkRoutes(baseUrl);
   const assets = checkBuiltAssets(join(ROOT, "dist"));
   const images = checkImageBudget(join(ROOT, "dist"));
-  const failures = [...routes.failures, ...assets.failures, ...images.failures];
+  const fonts = checkFonts(join(ROOT, "dist"));
+  const failures = [...routes.failures, ...assets.failures, ...images.failures, ...fonts.failures];
   if (failures.length) {
     console.error(`\nsmoke FAILED (${failures.length}):`);
     for (const f of failures) console.error(`  FAIL ${f}`);
     process.exit(1);
   }
-  console.log(`\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget`);
+  console.log(`\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget, ${fonts.count} woff2 font(s)`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

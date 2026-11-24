@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { buildRoutes, checkRouteBody, findSecretLeaks, firstH1Text } from "./smoke.mjs";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { buildRoutes, checkRouteBody, findGoogleFontRefs, findSecretLeaks, firstH1Text } from "./smoke.mjs";
 import { getPublicPaths } from "../../src/routes";
 
 // Unit tests for the smoke script's own checks, so the guard is known to have teeth.
@@ -62,5 +65,21 @@ describe("smoke first-paint visibility (STS-022)", () => {
     const visible = '<div id="root"><h1>Hello</h1><section style="opacity:1">x</section><i class="opacity-0">';
     expect(checkRouteBody(route, 200, "text/html", hidden)).toHaveLength(1);
     expect(checkRouteBody(route, 200, "text/html", visible)).toEqual([]);
+  });
+});
+
+describe("smoke self-hosted fonts guard (STS-048)", () => {
+  it("flags built HTML or CSS that references a Google font host, passes a clean build", () => {
+    const dir = mkdtempSync(join(tmpdir(), "fonts-guard-"));
+    try {
+      writeFileSync(join(dir, "index.html"), '<link rel="preload" as="font" href="/assets/p.woff2">');
+      writeFileSync(join(dir, "a.css"), "@font-face{src:url(/assets/p.woff2)}");
+      expect(findGoogleFontRefs(dir)).toEqual([]);
+      writeFileSync(join(dir, "index.html"), '<link href="https://fonts.googleapis.com/css2?family=Poppins" rel="stylesheet">');
+      writeFileSync(join(dir, "a.css"), "@import url(https://fonts.gstatic.com/s/x.woff2);");
+      expect(findGoogleFontRefs(dir)).toHaveLength(2);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

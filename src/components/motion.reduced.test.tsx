@@ -33,5 +33,6 @@ describe("reduced motion (STS-022)", () => {
     );
     await act(async () => show());
     expect(container.querySelector("p")?.getAttribute("style") ?? "").not.toMatch(/opacity:\s*0/);
-  });
+    // The first dynamic import of framer-motion can exceed the 5 s default on a cold machine.
+  }, 30_000);
 });
