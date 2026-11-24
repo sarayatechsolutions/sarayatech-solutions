@@ -57,6 +57,21 @@ export const HOME_FORBIDDEN_PHRASES = [
 ];
 
 /**
+ * Service pages (STS-032): the home list plus the operational promises the owner has not
+ * confirmed (I-12). Prices are guarded by the unit tests, which can match a pattern.
+ */
+export const SERVICE_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "fixed price", "30-minute"];
+
+/** The five service pages and their <h1> (src/content/services/services.ts). */
+export const SERVICE_ROUTES = [
+  { path: "/services/website-design", expectH1: "Websites that win customers" },
+  { path: "/services/app-development", expectH1: "Apps and custom software that save you time" },
+  { path: "/services/local-seo", expectH1: "Get found on Google" },
+  { path: "/services/social-media-marketing", expectH1: "Social media done for you" },
+  { path: "/services/paid-ads", expectH1: "Track every ad dollar" },
+];
+
+/**
  * Public routes: every path src/routes.tsx prerenders (STS-020), each with the page's
  * real <h1> text, so an empty client-rendered shell fails. A unit test keeps this list
  * in step with getPublicPaths().
@@ -84,6 +99,7 @@ export function buildRoutes() {
     { path: "/realisation", expectH1: "Recent Realisations" },
     { path: "/insights", expectH1: "Insights & Resources" },
     { path: "/careers", expectH1: "Join Our Team" },
+    ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),
     { path: "/404.html", expectH1: "404" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];

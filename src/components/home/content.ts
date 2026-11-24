@@ -21,6 +21,15 @@
  */
 import { CONTACT_PATH } from "@/config/business";
 
+/** Service pages (STS-032). Literal paths: content/services imports this module for PROOF. */
+const SERVICE_PAGE_PATH = {
+  websiteDesign: "/services/website-design",
+  appDevelopment: "/services/app-development",
+  localSeo: "/services/local-seo",
+  socialMedia: "/services/social-media-marketing",
+  paidAds: "/services/paid-ads",
+} as const;
+
 /** Route of the proof page (I-9). STS-035 / GAP-12 may move it to /our-work with a 301. */
 export const PROOF_PATH = "/realisation";
 
@@ -54,7 +63,7 @@ export const PROBLEM = {
 export interface Offering {
   title: string;
   copy: string;
-  /** Existing route that fits, else the contact form (see TODO(STS-032) below). */
+  /** The offering's service page (STS-032). */
   href: string;
   /** Names where the link goes (REQ-175). */
   linkLabel: string;
@@ -66,14 +75,7 @@ export interface Pillar {
   offerings: Offering[];
 }
 
-/**
- * Three pillars, five offerings (I-1, REQ-070).
- * TODO(STS-032): link each offering to its /services/* page when those pages exist
- * (website-design, app-development, local-seo, social-media-marketing, paid-ads) and change the
- * link labels from "Ask about ..." to "More about ...". Until then the two development
- * offerings use the closest existing solution page and the three marketing offerings go to the
- * contact form.
- */
+/** Three pillars, five offerings, each linking to its service page (I-1, REQ-070, STS-032). */
 export const SERVICES: { heading: string; pillars: Pillar[] } = {
   heading: "Your website, apps and marketing, from one team",
   pillars: [
@@ -84,7 +86,7 @@ export const SERVICES: { heading: string; pillars: Pillar[] } = {
         {
           title: "Websites that win customers",
           copy: "Fast, mobile-friendly sites built to turn visitors into calls and bookings.",
-          href: "/solutions/web-mobile-development",
+          href: SERVICE_PAGE_PATH.websiteDesign,
           linkLabel: "More about our websites",
         },
       ],
@@ -96,7 +98,7 @@ export const SERVICES: { heading: string; pillars: Pillar[] } = {
         {
           title: "Apps and custom software",
           copy: "Booking systems, customer portals and mobile apps that save you time.",
-          href: "/solutions/custom-business-software",
+          href: SERVICE_PAGE_PATH.appDevelopment,
           linkLabel: "More about apps and custom software",
         },
       ],
@@ -108,20 +110,20 @@ export const SERVICES: { heading: string; pillars: Pillar[] } = {
         {
           title: "Get found on Google",
           copy: "Google Business Profile, local SEO and reviews, so nearby customers find you first.",
-          href: CONTACT_PATH,
-          linkLabel: "Ask about local SEO",
+          href: SERVICE_PAGE_PATH.localSeo,
+          linkLabel: "More about local SEO",
         },
         {
           title: "Social media done for you",
           copy: "Planned, posted and reported monthly. You always own your accounts.",
-          href: CONTACT_PATH,
-          linkLabel: "Ask about social media",
+          href: SERVICE_PAGE_PATH.socialMedia,
+          linkLabel: "More about social media",
         },
         {
           title: "Track every ad dollar",
           copy: "Google and Meta ads with tracking on every call and form.",
-          href: CONTACT_PATH,
-          linkLabel: "Ask about ads",
+          href: SERVICE_PAGE_PATH.paidAds,
+          linkLabel: "More about paid ads",
         },
       ],
     },

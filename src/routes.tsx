@@ -13,8 +13,10 @@ import Industries from "./pages/Industries";
 import IndustryDetails from "./pages/IndustryDetails";
 import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
+import ServicePage from "./pages/services/ServicePage";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
 import { industries } from "@/constants/industries";
+import { SERVICE_PAGES, servicePath } from "@/content/services/services";
 
 export interface AppRoute {
   /** react-router path pattern. */
@@ -54,6 +56,8 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/realisation", element: <Realisation /> },
   { path: "/insights", element: <Insights /> },
   { path: "/careers", element: <Careers /> },
+  // STS-032: the five service pages. The /solutions/* pages stay routed until STS-039 retires them.
+  ...SERVICE_PAGES.map((page) => ({ path: servicePath(page.slug), element: <ServicePage page={page} /> })),
 ];
 
 /** Every concrete public URL path to prerender, dynamic detail pages expanded. */

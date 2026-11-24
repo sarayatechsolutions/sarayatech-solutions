@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Linkedin, Twitter, Facebook, Youtube } from "lucide-react";
 import { BUSINESS, contactHref, emailHref, hasAddress, hasHours, phoneHref, socialLinks } from "@/config/business";
-import { SOLUTIONS_DATA } from "@/constants/solutions";
+import { SERVICE_PAGES, servicePath } from "@/content/services/services";
 
 /**
  * Site footer (STS-038).
@@ -29,11 +29,8 @@ const SOCIAL_NETWORKS = {
   youtube: { Icon: Youtube, label: "YouTube" },
 } as const;
 
-const SERVICE_LINKS = [
-  { label: "Web & Mobile", slug: "web-mobile-development" },
-  { label: "Data & BI", slug: "data-bi-solutions" },
-  { label: "Business Software", slug: "custom-business-software" },
-];
+/** The five service pages (STS-032, REQ-006). They are routed from the same list, so never dead. */
+const SERVICE_LINKS = SERVICE_PAGES.map((p) => ({ label: p.navLabel, to: servicePath(p.slug) }));
 
 const COMPANY_LINKS = [
   { label: "About Us", to: "/about" },
@@ -54,11 +51,7 @@ const Footer = ({ config = BUSINESS }: { config?: FooterConfig }) => {
   });
   const tel = phoneHref(config);
   const mailto = emailHref(config);
-  // A service link renders only while its detail page is routed.
-  const services = SERVICE_LINKS.filter((s) => s.slug in SOLUTIONS_DATA).map((s) => ({
-    label: s.label,
-    to: `/solutions/${s.slug}`,
-  }));
+  const services = SERVICE_LINKS;
 
   return (
     <footer className="bg-primary text-primary-foreground">
