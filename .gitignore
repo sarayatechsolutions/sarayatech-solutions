@@ -30,3 +30,10 @@ dist-ssr
 *.sw?
 
 /generated/prisma
+
+# --- vantry: evidence, not source ---
+.vantry/receipts/
+.vantry/state/
+.vantry/artifacts/
+*.vantry-bak-*
+# tracked deliberately: .vantry/manifest.json, .vantry/overrides/, .vantry/reviews/
