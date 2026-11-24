@@ -24,6 +24,8 @@ describe("App routing (STS-016: dead admin routes)", () => {
   it("still routes a public page", async () => {
     renderAt("/contact");
     expect(screen.queryByText("Oops! Page not found")).not.toBeInTheDocument();
-    expect(await screen.findAllByText(/info@sarayatech\.com/i)).not.toHaveLength(0);
+    // The contact block renders from the business config (STS-030): service area, no email.
+    expect(await screen.findAllByText("Serving Columbus, OH and central Ohio")).not.toHaveLength(0);
+    expect(screen.queryByText(/info@sarayatech\.com/i)).not.toBeInTheDocument();
   });
 });
