@@ -1,9 +1,13 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { assertApiUrl } from "./tools/require-api-url";
 
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
+export default defineConfig(({ command, mode }) => {
+  // STS-049: fail production builds when VITE_API_URL is missing/invalid.
+  assertApiUrl(command, mode, { ...loadEnv(mode, process.cwd(), "VITE_"), ...process.env });
+  return {
   server: {
     // Loopback only by default; set VITE_DEV_HOST (e.g. "0.0.0.0") to expose on a LAN.
     host: process.env.VITE_DEV_HOST || "localhost",
@@ -23,4 +27,5 @@ export default defineConfig(() => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+};
+});

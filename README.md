@@ -188,6 +188,11 @@ The application requires two separate deployments:
 
 **Alternative:** Netlify, Cloudflare Pages
 
+### Required build variable: `VITE_API_URL`
+
+The chatbot and contact form call `${VITE_API_URL}/api/chat` and `/api/contact` on the separate Express backend. The production build (`npm run build`, mode `production`) **fails** if `VITE_API_URL` is unset, empty, or not an absolute `https://` URL (`http://localhost` is allowed for local preview). Set it in Cloudflare Pages -> Settings -> Environment variables (Production), e.g. `https://<your-backend-host>`.
+For a local or CI verification build use `npm run build:verify`, which supplies `http://localhost:3001` when the variable is unset (the check still runs). Logic: `tools/require-api-url.ts`.
+
 ### Backend Deployment
 **Recommended: Railway**
 - Easy setup with GitHub integration

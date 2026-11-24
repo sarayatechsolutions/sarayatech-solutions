@@ -12,7 +12,7 @@ run:
   install: npm ci
   # Unit tests (vitest), type-check and lint. Added in Sprint 1 (S1 test harness issue).
   test: npm test
-  build: npm run build
+  build: npm run build:verify
   # Serve the BUILT site (incl. prerendered HTML once that lands), not the dev server.
   start: npx vite preview --port 4173 --strictPort
   ready: curl -sf http://localhost:4173/
