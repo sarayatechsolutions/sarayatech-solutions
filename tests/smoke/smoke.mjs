@@ -61,6 +61,12 @@ export const ABOUT_FORBIDDEN_PHRASES = [
 ];
 
 /**
+ * Our Work (STS-035): the home list plus "Enterprise" in any form, the old MIMAP challenge
+ * wording, and a percent sign (no metric is verified, C10). Years and counts are guarded by Realisation.test.tsx.
+ */
+export const WORK_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Enterprise", "Digital transformation", "%"];
+
+/**
  * REQ-011 (P0): no built page may contain these, whoever owns it. Matched case-insensitively.
  * STS-039 retired the last pages that carried them (the enterprise industry pages); the
  * prerender's own <head> replaces index.html's old title and description.
@@ -102,7 +108,7 @@ export function buildRoutes() {
       // STS-044: no response time is promised until the owner confirms one (C16, I-12).
       forbidText: ["24 hours", "24-48 hours"],
     },
-    { path: "/realisation", expectH1: "Recent Realisations" },
+    { path: "/realisation", expectH1: "Our Work", forbidText: WORK_FORBIDDEN_PHRASES },
     { path: "/insights", expectH1: "Insights & Resources" },
     { path: "/careers", expectH1: "Join Our Team" },
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
