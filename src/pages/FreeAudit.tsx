@@ -91,7 +91,7 @@ const FreeAudit = () => {
     };
     try {
       const result = await submitAudit(payload);
-      if (result.ok) {
+      if (result.ok === true) {
         setDone(true);
         setValues(EMPTY);
       } else {
