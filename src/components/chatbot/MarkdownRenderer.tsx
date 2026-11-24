@@ -1,7 +1,7 @@
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNavigate } from 'react-router-dom';
-import { isInternalHref } from './links';
+import { classifyHref } from './links';
 
 interface MarkdownRendererProps {
   content: string;
@@ -20,49 +20,58 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
   const navigate = useNavigate();
 
   /**
-   * Handle link clicks
-   * Internal links (/solutions, /about, etc.) navigate within app
-   * External links open in new tab
+   * Internal links are routed in-app with the NORMALISED path from classifyHref. A modified
+   * or non-primary click keeps the browser default, which is safe because the href attribute
+   * is that same normalised same-origin path.
    */
-  const handleLinkClick = (href: string, e: React.MouseEvent) => {
+  const handleInternalClick = (path: string, e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
-
-    // Check if it's an internal route
-    if (isInternalHref(href)) {
-      navigate(href);
-      onLinkClick?.(); // Notify parent (e.g., to close chatbot)
-    } else {
-      // External link - open in new tab
-      window.open(href, '_blank', 'noopener,noreferrer');
-    }
+    navigate(path);
+    onLinkClick?.(); // Notify parent (e.g., to close chatbot)
   };
+
+  const linkClass = 'font-bold underline underline-offset-2 transition-colors text-gold hover:text-gold/80';
 
   return (
     <Markdown
       remarkPlugins={[remarkGfm]}
       components={{
-        // Custom link rendering
-        a: ({ node, href, children, ...props }) => {
-          const isInternal = isInternalHref(href);
-          const isCalendly = href?.includes('calendly.com');
+        // Links in bot text are untrusted (SEC-16): see ./links for the policy.
+        a: ({ href, title, children }) => {
+          const target = classifyHref(href);
 
-          return (
-            <a
-              href={href}
-              onClick={(e) => handleLinkClick(href || '#', e)}
-              className={`
-                font-bold underline underline-offset-2 transition-colors
-                text-gold hover:text-gold/80
-                ${isCalendly ? 'inline-flex items-center gap-1' : ''}
-              `}
-              {...props}
-            >
-              {children}
-              {!isInternal && (
-                <span className="inline-block ml-1 text-xs opacity-90">↗</span>
-              )}
-            </a>
-          );
+          if (target.kind === 'internal') {
+            return (
+              <a
+                href={target.href}
+                title={title}
+                onClick={(e) => handleInternalClick(target.href, e)}
+                className={linkClass}
+              >
+                {children}
+              </a>
+            );
+          }
+
+          if (target.kind === 'external') {
+            return (
+              <a
+                href={target.href}
+                title={title}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={linkClass}
+              >
+                {children}
+                <span aria-hidden="true" className="inline-block ml-1 text-xs opacity-90">↗</span>
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            );
+          }
+
+          // Any other scheme (javascript:, data:, vbscript:, mailto:, ...) is shown as text.
+          return <span data-unlinked="">{children}</span>;
         },
 
         // Bold text
