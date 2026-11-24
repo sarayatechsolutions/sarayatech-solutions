@@ -1,6 +1,5 @@
 import knowledgeBase from "@/data/chatbot/knowledge-base.json";
 import intentsData from "@/data/chatbot/intents.json";
-import pricingDetails from "@/data/chatbot/pricing-details.json";
 import servicesProblems from "@/data/chatbot/services-problems.json";
 import openAIService from "./openai.service";
 
@@ -28,6 +27,9 @@ interface IntentMatch {
 export const CHAT_UNAVAILABLE_MESSAGE =
   "Chat is unavailable right now — use the contact form or book a call.";
 
+/** The only pricing statement the bot makes: no figures, packages or terms. */
+export const PRICING_REPLY = "Packages are quoted after a free consultation.";
+
 /** Common superset of the per-service shapes in knowledge-base.json. */
 interface ServiceInfo {
   name: string;
@@ -45,14 +47,12 @@ interface ServiceInfo {
 class ChatbotService {
   private intents: Intent[];
   private knowledgeBase: typeof knowledgeBase;
-  private pricingDetails: typeof pricingDetails;
   private servicesProblems: typeof servicesProblems;
   private useOpenAI: boolean = true; // Toggle to enable/disable ChatGPT
 
   constructor() {
     this.intents = intentsData.intents as Intent[];
     this.knowledgeBase = knowledgeBase;
-    this.pricingDetails = pricingDetails;
     this.servicesProblems = servicesProblems;
 
     // Check if OpenAI is available
@@ -175,9 +175,8 @@ class ChatbotService {
       response += `**Technologies:** ${service.technologies.join(", ")}\n\n`;
     }
 
-    if (service.pricing_range) {
-      response += `**Pricing:** ${service.pricing_range}\n\n`;
-    }
+    // No published prices: never print a figure from the knowledge base.
+    response += `**Pricing:** ${PRICING_REPLY}\n\n`;
 
     if (service.benefits) {
       response += `**Benefits:**\n${service.benefits.map(b => `• ${b}`).join("\n")}\n\n`;
@@ -193,27 +192,14 @@ class ChatbotService {
    * Generates response for pricing inquiry
    */
   private generatePricingResponse(): string {
-    const webPricing = this.pricingDetails.website_development;
-    const mobilePricing = this.pricingDetails.mobile_apps;
-    const aiPricing = this.pricingDetails.ai_chatbot_development;
+    // No published price list: every figure is quoted per project.
+    return `${PRICING_REPLY}\n\n` +
+      `🔗 **Contact us:** /contact\n` +
+      `📅 **Book a free consultation:** ${this.bookingLink()}`;
+  }
 
-    return `Our pricing varies based on project scope, complexity, and requirements. Here are detailed breakdowns:\n\n` +
-      `**Website Development:**\n` +
-      `• Basic Brochure: ${webPricing[0].cost} (${webPricing[0].timeline})\n` +
-      `• Corporate/Business: ${webPricing[1].cost} (${webPricing[1].timeline})\n` +
-      `• E-commerce: ${webPricing[2].cost} (${webPricing[2].timeline})\n\n` +
-      `**Mobile Apps:**\n` +
-      `• Basic App (iOS/Android): ${mobilePricing[0].cost}\n` +
-      `• Medium Complexity: ${mobilePricing[1].cost}\n` +
-      `• Enterprise App: ${mobilePricing[2].cost}\n\n` +
-      `**AI Chatbots:**\n` +
-      `• Rule-based: ${aiPricing[0].cost}\n` +
-      `• AI-powered (NLP): ${aiPricing[1].cost}\n` +
-      `• Advanced LLM Integration: ${aiPricing[2].cost}\n\n` +
-      `🔗 **See detailed service information:** /solutions\n` +
-      `🔗 **Contact us for a quote:** /contact\n\n` +
-      `Want to explore our packages? Ask me about our Bronze, Silver, or Gold bundles!\n\n` +
-      `Schedule a free consultation: ${this.knowledgeBase.company.contact.calendly}`;
+  private bookingLink(): string {
+    return this.knowledgeBase.company.contact.calendly || "https://calendly.com/saraya-info";
   }
 
   /**
@@ -262,16 +248,9 @@ class ChatbotService {
    */
   private generateCompanyResponse(): string {
     const company = this.knowledgeBase.company;
-    const stats = company.stats;
 
     return `**About SarayaTech Solutions**\n\n` +
       `${company.description}\n\n` +
-      `**Our Track Record:**\n` +
-      `• ${stats.projects_delivered} projects successfully delivered\n` +
-      `• ${stats.years_experience} of industry experience\n` +
-      `• ${stats.client_satisfaction} client satisfaction rate\n` +
-      `• ${stats.enterprise_clients} enterprise clients served\n\n` +
-      `We've worked with clients across various industries including Healthcare, Finance, E-commerce, and more.\n\n` +
       `🔗 **Learn more about our team:** /about\n` +
       `🔗 **View our case studies:** /realisation`;
   }
@@ -280,17 +259,9 @@ class ChatbotService {
    * Generates response for payment inquiry
    */
   private generatePaymentResponse(): string {
-    return `We offer flexible payment terms to accommodate different business needs:\n\n` +
-      `**Standard Payment Structure:**\n` +
-      `• 30% deposit upon project kickoff\n` +
-      `• 40% at milestone completion (mid-project)\n` +
-      `• 30% upon final delivery and approval\n\n` +
-      `**For Larger Projects ($20k+):**\n` +
-      `We can structure milestone-based payments aligned with deliverables to ensure mutual confidence throughout the project.\n\n` +
-      `**Payment Methods:**\n` +
-      `We accept bank transfers, credit cards, and for enterprise clients, can work with Net-30 or Net-60 terms.\n\n` +
-      `🔗 **Get a detailed quote:** /contact\n\n` +
-      `Would you like to discuss a payment plan that works for your budget? Schedule a call: ${this.knowledgeBase.company.contact.calendly}`;
+    return `${PRICING_REPLY} Payment terms are agreed in that quote.\n\n` +
+      `🔗 **Contact us:** /contact\n` +
+      `📅 **Book a free consultation:** ${this.bookingLink()}`;
   }
 
   /**
@@ -302,31 +273,20 @@ class ChatbotService {
       `• **Clear Scope**: Detailed project scope with deliverables and timelines\n` +
       `• **Intellectual Property**: You own all code and assets upon final payment\n` +
       `• **Confidentiality**: NDA protection for your business ideas and data\n` +
-      `• **Warranty**: 30-90 day warranty for bug fixes post-launch (varies by project size)\n` +
       `• **Revisions**: Agreed-upon revision rounds included in the scope\n\n` +
       `🔗 **Contact us for contract details:** /contact\n\n` +
-      `We're happy to review our standard agreement or work with your legal team. Book a consultation: ${this.knowledgeBase.company.contact.calendly}`;
+      `We're happy to review our standard agreement or work with your legal team. Book a consultation: ${this.bookingLink()}`;
   }
 
   /**
    * Generates response for support inquiry
    */
   private generateSupportResponse(): string {
-    const maintenance = this.pricingDetails.related_services.maintenance_and_support;
-
     return `**Post-Launch Support & Maintenance**\n\n` +
-      `We offer comprehensive support packages to keep your solution running smoothly:\n\n` +
-      `• **Basic Maintenance**: ${maintenance[0].price} - Updates, backups, monitoring\n` +
-      `• **Standard Support**: ${maintenance[1].price} - Priority support, monthly updates\n` +
-      `• **Premium Support**: ${maintenance[2].price} - 24/7 support, dedicated manager\n` +
-      `• **Enterprise SLA**: ${maintenance[3].price} - Custom SLA with guaranteed response times\n\n` +
-      `All our projects include:\n` +
-      `• Initial warranty period (30-90 days based on project size)\n` +
-      `• Knowledge transfer and documentation\n` +
-      `• Training sessions for your team\n\n` +
+      `We can support your solution after launch. The scope of that support is agreed with you during a free consultation and included in your quote.\n\n` +
       `🔗 **Learn more:** /solutions\n` +
       `🔗 **Contact us:** /contact\n\n` +
-      `Need ongoing support? Let's discuss: ${this.knowledgeBase.company.contact.calendly}`;
+      `Need ongoing support? Let's discuss: ${this.bookingLink()}`;
   }
 
   /**
@@ -461,6 +421,9 @@ class ChatbotService {
     }
 
     const { intent } = intentMatch;
+
+    // Package bundles are a pricing question: never replay the canned price list.
+    if (intent.id === "packages") return this.generatePricingResponse();
 
     // Return direct response if available
     if (intent.responses && intent.responses.length > 0) {

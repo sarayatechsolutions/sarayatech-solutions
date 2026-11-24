@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import chatbotService, { CHAT_UNAVAILABLE_MESSAGE } from "./chatbot.service";
+import chatbotService, { CHAT_UNAVAILABLE_MESSAGE, PRICING_REPLY } from "./chatbot.service";
 import openAIService from "./openai.service";
 import knowledgeBase from "@/data/chatbot/knowledge-base.json";
 
@@ -17,14 +17,69 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("chatbot company answer (FE-08: 'undefined active users')", () => {
-  it("renders every company stat without an 'undefined' placeholder", async () => {
+type Generators = Record<
+  "generatePricingResponse" | "generatePaymentResponse" | "generateContractResponse" | "generateSupportResponse",
+  () => string
+>;
+const generators = chatbotService as unknown as Generators;
+
+// Claims the business has not substantiated: the bot must never state them.
+const FABRICATED_CLAIMS = [
+  /projects (successfully )?delivered/i,
+  /client satisfaction/i,
+  /enterprise clients/i,
+  /years? of industry experience/i,
+  /30%|40%/,
+  /\$\s?\d/,
+  /20k/i,
+  /30-90/,
+  /24\/7/,
+  /guaranteed response/i,
+  /bronze|silver|gold/i,
+];
+
+function expectNoClaims(reply: string) {
+  for (const claim of FABRICATED_CLAIMS) expect(reply).not.toMatch(claim);
+  expect(reply).not.toMatch(/undefined/i);
+  expect(reply).not.toMatch(/^•\s*$/m);
+}
+
+describe("chatbot company answer (FE-08 + content: no stats claims)", () => {
+  it("describes the company without stats, placeholders or empty bullets", async () => {
     const reply = await chatbotService.getResponse("company history");
 
     expect(reply).toContain("About SarayaTech Solutions");
-    expect(reply).not.toMatch(/undefined/i);
-    expect(reply).toContain(`${knowledgeBase.company.stats.enterprise_clients} enterprise clients`);
+    expect(reply).toContain(knowledgeBase.company.description);
+    expectNoClaims(reply);
   });
+});
+
+describe("chatbot pricing, payment, contract and support answers (no hard-coded claims)", () => {
+  it("answers pricing only with the free-consultation line and where to go next", () => {
+    const reply = generators.generatePricingResponse();
+    expect(reply).toContain(PRICING_REPLY);
+    expect(reply).toContain("/contact");
+    expect(reply).toMatch(/calendly\.com/);
+    expectNoClaims(reply);
+  });
+
+  it.each(["generatePaymentResponse", "generateContractResponse", "generateSupportResponse"] as const)(
+    "%s states no invented terms, prices, warranties or SLAs",
+    (name) => {
+      const reply = generators[name]();
+      expect(reply).toContain("/contact");
+      expectNoClaims(reply);
+    },
+  );
+
+  it.each(["how much does it cost", "Bronze package", "how much does a website cost", "payment terms"])(
+    "answers the visitor question %j with the consultation line and no figures",
+    async (question) => {
+      const reply = await chatbotService.getResponse(question);
+      expect(reply).toContain(PRICING_REPLY);
+      expectNoClaims(reply);
+    },
+  );
 });
 
 describe("chatbot backend + fallback (STS-012)", () => {
