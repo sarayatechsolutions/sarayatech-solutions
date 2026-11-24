@@ -1,167 +1,59 @@
-import { Calendar, Clock, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import CtaLink from "@/components/home/CtaLink";
+import { bookingHref } from "@/config/business";
+import { INSIGHTS_CTA, INSIGHTS_HERO, INSIGHTS_TOPICS } from "@/content/insights/insights";
 
+const container = "container mx-auto px-4 sm:px-6 lg:px-8";
+
+/**
+ * STS-040. No article is published yet, so this page shows no article card, category, date or
+ * "Read Article" button (REQ-018, REQ-031). It is noindex until the first article (seo.ts).
+ */
 const Insights = () => {
-  const articles = [
-    {
-      category: "Cloud Computing",
-      title: "The Future of Multi-Cloud Architecture in Enterprise",
-      excerpt: "Explore how leading organizations are leveraging multi-cloud strategies to achieve unprecedented scalability and resilience.",
-      date: "December 15, 2024",
-      readTime: "8 min read",
-      image: "bg-gradient-to-br from-primary to-primary-light"
-    },
-    {
-      category: "Data Analytics",
-      title: "Turning Data into Strategic Advantage",
-      excerpt: "Learn how advanced analytics and AI are transforming raw data into actionable business intelligence.",
-      date: "December 10, 2024",
-      readTime: "6 min read",
-      image: "bg-gradient-to-br from-accent to-accent-light"
-    },
-    {
-      category: "Digital Transformation",
-      title: "Enterprise Digital Transformation: A Roadmap",
-      excerpt: "A comprehensive guide to successfully navigating digital transformation in large organizations.",
-      date: "December 5, 2024",
-      readTime: "10 min read",
-      image: "bg-gradient-to-br from-primary-light to-accent"
-    },
-    {
-      category: "Security",
-      title: "Zero Trust Security in the Cloud Era",
-      excerpt: "Understanding and implementing zero trust security models for modern cloud infrastructure.",
-      date: "November 28, 2024",
-      readTime: "7 min read",
-      image: "bg-gradient-to-br from-secondary to-primary"
-    },
-    {
-      category: "AI & Machine Learning",
-      title: "AI-Powered Business Intelligence",
-      excerpt: "How artificial intelligence is revolutionizing business decision-making and predictive analytics.",
-      date: "November 20, 2024",
-      readTime: "9 min read",
-      image: "bg-gradient-to-br from-primary to-accent"
-    },
-    {
-      category: "Industry Trends",
-      title: "2025 Technology Trends for Enterprises",
-      excerpt: "Key technology trends that will shape enterprise IT strategies in the coming year.",
-      date: "November 15, 2024",
-      readTime: "12 min read",
-      image: "bg-gradient-to-br from-accent-light to-primary-light"
-    }
-  ];
-
+  const booking = bookingHref();
   return (
-    <div className="min-h-screen">
-      <div>
-        {/* Hero */}
-        <section className="pt-32 pb-20 gradient-primary text-primary-foreground">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto text-center space-y-6 animate-fade-in-up">
-              <h1 className="text-5xl md:text-6xl font-extrabold leading-tight">
-                Insights & Resources
-              </h1>
-              <p className="text-xl md:text-2xl text-primary-foreground/90">
-                Expert perspectives on enterprise technology, digital transformation, and innovation
-              </p>
-            </div>
-          </div>
-        </section>
+    <>
+      <section data-insights-section="hero" className="pt-32 pb-16 gradient-primary text-primary-foreground">
+        <div className={`${container} max-w-3xl space-y-6`}>
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">{INSIGHTS_HERO.headline}</h1>
+          <p className="text-lg md:text-xl text-white/90 leading-relaxed">{INSIGHTS_HERO.intro}</p>
+        </div>
+      </section>
 
-        {/* Featured Article */}
-        <section className="py-24 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-card rounded-2xl overflow-hidden shadow-elegant border border-border">
-              <div className="grid lg:grid-cols-2 gap-0">
-                <div className="bg-gradient-to-br from-primary to-accent h-full min-h-[400px]" />
-                <div className="p-8 md:p-12 flex flex-col justify-center">
-                  <div className="inline-block bg-accent/10 text-accent rounded-full px-4 py-2 text-sm font-semibold mb-4 w-fit">
-                    Featured Article
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                    The Future of Multi-Cloud Architecture in Enterprise
-                  </h2>
-                  <p className="text-lg text-secondary mb-6 leading-relaxed">
-                    Explore how leading organizations are leveraging multi-cloud strategies to achieve unprecedented scalability and resilience.
-                  </p>
-                  <div className="flex items-center space-x-6 mb-6 text-sm text-secondary">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>December 15, 2024</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4" />
-                      <span>8 min read</span>
-                    </div>
-                  </div>
-                  <Button className="bg-primary hover:bg-primary-light shadow-card group w-fit">
-                    Read Article
-                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-smooth" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      <section data-insights-section="topics" aria-labelledby="insights-topics-heading" className="py-20 bg-background">
+        <div className={`${container} max-w-3xl space-y-6`}>
+          <h2 id="insights-topics-heading" className="text-3xl md:text-4xl font-bold">
+            {INSIGHTS_TOPICS.heading}
+          </h2>
+          <p className="text-lg text-foreground/80 leading-relaxed">{INSIGHTS_TOPICS.intro}</p>
+          <ul className="list-disc pl-6 space-y-3 text-lg text-foreground/80">
+            {INSIGHTS_TOPICS.items.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
 
-        {/* Articles Grid */}
-        <section className="py-24 bg-muted/30">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold mb-12">Latest Articles</h2>
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {articles.map((article) => (
-                <article key={article.title} className="bg-card rounded-2xl overflow-hidden shadow-card border border-border hover:shadow-elegant transition-all group">
-                  <div className={`h-48 ${article.image}`} />
-                  <div className="p-6 space-y-4">
-                    <div className="inline-block bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-semibold">
-                      {article.category}
-                    </div>
-                    <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-smooth">
-                      {article.title}
-                    </h3>
-                    <p className="text-secondary text-sm leading-relaxed">
-                      {article.excerpt}
-                    </p>
-                    <div className="pt-4 border-t border-border">
-                      <div className="flex items-center justify-between text-xs text-secondary">
-                        <div>
-                          <div>{article.date}</div>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{article.readTime}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Newsletter CTA */}
-        <section className="py-24 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gradient-to-br from-primary to-primary-light rounded-2xl p-12 text-center text-primary-foreground">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Stay Informed</h2>
-              <p className="text-xl mb-8 text-primary-foreground/90">
-                Get the latest insights delivered to your inbox
-              </p>
-              <Link to="/contact">
-                <Button size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-                  Subscribe to Newsletter
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
+      <section
+        data-insights-section="cta"
+        aria-labelledby="insights-cta-heading"
+        className="py-20 gradient-primary text-primary-foreground"
+      >
+        <div className={`${container} text-center max-w-2xl space-y-6`}>
+          <h2 id="insights-cta-heading" className="text-3xl md:text-4xl font-bold">
+            {INSIGHTS_CTA.heading}
+          </h2>
+          <p className="text-lg text-primary-foreground/90">{INSIGHTS_CTA.copy}</p>
+          <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
+            <CtaLink href={booking}>
+              {INSIGHTS_CTA.button}
+              <ArrowRight aria-hidden="true" className="w-5 h-5" />
+            </CtaLink>
+          </Button>
+        </div>
+      </section>
+    </>
   );
 };
 

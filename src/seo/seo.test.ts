@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { getPublicPaths } from "@/routes";
 import {
@@ -20,7 +21,9 @@ describe("per-route SEO data (STS-021)", () => {
   it.each(paths)("has its own title and description for %s", (p) => {
     const seo = getSeo(p);
     expect(seo.path).toBe(p);
-    expect(seo.noindex).toBeUndefined();
+    // STS-040: /insights is noindex until the first article exists.
+    if (p === "/insights") expect(seo.noindex).toBe(true);
+    else expect(seo.noindex).toBeUndefined();
     expect(seo.title.length).toBeGreaterThanOrEqual(35);
     expect(seo.title.length).toBeLessThanOrEqual(60);
     expect(seo.description.length).toBeGreaterThanOrEqual(100);
@@ -105,9 +108,23 @@ describe("sitemap", () => {
   it("lists exactly the public paths, absolute, with no auth, dashboard or 404", () => {
     const xml = buildSitemapXml(paths, SITE_URL, "2026-01-01");
     const locs = [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
-    expect(locs).toEqual(paths.map((p) => `${SITE_URL}${p}`));
+    // Noindex pages (/insights until the first article, STS-040) are not in the sitemap (REQ-018).
+    expect(locs).toEqual(paths.filter((p) => !getSeo(p).noindex).map((p) => `${SITE_URL}${p}`));
+    expect(locs).not.toContain(`${SITE_URL}/insights`);
     expect(locs.every((l) => l.startsWith(`${SITE_URL}/`))).toBe(true);
     expect(xml).not.toMatch(/\/auth|\/dashboard|404/);
     expect(xml).toContain("<lastmod>2026-01-01</lastmod>");
+  });
+});
+
+describe("SITE_URL source (STS-040, security LOW)", () => {
+  it("reads VITE_SITE_URL in the static form Vite inlines, never via optional chaining", () => {
+    const src = readFileSync("src/seo/seo.ts", "utf8");
+    expect(src).toContain("import.meta.env.VITE_SITE_URL");
+    expect(src).not.toMatch(/import\.meta\.env\?\./);
+  });
+
+  it("falls back to the documented host when the variable is unset under test", () => {
+    expect(SITE_URL).toBe(normalizeSiteUrl(import.meta.env.VITE_SITE_URL as string | undefined));
   });
 });
