@@ -19,3 +19,6 @@ export function render(url: string): string {
     </AppProviders>,
   );
 }
+
+/** SEO helpers for tools/prerender.mjs (STS-021). */
+export { SITE_URL, NOT_FOUND_SEO_PATH, getSeo, renderHeadTags, buildSitemapXml } from "./seo/seo";
