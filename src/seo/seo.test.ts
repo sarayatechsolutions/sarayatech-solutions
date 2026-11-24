@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { getPublicPaths } from "@/routes";
 import {
@@ -113,5 +114,17 @@ describe("sitemap", () => {
     expect(locs.every((l) => l.startsWith(`${SITE_URL}/`))).toBe(true);
     expect(xml).not.toMatch(/\/auth|\/dashboard|404/);
     expect(xml).toContain("<lastmod>2026-01-01</lastmod>");
+  });
+});
+
+describe("SITE_URL source (STS-040, security LOW)", () => {
+  it("reads VITE_SITE_URL in the static form Vite inlines, never via optional chaining", () => {
+    const src = readFileSync("src/seo/seo.ts", "utf8");
+    expect(src).toContain("import.meta.env.VITE_SITE_URL");
+    expect(src).not.toMatch(/import\.meta\.env\?\./);
+  });
+
+  it("falls back to the documented host when the variable is unset under test", () => {
+    expect(SITE_URL).toBe(normalizeSiteUrl(import.meta.env.VITE_SITE_URL as string | undefined));
   });
 });

@@ -18,7 +18,8 @@ export function normalizeSiteUrl(raw: string | undefined | null): string {
   return /^https?:\/\/[^\s/]+$/i.test(v) ? v : DEFAULT_SITE_URL;
 }
 
-export const SITE_URL = normalizeSiteUrl(import.meta.env?.VITE_SITE_URL as string | undefined);
+// Static `import.meta.env.VITE_SITE_URL` (no optional chaining): Vite only inlines the static form at build.
+export const SITE_URL = normalizeSiteUrl(import.meta.env.VITE_SITE_URL as string | undefined);
 
 export const SITE_NAME = "SarayaTech Solutions";
 /** Shared social image: the only brand image in public/. Replace with a 1200x630 card when one exists. */
