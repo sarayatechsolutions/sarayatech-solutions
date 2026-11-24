@@ -209,7 +209,6 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
                 size="lg"
                 className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-xl font-bold px-8 h-14 group"
               >
-                {/* TODO(STS-034): FREE_AUDIT_PATH becomes /free-audit once that route exists (content.ts). */}
                 <Link to={FREE_AUDIT_PATH}>
                   {FINAL_CTA.button}
                   <ArrowRight aria-hidden="true" className="ml-2 group-hover:translate-x-1 transition-smooth" />

@@ -5,6 +5,7 @@ import Seo from "@/components/Seo";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import FreeAudit from "./pages/FreeAudit";
 import Realisation from "./pages/Realisation";
 import Insights from "./pages/Insights";
 import Careers from "./pages/Careers";
@@ -40,6 +41,8 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/", element: <Index /> },
   { path: "/about", element: <About /> },
   { path: "/contact", element: <Contact /> },
+  // STS-034: the free audit offer and its lead form.
+  { path: "/free-audit", element: <FreeAudit /> },
   { path: "/realisation", element: <Realisation /> },
   { path: "/insights", element: <Insights /> },
   { path: "/careers", element: <Careers /> },

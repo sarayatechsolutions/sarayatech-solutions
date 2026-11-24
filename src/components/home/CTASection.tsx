@@ -5,7 +5,7 @@ import { FINAL_CTA, FREE_AUDIT_PATH } from "./content";
 
 /**
  * Final call to action (STS-031, REQ-063). Home only for now; the sitewide block is GAP-05.
- * The button goes to the contact form until /free-audit exists (TODO(STS-034) in content.ts).
+ * The button goes to /free-audit (STS-034).
  */
 const CTASection = () => {
   return (

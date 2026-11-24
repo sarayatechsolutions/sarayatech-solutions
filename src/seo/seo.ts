@@ -53,6 +53,12 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
     description:
       "Start a conversation with SarayaTech Solutions in Columbus, Ohio. Send a message through our contact form and tell us about your project.",
   },
+  "/free-audit": {
+    // STS-034: the offer name is the h1; the title adds the place and the brand (<=60 chars).
+    title: "Free Website & Google Audit in Columbus | SarayaTech",
+    description:
+      "Get a free look at your website and Google profile from SarayaTech. We'll show you three quick wins for your Columbus business, whether you hire us or not.",
+  },
   "/realisation": {
     title: "Websites and Apps We Have Built | SarayaTech Solutions",
     description:
