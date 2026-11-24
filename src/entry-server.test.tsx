@@ -49,6 +49,6 @@ describe("prerender entry (STS-020)", () => {
     });
     const hydrationErrors = errors.mock.calls.filter((c) => /Hydration failed|did not match|hydrated but some attributes|error while hydrating/i.test(String(c[0])));
     expect(hydrationErrors).toEqual([]);
-    expect(container.querySelector("h1")?.textContent).toMatch(/Building Digital Solutions/);
+    expect(container.querySelector("h1")?.textContent).toBe("Your neighbors in tech"); // About h1 (STS-036)
   });
 });
