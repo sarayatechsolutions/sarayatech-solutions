@@ -50,6 +50,11 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
     expect(container.textContent).not.toMatch(/Subscribe|Stay Updated|Newsletter/i);
   });
 
+  it('drops the banned "digital transformation" copy (REQ-012)', () => {
+    const { container } = renderFooter();
+    expect(container.textContent).not.toMatch(/digital transformation|transform your business/i);
+  });
+
   it("labels the case-study page Our Work, never Realisation", () => {
     const { container } = renderFooter();
     expect(screen.getByRole("link", { name: "Our Work" })).toHaveAttribute("href", "/realisation");

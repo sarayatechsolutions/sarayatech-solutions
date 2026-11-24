@@ -76,9 +76,7 @@ const Footer = ({ config = BUSINESS }: { config?: FooterConfig }) => {
                 className="h-20 w-auto scale-125"
               />
             </Link>
-            <p className="max-w-sm text-sm text-primary-foreground/80 mb-6">
-              Your trusted partner for digital transformation. Custom solutions and expert support.
-            </p>
+            {/* No tagline: the old "digital transformation" line is banned copy (REQ-012). */}
 
             <address className="not-italic mb-6 space-y-2 text-sm text-primary-foreground/80">
               <p className="font-semibold text-primary-foreground">{config.name}</p>
