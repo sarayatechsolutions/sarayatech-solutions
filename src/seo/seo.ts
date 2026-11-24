@@ -35,7 +35,7 @@ export interface SeoData {
 
 export const NOT_FOUND_SEO_PATH = "/__not-found__";
 
-const STATIC_SEO: Record<string, { title: string; description: string }> = {
+const STATIC_SEO: Record<string, { title: string; description: string; noindex?: boolean }> = {
   "/": {
     title: "SarayaTech Solutions | Columbus, OH Digital Agency",
     description:
@@ -59,9 +59,12 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
       "Four websites and apps built by SarayaTech Solutions in Columbus, Ohio: what each one is, what we built, and a link to see it live.",
   },
   "/insights": {
-    title: "Insights and Resources | SarayaTech Solutions",
+    title: "Guides for Columbus Small Businesses | SarayaTech Solutions",
     description:
-      "Insights and resources from SarayaTech Solutions, a Columbus, Ohio digital agency, on web, software, cloud, data and AI topics.",
+      "Practical guides from SarayaTech Solutions on websites, Google Maps and social media for Columbus, Ohio small business owners.",
+    // STS-040: no article is published yet (GAP-10). Out of the index and the sitemap until the
+    // first real one exists (REQ-018); then delete this flag.
+    noindex: true,
   },
   "/careers": {
     title: "Careers at SarayaTech Solutions | Columbus, OH",
@@ -201,9 +204,13 @@ export function renderHeadTags(seo: SeoData, siteUrl: string = SITE_URL): string
     .join("\n    ");
 }
 
-/** sitemap.xml for the given URL paths, absolute on the canonical host. */
+/** True when the page may be indexed, so it belongs in the sitemap. Unknown paths are not. */
+export const isIndexable = (rawPath: string): boolean => !getSeo(rawPath).noindex;
+
+/** sitemap.xml for the given URL paths, absolute on the canonical host. Noindex pages are left out (REQ-018). */
 export function buildSitemapXml(paths: string[], siteUrl: string = SITE_URL, lastmod?: string): string {
   const urls = paths
+    .filter(isIndexable)
     .map((p) => `  <url><loc>${escapeHtml(canonicalUrl(p, siteUrl))}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`)
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;

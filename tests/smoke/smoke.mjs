@@ -66,6 +66,9 @@ export const ABOUT_FORBIDDEN_PHRASES = [
  */
 export const WORK_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Enterprise", "Digital transformation", "%"];
 
+/** Insights (STS-040): the home list plus the retired article cards and "enterprise" in any form. */
+export const INSIGHTS_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Read Article", "Digital Transformation", "Enterprise", "enterprise"];
+
 /**
  * REQ-011 (P0): no built page may contain these, whoever owns it. Matched case-insensitively.
  * STS-039 retired the last pages that carried them (the enterprise industry pages); the
@@ -86,7 +89,7 @@ export const SERVICE_ROUTES = [
  * Public routes: every path src/routes.tsx prerenders (STS-020), each with the page's
  * real <h1> text, so an empty client-rendered shell fails. A unit test keeps this list
  * in step with getPublicPaths().
- * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean }[]}
+ * @type {{ path: string, noindex?: boolean, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean }[]}
  */
 export function buildRoutes() {
   return [
@@ -109,7 +112,8 @@ export function buildRoutes() {
       forbidText: ["24 hours", "24-48 hours"],
     },
     { path: "/realisation", expectH1: "Our Work", forbidText: WORK_FORBIDDEN_PHRASES },
-    { path: "/insights", expectH1: "Insights & Resources" },
+    // STS-040: no article is published yet, so the page is noindex and out of the sitemap (REQ-018).
+    { path: "/insights", expectH1: "Plain-English guides for local business owners", noindex: true, forbidText: INSIGHTS_FORBIDDEN_PHRASES },
     { path: "/careers", expectH1: "Join Our Team" },
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
     { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
@@ -157,6 +161,18 @@ export function checkSeoHead(html, expectedCanonical) {
   else if (!descriptions[0]) errors.push("empty meta description");
   if (canonicals.length !== 1) errors.push(`expected exactly one canonical, found ${canonicals.length}`);
   else if (canonicals[0] !== expectedCanonical) errors.push(`canonical ${canonicals[0]} is not ${expectedCanonical}`);
+  return errors;
+}
+
+/** STS-040: a noindex page has one title, one description, a robots noindex tag and no canonical. */
+export function checkNoindexHead(html) {
+  const head = (/<head[\s\S]*?<\/head>/i.exec(html) || [""])[0];
+  const errors = [];
+  if (!/<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="[^"]*noindex)[^>]*>/i.test(head)) errors.push('missing <meta name="robots" content="noindex...">');
+  if (/<link\b[^>]*\brel=["']canonical["']/i.test(head)) errors.push("a noindex page must not declare a canonical");
+  const { titles, descriptions } = readSeoHead(html);
+  if (titles.length !== 1 || !titles[0]) errors.push("expected exactly one non-empty <title>");
+  if (descriptions.length !== 1 || !descriptions[0]) errors.push("expected exactly one non-empty meta description");
   return errors;
 }
 
@@ -312,7 +328,7 @@ async function checkRoutes(baseUrl) {
       const body = await res.text();
       const errors = checkRouteBody(route, res.status, res.headers.get("content-type"), body);
       if (route.expectH1 !== undefined && route.path !== "/404.html") {
-        errors.push(...checkSeoHead(body, `${siteUrl}${route.path}`));
+        errors.push(...(route.noindex ? checkNoindexHead(body) : checkSeoHead(body, `${siteUrl}${route.path}`)));
         const h = readSeoHead(body);
         seoPages.push({ path: route.path, title: h.titles[0], description: h.descriptions[0] });
       }
@@ -332,7 +348,7 @@ async function checkSitemap(baseUrl, siteUrl, routes) {
   const res = await fetch(new URL("/sitemap.xml", baseUrl), { redirect: "manual" });
   if (res.status !== 200) return [`/sitemap.xml: expected HTTP 200, got ${res.status}`];
   const locs = sitemapLocs(await res.text());
-  const expected = routes.filter((r) => r.expectH1 !== undefined && r.path !== "/404.html").map((r) => `${siteUrl}${r.path}`);
+  const expected = routes.filter((r) => r.expectH1 !== undefined && r.path !== "/404.html" && !r.noindex).map((r) => `${siteUrl}${r.path}`);
   const missing = expected.filter((u) => !locs.includes(u));
   const extra = locs.filter((u) => !expected.includes(u));
   const dup = locs.length !== new Set(locs).size;
