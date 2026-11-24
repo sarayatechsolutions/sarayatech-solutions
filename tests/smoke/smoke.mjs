@@ -71,7 +71,12 @@ export function buildRoutes() {
       forbidText: HOME_FORBIDDEN_PHRASES,
     },
     { path: "/about", expectH1: "Building Digital Solutions that Make a Difference" },
-    { path: "/contact", expectH1: "Let's Start a Conversation" },
+    {
+      path: "/contact",
+      expectH1: "Let's talk about your business",
+      // STS-044: no response time is promised until the owner confirms one (C16, I-12).
+      forbidText: ["24 hours", "24-48 hours"],
+    },
     { path: "/solutions", expectH1: "Our Services" },
     ...jsonItems("data/solutions.json", "title").map(({ id, text }) => ({
       path: `/solutions/${id}`,

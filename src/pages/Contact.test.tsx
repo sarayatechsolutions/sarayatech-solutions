@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import Contact from "./Contact";
+import Contact, { type ContactConfig } from "./Contact";
 import { CONTACT_MESSAGES, submitContact, type ContactPayload } from "@/lib/contact-submit";
 
 const PAYLOAD: ContactPayload = {
@@ -176,5 +176,133 @@ describe("Contact page", () => {
     resolve(json(200, { success: true }));
     await waitFor(() => expect(screen.getByText(/message sent successfully/i)).toBeInTheDocument());
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// Test-only values (555 numbers, example.com): they stand in for facts the owner has not supplied.
+const POPULATED: ContactConfig = {
+  name: "SarayaTech Solutions",
+  serviceAreaText: "Serving Columbus, OH and central Ohio",
+  phone: { display: "(555) 010-0199", tel: "+15550100199" },
+  email: "hello@example.com",
+  address: {
+    lines: ["100 Example Street", "Columbus, OH 00000"],
+    mapEmbedUrl: "https://www.google.com/maps/embed?pb=example",
+  },
+  hours: ["Monday to Friday, 9am to 5pm"],
+  booking: { url: "https://calendly.com/example-booking", verified: true },
+  social: null,
+};
+
+describe("Contact page content (STS-044, GAP-03)", () => {
+  it("default config: service area and the form, with no unconfirmed contact facts or reply-time promise", () => {
+    const { container } = render(<Contact />);
+    const html = container.innerHTML;
+    const text = container.textContent ?? "";
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Let's talk about your business");
+    expect(screen.getByText("Service area")).toBeInTheDocument();
+    expect(screen.getByText("Serving Columbus, OH and central Ohio")).toBeInTheDocument();
+
+    expect(container.querySelector("form")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /send message/i })).toBeInTheDocument();
+
+    expect(container.querySelector('a[href^="tel:"]')).toBeNull();
+    expect(container.querySelector('a[href^="mailto:"]')).toBeNull();
+    expect(html).not.toMatch(/calendly/i);
+    expect(container.querySelector("iframe")).toBeNull();
+    expect(container.querySelector("address")).toBeNull();
+    expect(screen.queryByRole("link", { name: /book a free consultation/i })).not.toBeInTheDocument();
+    expect(text).not.toMatch(/Business Hours/);
+
+    // C16 / I-12: no response time is promised until the owner confirms one.
+    expect(text).not.toMatch(/24 hours|24-48|48 hours|business day/i);
+    expect(text).toMatch(/We'll reply as soon as we can\./);
+  });
+
+  it("form fields carry no placeholder that reads like a filled-in person", () => {
+    render(<Contact />);
+    expect(screen.getByLabelText(/full name/i)).not.toHaveAttribute("placeholder");
+    expect(screen.getByLabelText(/^email/i)).not.toHaveAttribute("placeholder");
+    expect(screen.queryByDisplayValue(/john/i)).not.toBeInTheDocument();
+  });
+
+  it("populated config: phone, email, booking, address, hours and a titled map render", () => {
+    const { container } = render(<Contact config={POPULATED} />);
+
+    const tel = screen.getByRole("link", { name: "(555) 010-0199" });
+    expect(tel).toHaveAttribute("href", "tel:+15550100199");
+
+    const mail = screen.getByRole("link", { name: "hello@example.com" });
+    expect(mail).toHaveAttribute("href", "mailto:hello@example.com");
+
+    const book = screen.getByRole("link", { name: /book a free consultation/i });
+    expect(book).toHaveAttribute("href", "https://calendly.com/example-booking");
+    expect(book).toHaveAttribute("target", "_blank");
+    expect(book).toHaveAttribute("rel", expect.stringContaining("noopener"));
+    expect(book).toHaveAccessibleName(/opens in a new tab/i);
+
+    const address = container.querySelector("address");
+    expect(address).toHaveTextContent("100 Example Street");
+    expect(address).toHaveTextContent("Columbus, OH 00000");
+    expect(screen.queryByText("Service area")).not.toBeInTheDocument();
+
+    expect(screen.getByText("Business Hours")).toBeInTheDocument();
+    expect(screen.getByText("Monday to Friday, 9am to 5pm")).toBeInTheDocument();
+
+    const map = container.querySelector("iframe");
+    expect(map).toHaveAttribute("src", "https://www.google.com/maps/embed?pb=example");
+    expect(map).toHaveAttribute("title", expect.stringMatching(/map/i));
+
+    // The form stays on the page alongside every other channel.
+    expect(screen.getByRole("button", { name: /send message/i })).toBeInTheDocument();
+  });
+
+  it("an unverified booking URL is never linked, even when everything else is set (C15)", () => {
+    const cfg: ContactConfig = { ...POPULATED, booking: { ...POPULATED.booking, verified: false } };
+    const { container } = render(<Contact config={cfg} />);
+    expect(screen.queryByRole("link", { name: /book a free consultation/i })).not.toBeInTheDocument();
+    expect(container.innerHTML).not.toMatch(/calendly/i);
+  });
+
+  it("no map without a map URL, and no map without a confirmed address (C4)", () => {
+    const noMapUrl: ContactConfig = { ...POPULATED, address: { lines: POPULATED.address!.lines } };
+    const first = render(<Contact config={noMapUrl} />);
+    expect(first.container.querySelector("address")).not.toBeNull();
+    expect(first.container.querySelector("iframe")).toBeNull();
+    first.unmount();
+
+    const noAddress: ContactConfig = { ...POPULATED, address: null };
+    const second = render(<Contact config={noAddress} />);
+    expect(second.container.querySelector("iframe")).toBeNull();
+    expect(screen.getByText("Serving Columbus, OH and central Ohio")).toBeInTheDocument();
+  });
+
+  it("a failed send offers the verified booking link inside the announced alert", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(429, { success: false })));
+    render(<Contact config={POPULATED} />);
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
+    await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert.closest("[aria-live]")).not.toBeNull();
+    expect(alert.querySelector("a")).toHaveAttribute("href", "https://calendly.com/example-booking");
+  });
+
+  it("the success dialog promises no response time", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, { success: true })));
+    render(<Contact />);
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
+    await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(/message sent successfully/i);
+    expect(dialog.textContent).not.toMatch(/24|48|hours|business day/i);
   });
 });
