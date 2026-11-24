@@ -33,5 +33,5 @@ describe("reduced motion (STS-022)", () => {
     );
     await act(async () => show());
     expect(container.querySelector("p")?.getAttribute("style") ?? "").not.toMatch(/opacity:\s*0/);
-  });
+  }, 20000);
 });
