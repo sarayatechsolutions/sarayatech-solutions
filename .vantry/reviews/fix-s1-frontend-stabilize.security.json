@@ -1,0 +1,60 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "security",
+  "verdict": "pass",
+  "reviewer": "security-engineer",
+  "at": "2026-11-24T14:20:40Z",
+  "head": "a9a0006b62a36319b0cd96c24cfaa962f2b60f60",
+  "base": "develop@81a78ddf",
+  "sensitive_paths_hit": ["src/services/**", "src/pages/Contact.tsx", "public/_headers", "vite.config.ts", "package.json", "package-lock.json"],
+  "threat_model": "none under docs/security/threat-models (see info finding)",
+  "checklist": ["data-authz", "privileged-credential", "boundary-validation", "secrets-pii", "webhooks", "storage", "headers-csp", "ai-context", "owasp-top-10"],
+  "evidence": {
+    "data-authz": "N/A in this SPA diff: no table, policy or query. Admin pages (Auth/Dashboard) are unrouted (src/App.tsx); App.routes.test.tsx goes red if /auth is re-added. Real authz must live in the backend.",
+    "privileged-credential": "openai dependency and VITE_OPENAI key path removed; browser calls only POST /api/chat. Smoke scans dist JS for sk-* keys and dangerouslyAllowBrowser; grep of dist/assets for VITE_OPENAI|api.openai.com|sk-proj|supabase finds nothing.",
+    "boundary-validation": "Client caps match the backend contract (contact field maxLengths, chat message 1000, history <=10 x 2000, roles user|assistant only) - convenience only; server validation is authoritative. Contact success requires ok + JSON + success===true (tests incl. HTML-200 case).",
+    "secrets-pii": ".gitignore covers .env* (except .env.example); chatbot debug log no longer prints the user message; server error text shown only if <=200 chars and rendered as React text; no stack traces surfaced.",
+    "webhooks": "N/A: no webhook receiver in a static SPA.",
+    "storage": "N/A: no file upload or storage access.",
+    "headers-csp": "public/_headers adds HSTS, XFO DENY, nosniff, Referrer-Policy, Permissions-Policy and a Report-Only CSP (connect-src self + *.sarayatechsolutions.com, no AI provider, script-src self, no unsafe-eval); tests/headers.test.mjs pins it; dist ships _headers.",
+    "ai-context": "Prompt, model, key and token caps are server-side; client sends only message + capped history. AI reply rendered by react-markdown without rehype-raw (raw-HTML test) and with default urlTransform (javascript:/data:/vbscript: test added, mutation-checked); internal navigation only for hrefs passing isInternalHref (rejects // and /\\); privacy notice above the input.",
+    "owasp-top-10": "No injection sink (no dangerouslySetInnerHTML/innerHTML/eval in changed files); open redirect mitigated by isInternalHref; vite dev server bound to localhost by default; vulnerable deps reduced 26 -> 10 with non-major fixes, residual listed below."
+  },
+  "findings": [
+    {
+      "severity": "medium",
+      "file": "package-lock.json",
+      "line": 0,
+      "summary": "vite <=6.4.3 / esbuild <=0.24.2 advisories (dev-server path traversal, fs.deny bypass on Windows, launch-editor issues, cross-origin requests to the dev server). Dev/build-time only; not in the deployed static bundle; exposure reduced by the dev server defaulting to localhost (vite.config.ts).",
+      "fix": "Dedicated dependency-upgrade issue: vite to a patched major (>=6.4.4 or 8.x) with plugin-react-swc, re-run build + verify."
+    },
+    {
+      "severity": "low",
+      "file": "package-lock.json",
+      "line": 0,
+      "summary": "vitest 3.2.7 / tinypool / @vitest/mocker advisories (critical prototype-pollution RCE gadget in tinypool worker options, mocker path traversal). Test-runner only, never shipped, not reachable by a site visitor.",
+      "fix": "Upgrade vitest to >=4.1.12 (semver-major) in the same dependency-upgrade issue."
+    },
+    {
+      "severity": "low",
+      "file": "package-lock.json",
+      "line": 0,
+      "summary": "react-router-dom 6.30.6: open redirect via backslash in <Link>/useNavigate and SSR deserializeErrors advisories (fix only in 7.18+). SSR not used; the only dynamic navigate() (src/components/chatbot/MarkdownRenderer.tsx:32) is guarded by isInternalHref which rejects '/\\' and '//' (links.test.ts).",
+      "fix": "Keep the isInternalHref guard; plan react-router 7 migration as its own issue."
+    },
+    {
+      "severity": "low",
+      "file": "public/_headers",
+      "line": 16,
+      "summary": "CSP is Report-Only and style-src allows 'unsafe-inline' (needed by runtime-injected component styles), so it does not yet block anything.",
+      "fix": "Observe reports on staging, then promote to Content-Security-Policy; revisit 'unsafe-inline' for styles once injected styles are inventoried."
+    },
+    {
+      "severity": "info",
+      "file": "docs/security/threat-models",
+      "line": 0,
+      "summary": "No threat model covers the public site, contact form or AI chat boundary.",
+      "fix": "Run /threat-model for the contact + chat backend boundary (abuse, prompt injection, cost) before the backend goes live."
+    }
+  ]
+}
