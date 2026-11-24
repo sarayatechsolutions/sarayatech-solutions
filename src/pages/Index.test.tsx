@@ -131,8 +131,7 @@ describe("home page claims (REQ-011, REQ-012, REQ-014, REQ-052, REQ-058, I-12)",
     expect(page).toContain(BUSINESS.serviceAreaText);
   });
 
-  it("renders no stock photo of people: every image is a project screenshot", () => {
-    const alts = [...main.querySelectorAll("img")].map((i) => i.getAttribute("alt") ?? "");
-    alts.forEach((alt) => expect(alt).toMatch(/ screenshot$/));
+  it("renders no photo at all, so no stock person can read as team or client (REQ-015)", () => {
+    expect(main.querySelectorAll("img")).toHaveLength(0);
   });
 });

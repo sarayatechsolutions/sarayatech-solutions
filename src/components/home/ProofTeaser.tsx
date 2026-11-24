@@ -1,7 +1,6 @@
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { responsiveImage } from "@/lib/responsiveImage";
 import realisations from "../../../data/realisations.json";
 import { PROOF, PROOF_PATH } from "./content";
 
@@ -9,7 +8,6 @@ interface Realisation {
   company: string;
   industry: string;
   solution: string;
-  image: string;
   isActive: boolean;
   link: string | null;
 }
@@ -23,7 +21,11 @@ const proofProjects = (data: Realisation[] = realisations as Realisation[]) =>
     .map((name) => data.find((r) => r.company === name))
     .filter((r): r is Realisation & { link: string } => !!r && r.isActive && !!r.link);
 
-/** Proof teaser (STS-031, REQ-021). Project name, live link and what was built; no metrics. */
+/**
+ * Proof teaser (STS-031, REQ-021). Project name, live link and what was built; no metrics.
+ * Text only: the MIMAP screenshot contains a stock photo of a person, which must not read as
+ * our team or client (REQ-015). Screenshots stay on the proof page, owned by STS-035.
+ */
 const ProofTeaser = () => {
   const projects = proofProjects();
   return (
@@ -41,15 +43,8 @@ const ProofTeaser = () => {
             {projects.map((project) => (
               <li
                 key={project.company}
-                className="bg-card rounded-2xl overflow-hidden shadow-card border border-border flex flex-col"
+                className="bg-card rounded-2xl shadow-card border border-border flex flex-col"
               >
-                <img
-                  {...responsiveImage(project.image, "(min-width: 768px) 33vw, 100vw")}
-                  alt={`${project.company} screenshot`}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full aspect-video object-cover"
-                />
                 <div className="p-6 space-y-2 flex flex-col flex-1">
                   <p className="text-sm font-semibold text-primary">{project.industry}</p>
                   <h3 className="text-xl font-bold text-foreground">{project.company}</h3>
