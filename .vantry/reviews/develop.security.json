@@ -1,0 +1,107 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "security",
+  "verdict": "pass",
+  "reviewer": "security-engineer",
+  "at": "2026-11-24T14:49:01Z",
+  "head": "7e9cf4a08dcdfc9e729c8e7c81e2b47fc4aa9c35",
+  "base": "main...develop (release diff, 373 files)",
+  "scope": "Release PR develop -> main: Vantry kit adoption + Sprint 1 (STS-010..018) + 7e9cf4a .gitattributes LF fix. Static SPA (React 18 + Vite) on Cloudflare Pages; backend repo out of scope.",
+  "sensitive_paths_hit": ["vendor/**", "src/services/**", "src/pages/Contact.tsx", "public/_headers", "vite.config.ts", "package.json", "package-lock.json", ".github/workflows/**"],
+  "precondition": "scripts/verify.sh --gate = 0; receipt pass @ 2026-11-24T14:31:50Z on 7e9cf4a, freshness CURRENT (test/build/ready/smoke).",
+  "threat_model": "none under docs/security/threat-models (see info finding)",
+  "checklist": ["data-authz", "privileged-credential", "boundary-validation", "secrets-pii", "webhooks", "storage", "headers-csp", "ai-context", "owasp-top-10"],
+  "evidence": {
+    "data-authz": "N/A for tables: the SPA has no database, policy or query. /auth and /dashboard routes removed from src/App.tsx; Auth.tsx is a disabled stub (submit only shows 'authentification est desactivee') with no client-side credential check, so no client 'auth' is posing as protection. Neither page is imported anywhere, and the built bundle contains none of their strings (grep 'Connexion Admin' in dist/assets = 0). Executed: src/App.routes.test.tsx (deny: /auth does not render the admin login; allow: a public route still renders) - 3/3 pass.",
+    "privileged-credential": "No VITE_OPENAI*, 'openai' import, dangerouslyAllowBrowser or api.openai.com anywhere in src/ (grep, 0 hits). The only import.meta.env reads are VITE_API_URL (src/services/openai.service.ts:45, src/lib/contact-submit.ts:68) and DEV. Fresh `npm run build` on 7e9cf4a: dist has no sk-*/sk-proj-*, AKIA, AIza, ghp_, whsec_, pk_live_, JWT or PEM pattern, no OPENAI/supabase/service_role string, no source maps. The only network calls in the bundle are `${VITE_API_URL}/api/chat` and `${VITE_API_URL}/api/contact`.",
+    "boundary-validation": "Client mirrors the backend contract as convenience only: chat message trimmed and capped at 1000, history <=10 items x 2000 chars, roles filtered to user|assistant, body is exactly {message, history} (openai.service.test.ts asserts no prompt/model/max_tokens is sent); contact sends exactly name,email,phone,company,service,message,nickname with maxLength caps. Success requires 2xx + application/json + success===true; 200-HTML and success:false are failures (tested). Authoritative validation is the backend's.",
+    "secrets-pii": "No console statement in non-test src logs the visitor message, contact fields or a response body: chatbot.service.ts:391 logs only the failure class (e.g. http_503); AminaChatbot.tsx:77 is unreachable in practice because getResponse() never throws. Contact UI shows fixed strings, or a server `message` only if <=200 chars, rendered as React text. No stack trace reaches the user. .env is untracked today and in .gitignore (history: see high finding).",
+    "webhooks": "N/A: no webhook receiver in a static SPA.",
+    "storage": "N/A: no upload or storage access.",
+    "headers-csp": "public/_headers is valid Cloudflare Pages syntax (path line, indented 'Name: value' lines, # comments) and is copied to dist/_headers. /* sets HSTS (1y, includeSubDomains), X-Frame-Options DENY, nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy, and CSP-Report-Only (script-src 'self', no unsafe-eval, object-src 'none', base-uri 'self', frame-ancestors 'none', connect-src 'self' https://*.sarayatechsolutions.com, frame-src https://www.google.com for the Maps embed). index.html loads only the bundled module script, so script-src 'self' fits. Executed: tests/headers.test.mjs 5/5 pass.",
+    "ai-context": "Provider key, model, system prompt and token caps are server-side. AI replies render through react-markdown 10 with no rehype-raw/allowDangerousHtml and the default urlTransform. Executed: MarkdownRenderer.test.tsx 'never renders raw HTML from a reply' and 'never keeps a script or data URL in a link from an AI reply' pass. A sanitized href becomes '' -> handler falls back to '#'. Internal navigate() only for isInternalHref (rejects // and /\\; links.test.ts 2/2 pass). User messages render as plain React text.",
+    "owasp-top-10": "XSS: the only dangerouslySetInnerHTML in src is src/components/ui/chart.tsx:70 (shadcn ChartStyle, static config), and that component is imported nowhere. The occurrences in dist are React DOM internals; there is no innerHTML/eval/new Function in src. Open redirect: guarded by isInternalHref. Vendored skills: scripts/check-vendored.sh passes (pinned, licensed, no wildcard tool grants). Workflows (public repo): pull_request trigger only (no pull_request_target), contents: read, PR title/body/head_ref passed through env and never interpolated into run:. npm audit --omit=dev: 3 (react-router x2 moderate, zod high), all triaged below."
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "file": ".env (git history a5f8edb..730971a); production bundle built from main",
+      "line": 0,
+      "summary": "PRE-EXISTING, NOT INTRODUCED BY THIS DIFF. This release removes the cause, but the exposure stays live until a human revokes the key. The OpenAI key was readable by anyone: main inlined it into the public browser bundle via VITE_OPENAI_API_KEY, and `.env` was tracked in this public repo in 5 commits (2025-10-20 to 2025-12-29, removed in 730971a). Contents were deliberately not read. Anyone who copied the key can keep billing the OpenAI account. If the backend /api/chat reuses the same key, that key is compromised too.",
+      "fix": "Human/ops action, outside this PR: revoke the OpenAI key in the OpenAI dashboard and issue a new one stored only in the backend environment. Delete VITE_OPENAI_API_KEY from the Cloudflare Pages build environment. Rotate every other credential that was ever in the historical .env. History rewriting is optional once everything is rotated.",
+      "recommendation": "Rotate before or together with deploying this release; do not let the backend go live with the old key."
+    },
+    {
+      "severity": "medium",
+      "file": "package-lock.json",
+      "line": 0,
+      "summary": "vite <=6.4.3 (high) and esbuild <=0.24.2 (moderate): dev-server advisories (path traversal, fs.deny bypass on Windows, cross-origin requests to the dev server). Dev and build time only, not in the deployed static bundle. Exposure is reduced because the dev server binds to localhost by default (vite.config.ts:9).",
+      "fix": "Own dependency-upgrade issue: vite to a patched major (fix available at 8.3.8) with plugin-react-swc, then re-run build + verify.",
+      "recommendation": "Schedule in Sprint 2."
+    },
+    {
+      "severity": "low",
+      "file": "package-lock.json",
+      "line": 0,
+      "summary": "vitest / tinypool (critical) and @vitest/mocker (moderate): prototype-pollution RCE gadget and path traversal in the test runner. Test tooling only; never shipped; a site visitor cannot reach it.",
+      "fix": "Upgrade vitest to 5.x (semver-major) in the same dependency-upgrade issue.",
+      "recommendation": "Bundle with the vite upgrade."
+    },
+    {
+      "severity": "low",
+      "file": "src/components/chatbot/MarkdownRenderer.tsx",
+      "line": 32,
+      "summary": "react-router-dom 6.30.x (moderate, on the user path): open redirect via backslash in <Link>/useNavigate, plus an SSR deserializeErrors advisory. SSR is not used. The only dynamic navigate(), at line 32, runs only for hrefs that pass isInternalHref, which rejects '/\\' and '//' (links.test.ts executed, passes).",
+      "fix": "Keep the isInternalHref guard on every navigate() of untrusted input; migrate to react-router 7.18+ as its own issue.",
+      "recommendation": "Keep tracking it; no release block."
+    },
+    {
+      "severity": "low",
+      "file": "package.json",
+      "line": 68,
+      "summary": "zod 3.25.76 (high advisory: memory exhaustion validating oversized constrained collections). Not imported anywhere in src and absent from dist (0 matches), so no user path reaches it.",
+      "fix": "Remove the unused zod dependency, or upgrade to >=4.6.6 when it is first used for validation.",
+      "recommendation": "Remove in the dependency-upgrade issue."
+    },
+    {
+      "severity": "low",
+      "file": "public/_headers",
+      "line": 16,
+      "summary": "The CSP is Report-Only, so it blocks nothing yet. style-src allows 'unsafe-inline'. There is no report-uri/report-to, so violations show only in each visitor's own console and nothing is collected for the 'observe, then promote' step.",
+      "fix": "Add a report-to/report-uri endpoint, or check the console on staging across all routes, the chat and the Maps embed. Then promote the header to Content-Security-Policy. Confirm the production VITE_API_URL origin is covered by connect-src before enforcing.",
+      "recommendation": "Promote to an enforced CSP in Sprint 2."
+    },
+    {
+      "severity": "low",
+      "file": ".gitleaks.toml",
+      "line": 36,
+      "summary": "The secret-scan allowlist exempts the whole docs/ tree. In this public repo, a real key pasted into any docs/ file passes the pre-commit secret scan unflagged.",
+      "fix": "Remove the '(^|/)docs/' path entry and rely on the EXAMPLE|PLACEHOLDER|<your-...> regex allowlist for illustrative values.",
+      "recommendation": "Small follow-up chore."
+    },
+    {
+      "severity": "info",
+      "file": "src/components/chatbot/MarkdownRenderer.tsx",
+      "line": 36,
+      "summary": "Links in AI replies that are not internal open in a new tab (noopener, noreferrer, marked with an arrow). A prompt-injected reply could present a phishing URL. Script/data URLs are already stripped (tested).",
+      "fix": "Server side: tell the model to cite only first-party/Calendly links. Optionally allowlist external link hosts in the renderer and show anything else as plain text.",
+      "recommendation": "Cover it in the chat threat model."
+    },
+    {
+      "severity": "info",
+      "file": "docs/security/threat-models",
+      "line": 0,
+      "summary": "No threat model covers the public site, the contact form or the AI chat boundary (abuse, prompt injection, cost).",
+      "fix": "Run /threat-model for the contact + chat boundary before the backend goes live.",
+      "recommendation": "Sprint 2."
+    }
+  ],
+  "accepted_risks": [
+    "The previously exposed OpenAI key: per the recorded release decision it has not been rotated yet. This release removes the browser path and does not make the exposure worse, so it does not block. Revoking the key remains an open human action (see high finding).",
+    "Dev/test-only dependency advisories (vite, esbuild, vitest, tinypool, @vitest/mocker): not shipped, not reachable by visitors; deferred to a dependency-upgrade issue.",
+    "react-router moderate advisories on the user path: mitigated by isInternalHref; major migration deferred.",
+    "CSP in Report-Only mode for this release.",
+    "Dead page files kept in src (Auth.tsx, Dashboard.tsx) and the unused ui/chart.tsx: tree-shaken out of dist and unreachable by URL."
+  ],
+  "verdict_rationale": "No critical or high finding on a user path is introduced by or left in this diff. The single high finding predates this diff and is operational: this release removes the code path, but revoking the key is a human action this PR cannot perform. Every access-control-relevant claim above is backed by an executed test (vitest, executed by the reviewer on 7e9cf4a: src/components/chatbot, src/services, Contact, App.routes, Layout = 52/52 in 8 files; tests/headers.test.mjs = 5/5) and a fresh build plus dist grep."
+}
