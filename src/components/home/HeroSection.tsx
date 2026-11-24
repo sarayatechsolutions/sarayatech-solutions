@@ -10,11 +10,9 @@ import {
   staggerItemVariants,
 } from "@/constants/animations";
 
-const STATS = [
-  { value: "250+", label: "Projects Delivered" },
-  { value: "20+", label: "Years Experience" },
-  { value: "97%", label: "Client Satisfaction" },
-];
+// Only documented, owner-verified figures belong here. The stats row is not
+// rendered while this list is empty (STS-018).
+const STATS: { value: string; label: string }[] = [];
 
 const HeroSection = () => {
   return (
@@ -56,7 +54,7 @@ const HeroSection = () => {
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
               <span className="text-sm font-medium">
-                250+ projects successfully delivered
+                Websites, apps and custom software for growing businesses
               </span>
             </motion.div>
 
@@ -80,11 +78,7 @@ const HeroSection = () => {
               transition={{ delay: 0.4, duration: 0.6 }}
             >
               We design and develop custom digital solutions to accelerate your
-              growth. From technical expertise to strategic consulting.{" "}
-              <span className="font-semibold text-gold">
-                97% client satisfaction
-              </span>{" "}
-              across all industries.
+              growth. From technical expertise to strategic consulting.
             </motion.p>
 
             <motion.div
@@ -136,6 +130,7 @@ const HeroSection = () => {
             </motion.div>
 
             {/* Stats Row */}
+            {STATS.length > 0 && (
             <motion.div
               className="grid grid-cols-3 gap-6 pt-8 border-t border-white/20"
               variants={containerVariants}
@@ -151,6 +146,7 @@ const HeroSection = () => {
                 </motion.div>
               ))}
             </motion.div>
+            )}
           </motion.div>
 
           {/* Right Column - Dashboard Mockup */}
@@ -161,29 +157,6 @@ const HeroSection = () => {
             transition={{ delay: 0.5, duration: 0.6 }}
           >
             <div className="relative">
-              {/* Floating Cards */}
-              <motion.div
-                className="absolute -top-8 -left-8 bg-white rounded-xl p-4 shadow-elegant z-10"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <div className="text-sm font-semibold text-foreground mb-1">
-                  Revenue Growth
-                </div>
-                <div className="text-2xl font-bold text-accent">+68%</div>
-              </motion.div>
-
-              <motion.div
-                className="absolute -bottom-8 -right-8 bg-white rounded-xl p-4 shadow-elegant z-10"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-              >
-                <div className="text-sm font-semibold text-foreground mb-1">
-                  Active Users
-                </div>
-                <div className="text-2xl font-bold text-primary">150K</div>
-              </motion.div>
-
               {/* Main Dashboard */}
               <motion.div
                 className="relative rounded-2xl overflow-hidden shadow-glow border-4 border-white/20 hover-lift"
@@ -191,7 +164,7 @@ const HeroSection = () => {
               >
                 <img
                   src={dashboardMockup}
-                  alt="SarayaTech Dashboard Interface"
+                  alt="Illustration of a business dashboard"
                   className="w-full h-auto"
                 />
               </motion.div>

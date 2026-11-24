@@ -51,7 +51,7 @@ export const industries = [
     ],
 
     whatWeDo: [
-      "Develop HIPAA-compliant banking platforms for secure transaction processing",
+      "Develop secure banking platforms for transaction processing",
       "Implement advanced fraud detection systems using AI and machine learning",
       "Create digital payment solutions and mobile banking applications",
       "Design regulatory compliance frameworks for international finance standards",
@@ -59,23 +59,14 @@ export const industries = [
     ],
 
     benefits: [
-      "Reduce fraud by up to 92% with intelligent detection systems",
+      "Reduce fraud with intelligent detection systems",
       "Improve customer satisfaction with seamless digital experiences",
-      "Ensure 99.99% uptime with enterprise-grade infrastructure",
-      "Achieve regulatory compliance across multiple jurisdictions",
+      "Build on reliable, scalable infrastructure",
+      "Support regulatory compliance across multiple jurisdictions",
       "Scale operations without proportional cost increases",
     ],
 
-    caseStudies: [
-      {
-        title: "Regional Bank Digital Transformation",
-        result: "40% reduction in operational costs",
-      },
-      {
-        title: "FinTech Fraud Prevention",
-        result: "92% fraud detection improvement",
-      },
-    ],
+    caseStudies: [] as { title: string; result: string }[],
 
     technologies: [
       "Cloud Infrastructure",
@@ -131,23 +122,14 @@ export const industries = [
     ],
 
     benefits: [
-      "Increase production efficiency by up to 35%",
+      "Increase production efficiency",
       "Reduce equipment downtime through predictive maintenance",
       "Improve product quality and reduce defect rates",
-      "Optimize inventory and reduce waste by 25%",
+      "Optimize inventory and reduce waste",
       "Enhance worker safety with real-time monitoring",
     ],
 
-    caseStudies: [
-      {
-        title: "Automotive Supplier Smart Factory",
-        result: "35% efficiency improvement",
-      },
-      {
-        title: "Food Manufacturing Quality Control",
-        result: "87% defect detection rate",
-      },
-    ],
+    caseStudies: [] as { title: string; result: string }[],
 
     technologies: [
       "IoT Sensors",
@@ -161,18 +143,18 @@ export const industries = [
     id: "healthcare",
     icon: Heart,
     name: "Healthcare",
-    description: "HIPAA-compliant platforms for patient care",
+    description: "Secure platforms for patient care",
     shortDescription: "Patient Care & Health Systems",
     tagline: "Care That Connects",
 
-    detailedDescription: `Empower healthcare providers with secure, HIPAA-compliant platforms that improve patient outcomes, streamline operations, and enable data-driven clinical decisions.`,
+    detailedDescription: `Empower healthcare providers with secure platforms that improve patient outcomes, streamline operations, and enable data-driven clinical decisions.`,
 
     features: [
       {
         icon: Lock,
-        title: "HIPAA Compliance",
+        title: "Data Protection",
         description:
-          "Full HIPAA compliance with encryption, audit trails, and access controls",
+          "Encryption, audit trails, and access controls for patient data",
       },
       {
         icon: Users,
@@ -204,21 +186,12 @@ export const industries = [
     benefits: [
       "Improve patient satisfaction by reducing wait times",
       "Enhance clinical outcomes with data-driven insights",
-      "Reduce administrative overhead by 30%",
-      "Ensure complete data security and HIPAA compliance",
+      "Reduce administrative overhead",
+      "Protect patient data with strong security controls",
       "Enable remote care with telemedicine capabilities",
     ],
 
-    caseStudies: [
-      {
-        title: "Hospital Network Digital Health Platform",
-        result: "30% reduction in administrative time",
-      },
-      {
-        title: "Telehealth Expansion for Rural Clinics",
-        result: "50% increase in patient access",
-      },
-    ],
+    caseStudies: [] as { title: string; result: string }[],
 
     technologies: [
       "HL7/FHIR Standards",
@@ -274,23 +247,14 @@ export const industries = [
     ],
 
     benefits: [
-      "Increase conversion rates by up to 45%",
+      "Increase conversion rates",
       "Reduce cart abandonment through personalization",
-      "Improve inventory accuracy to 98%+",
+      "Improve inventory accuracy",
       "Enable data-driven marketing decisions",
       "Enhance customer lifetime value",
     ],
 
-    caseStudies: [
-      {
-        title: "Fashion Retailer Omnichannel Launch",
-        result: "45% increase in online sales",
-      },
-      {
-        title: "E-commerce Platform Scaling",
-        result: "10x traffic capacity increase",
-      },
-    ],
+    caseStudies: [] as { title: string; result: string }[],
 
     technologies: [
       "Headless Commerce",
@@ -348,21 +312,12 @@ export const industries = [
     benefits: [
       "Increase student engagement and participation",
       "Improve learning outcomes with personalized paths",
-      "Reduce instructor workload by 25%",
+      "Reduce instructor workload",
       "Enable hybrid and remote learning seamlessly",
       "Provide comprehensive learning analytics",
     ],
 
-    caseStudies: [
-      {
-        title: "University LMS Implementation",
-        result: "35% improvement in student retention",
-      },
-      {
-        title: "EdTech Platform for Corporate Training",
-        result: "60% faster time-to-competency",
-      },
-    ],
+    caseStudies: [] as { title: string; result: string }[],
 
     technologies: [
       "LMS Technology",
@@ -419,22 +374,13 @@ export const industries = [
 
     benefits: [
       "Streamline operations across multiple departments and locations",
-      "Reduce IT infrastructure costs by 40%",
+      "Reduce IT infrastructure costs",
       "Improve decision-making with unified data",
-      "Ensure regulatory compliance across the organization",
+      "Support regulatory compliance across the organization",
       "Enable rapid innovation and time-to-market",
     ],
 
-    caseStudies: [
-      {
-        title: "Fortune 500 Digital Transformation",
-        result: "40% operational cost reduction",
-      },
-      {
-        title: "Multi-Region Enterprise Integration",
-        result: "20% faster business processes",
-      },
-    ],
+    caseStudies: [] as { title: string; result: string }[],
 
     technologies: [
       "Cloud Architecture",

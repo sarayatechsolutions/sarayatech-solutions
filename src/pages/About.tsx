@@ -11,7 +11,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import teamPhoto from "@/assets/team-photo.jpg";
 import aboutValuesData from "../../data/about-values.json";
 import leadershipTeamData from "../../data/leadership-team.json";
@@ -33,6 +33,14 @@ const iconMap = {
   Shield,
   TrendingUp,
 };
+
+// Only documented, owner-verified figures belong here (STS-018). The stats
+// grid is not rendered while this list is empty.
+const MISSION_STATS: {
+  icon: ComponentType<{ className?: string }>;
+  value: string;
+  label: string;
+}[] = [];
 
 const About = () => {
   const [aboutValues, setAboutValues] = useState(aboutValuesData);
@@ -70,8 +78,8 @@ const About = () => {
               <span className="text-gold">Make a Difference</span>
             </h1>
             <p className="text-xl md:text-2xl text-primary-foreground/90 leading-relaxed">
-              Since 2020, we've been supporting organizations in their digital
-              transformation with expertise, passion and commitment.
+              We support organizations in their digital transformation with
+              expertise, passion and commitment.
             </p>
           </motion.div>
         </div>
@@ -80,7 +88,11 @@ const About = () => {
       {/* Mission Section */}
       <section className="py-24 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div
+            className={`grid ${
+              MISSION_STATS.length > 0 ? "lg:grid-cols-2" : ""
+            } gap-16 items-center`}
+          >
             <motion.div
               className="space-y-6"
               variants={slideInLeftVariants}
@@ -102,12 +114,13 @@ const About = () => {
                   we transform your ideas into concrete solutions.
                 </p>
                 <p>
-                  We've delivered over 85 projects for local and international
-                  clients, providing measurable and sustainable impact.
+                  We work with local and international clients, and several of
+                  the projects we have built are live today.
                 </p>
               </div>
             </motion.div>
 
+            {MISSION_STATS.length > 0 && (
             <motion.div
               className="grid grid-cols-2 gap-6"
               variants={containerVariants}
@@ -115,12 +128,7 @@ const About = () => {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {[
-                { icon: Users, value: "250+", label: "Projects" },
-                { icon: Globe, value: "6+", label: "Industries" },
-                { icon: Award, value: "20+", label: "Years" },
-                { icon: Zap, value: "97%", label: "Satisfaction" },
-              ].map((stat) => {
+              {MISSION_STATS.map((stat) => {
                 const Icon = stat.icon;
                 return (
                   <motion.div
@@ -138,6 +146,7 @@ const About = () => {
                 );
               })}
             </motion.div>
+            )}
           </div>
         </div>
       </section>

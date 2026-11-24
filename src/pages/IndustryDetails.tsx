@@ -190,7 +190,8 @@ const IndustryDetails = () => {
         </div>
       </section>
 
-      {/* Case Studies Section */}
+      {/* Case Studies Section: rendered only when verified case studies exist (STS-018) */}
+      {industry.caseStudies.length > 0 && (
       <section className="py-24 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
@@ -226,6 +227,7 @@ const IndustryDetails = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Technologies Section */}
       <section className="py-24 bg-background">
