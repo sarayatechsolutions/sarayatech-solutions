@@ -1,5 +1,5 @@
 import { ReactNode, Suspense, lazy, useEffect, useState } from "react";
-import Header from "@/components/Header";
+import Header, { MAIN_CONTENT_ID } from "@/components/Header";
 import Footer from "@/components/Footer";
 
 // The chatbot is not needed for first paint: load its chunk only once the
@@ -31,7 +31,10 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen">
       <Header />
-      <main>{children}</main>
+      {/* Skip-link target (STS-038): focusable by script only, no ring on a non-control. */}
+      <main id={MAIN_CONTENT_ID} tabIndex={-1} className="focus:outline-none">
+        {children}
+      </main>
       <Footer />
       {chatbotReady && (
         <Suspense fallback={null}>
