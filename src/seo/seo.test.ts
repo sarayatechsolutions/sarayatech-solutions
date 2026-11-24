@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getPublicPaths } from "@/routes";
+import { LEGAL_PAGES_APPROVED } from "@/content/legal/legal";
 import {
   DEFAULT_SITE_URL,
   NOT_FOUND_SEO_PATH,
@@ -20,7 +21,8 @@ describe("per-route SEO data (STS-021)", () => {
   it.each(paths)("has its own title and description for %s", (p) => {
     const seo = getSeo(p);
     expect(seo.path).toBe(p);
-    expect(seo.noindex).toBeUndefined();
+    // Only the STS-037 legal drafts are noindex, and only until C23 approval.
+    expect(seo.noindex).toBe(!LEGAL_PAGES_APPROVED && (p === "/privacy" || p === "/terms") ? true : undefined);
     expect(seo.title.length).toBeGreaterThanOrEqual(35);
     expect(seo.title.length).toBeLessThanOrEqual(60);
     expect(seo.description.length).toBeGreaterThanOrEqual(100);

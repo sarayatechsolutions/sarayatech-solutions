@@ -10,9 +10,12 @@ import Realisation from "./pages/Realisation";
 import Insights from "./pages/Insights";
 import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import ServicePage from "./pages/services/ServicePage";
 import ServicesIndex from "./pages/services/ServicesIndex";
 import { SERVICE_PAGES, SERVICES_BASE_PATH, servicePath } from "@/content/services/services";
+import { PRIVACY_PATH, TERMS_PATH } from "@/content/legal/legal";
 
 export interface AppRoute {
   /** react-router path pattern. */
@@ -50,6 +53,9 @@ export const APP_ROUTES: AppRoute[] = [
   { path: SERVICES_BASE_PATH, element: <ServicesIndex /> },
   // STS-032: the five service pages.
   ...SERVICE_PAGES.map((page) => ({ path: servicePath(page.slug), element: <ServicePage page={page} /> })),
+  // STS-037: legal drafts. Prerendered (HTTP 200) but noindex and out of the sitemap until C23.
+  { path: PRIVACY_PATH, element: <Privacy /> },
+  { path: TERMS_PATH, element: <Terms /> },
 ];
 
 /** Every concrete public URL path to prerender, dynamic detail pages expanded. */

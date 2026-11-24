@@ -5,6 +5,8 @@
 // Copy rules: describe only what the page contains. No price, statistic, review, client
 // name or founding year. Business name follows the C1 fallback ("SarayaTech Solutions").
 
+import { LEGAL_PAGES_APPROVED, PRIVACY_PATH, TERMS_PATH } from "../content/legal/legal";
+
 /**
  * Canonical host (B2 is OPEN; documented fallback = apex, no www). Overridable at build time
  * with VITE_SITE_URL. Kept here, not in src/config/, until the business config lands and the
@@ -35,7 +37,7 @@ export interface SeoData {
 
 export const NOT_FOUND_SEO_PATH = "/__not-found__";
 
-const STATIC_SEO: Record<string, { title: string; description: string }> = {
+const STATIC_SEO: Record<string, { title: string; description: string; noindex?: true }> = {
   "/": {
     title: "SarayaTech Solutions | Columbus, OH Digital Agency",
     description:
@@ -108,6 +110,19 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
     title: "Google & Meta Ads Management in Columbus, OH | SarayaTech",
     description:
       "Google and Meta ads for Columbus small businesses, with tracking on every call and form. Your ad spend stays separate from our management fee.",
+  },
+  // STS-037 legal drafts: noindex (and so out of the sitemap) until C23 approval flips the flag.
+  [PRIVACY_PATH]: {
+    title: `Privacy Policy${LEGAL_PAGES_APPROVED ? "" : " (Draft)"} | SarayaTech Solutions`,
+    description:
+      "How the SarayaTech Solutions website handles what you send through its contact forms and its AI chat assistant, and who receives it.",
+    ...(LEGAL_PAGES_APPROVED ? {} : { noindex: true as const }),
+  },
+  [TERMS_PATH]: {
+    title: `Terms of Use${LEGAL_PAGES_APPROVED ? "" : " (Draft)"} | SarayaTech Solutions`,
+    description:
+      "The terms for using the SarayaTech Solutions website, its contact forms and its AI chat assistant, in plain English for small businesses.",
+    ...(LEGAL_PAGES_APPROVED ? {} : { noindex: true as const }),
   },
 };
 

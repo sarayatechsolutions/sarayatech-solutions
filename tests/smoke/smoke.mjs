@@ -73,6 +73,9 @@ export const WORK_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Enterprise", 
  */
 export const SITEWIDE_FORBIDDEN_PHRASES = ["Enterprise-grade", "Enterprise Technology Solutions"];
 
+/** Legal drafts (STS-037): no compliance claim (C21) and no blanket "never shared" promise. */
+export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compliant", "never be shared", "never share"];
+
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
   { path: "/services/website-design", expectH1: "Websites that win customers" },
@@ -86,7 +89,9 @@ export const SERVICE_ROUTES = [
  * Public routes: every path src/routes.tsx prerenders (STS-020), each with the page's
  * real <h1> text, so an empty client-rendered shell fails. A unit test keeps this list
  * in step with getPublicPaths().
- * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean }[]}
+ * `noindex: true` (STS-037 legal drafts): the page must carry a robots noindex meta and no
+ * canonical, and must NOT be in the sitemap.
+ * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean }[]}
  */
 export function buildRoutes() {
   return [
@@ -120,6 +125,9 @@ export function buildRoutes() {
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
     { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
     ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),
+    // STS-037: legal drafts, served but noindex and out of the sitemap until C23 approval.
+    { path: "/privacy", expectH1: "Privacy Policy", noindex: true, expectText: "Draft — pending legal review", forbidText: LEGAL_FORBIDDEN_PHRASES },
+    { path: "/terms", expectH1: "Terms of Use", noindex: true, expectText: "Draft — pending legal review", forbidText: LEGAL_FORBIDDEN_PHRASES },
     { path: "/404.html", expectH1: "404" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];
@@ -163,6 +171,17 @@ export function checkSeoHead(html, expectedCanonical) {
   else if (!descriptions[0]) errors.push("empty meta description");
   if (canonicals.length !== 1) errors.push(`expected exactly one canonical, found ${canonicals.length}`);
   else if (canonicals[0] !== expectedCanonical) errors.push(`canonical ${canonicals[0]} is not ${expectedCanonical}`);
+  return errors;
+}
+
+/** STS-037: a noindex page has exactly one robots meta containing "noindex" and no canonical. */
+export function checkNoindexHead(html) {
+  const head = (/<head[\s\S]*?<\/head>/i.exec(html) || [""])[0];
+  const robots = [...head.matchAll(/<meta\b(?=[^>]*\bname=["']robots["'])[^>]*>/gi)].map((m) => (/\bcontent="([^"]*)"/i.exec(m[0]) || [])[1] || "");
+  const errors = [];
+  if (robots.length !== 1) errors.push(`expected exactly one robots meta, found ${robots.length}`);
+  else if (!/\bnoindex\b/i.test(robots[0])) errors.push(`robots meta is ${JSON.stringify(robots[0])}, not noindex`);
+  if (readSeoHead(html).canonicals.length) errors.push("a noindex page must not declare a canonical");
   return errors;
 }
 
@@ -317,7 +336,11 @@ async function checkRoutes(baseUrl) {
       const res = await fetch(url, { redirect: "manual" });
       const body = await res.text();
       const errors = checkRouteBody(route, res.status, res.headers.get("content-type"), body);
-      if (route.expectH1 !== undefined && route.path !== "/404.html") {
+      if (route.noindex) {
+        errors.push(...checkNoindexHead(body));
+        const h = readSeoHead(body);
+        seoPages.push({ path: route.path, title: h.titles[0], description: h.descriptions[0] });
+      } else if (route.expectH1 !== undefined && route.path !== "/404.html") {
         errors.push(...checkSeoHead(body, `${siteUrl}${route.path}`));
         const h = readSeoHead(body);
         seoPages.push({ path: route.path, title: h.titles[0], description: h.descriptions[0] });
@@ -333,12 +356,12 @@ async function checkRoutes(baseUrl) {
   return { failures, count: routes.length };
 }
 
-/** /sitemap.xml lists exactly the prerendered public paths, absolute on the canonical host. */
+/** /sitemap.xml lists exactly the prerendered indexable paths (noindex ones excluded), absolute on the canonical host. */
 async function checkSitemap(baseUrl, siteUrl, routes) {
   const res = await fetch(new URL("/sitemap.xml", baseUrl), { redirect: "manual" });
   if (res.status !== 200) return [`/sitemap.xml: expected HTTP 200, got ${res.status}`];
   const locs = sitemapLocs(await res.text());
-  const expected = routes.filter((r) => r.expectH1 !== undefined && r.path !== "/404.html").map((r) => `${siteUrl}${r.path}`);
+  const expected = routes.filter((r) => r.expectH1 !== undefined && r.path !== "/404.html" && !r.noindex).map((r) => `${siteUrl}${r.path}`);
   const missing = expected.filter((u) => !locs.includes(u));
   const extra = locs.filter((u) => !expected.includes(u));
   const dup = locs.length !== new Set(locs).size;
