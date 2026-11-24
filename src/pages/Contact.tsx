@@ -15,83 +15,58 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { MapPin, Phone, Mail, Clock, CheckCircle2 } from "lucide-react";
 import {
-  MapPin,
-  Phone,
-  Mail,
-  Clock,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+  CONTACT_LIMITS,
+  submitContact,
+  type ContactPayload,
+} from "@/lib/contact-submit";
+
+const CALENDLY_URL = "https://calendly.com/saraya-info";
+
+const EMPTY_FORM: ContactPayload = {
+  name: "",
+  email: "",
+  phone: "",
+  company: "",
+  service: "General Inquiry", // Set default value to avoid uncontrolled warning
+  message: "",
+  nickname: "",
+};
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    service: "General Inquiry", // Set default value to avoid uncontrolled warning
-    message: "",
-  });
+  const [formData, setFormData] = useState<ContactPayload>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"success" | "error">("success");
-  const [modalMessage, setModalMessage] = useState("");
-  const { toast } = useToast();
+  const [errorMessage, setErrorMessage] = useState("");
+  // A ref, not state: it blocks a second submit even before React re-renders.
+  const inFlight = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
     setLoading(true);
+    setErrorMessage("");
 
     try {
-      // Use API URL from environment variable (production) or proxy (development)
-      const API_URL = import.meta.env.VITE_API_URL || "";
-      const response = await fetch(`${API_URL}/api/contact`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        setModalType("success");
-        setModalMessage(
-          "Thank you for contacting us! We've received your message and will get back to you within 24-48 hours."
-        );
-        setModalOpen(true);
-
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          company: "",
-          service: "General Inquiry",
-          message: "",
-        });
+      const result = await submitContact(formData);
+      if ("message" in result) {
+        setErrorMessage(result.message);
       } else {
-        throw new Error(data.message || "Failed to send message");
+        setModalOpen(true);
+        setFormData(EMPTY_FORM);
       }
-    } catch (error) {
-      setModalType("error");
-      setModalMessage(
-        error instanceof Error
-          ? error.message
-          : "An error occurred. Please try again later or contact us directly at info@sarayatech.com"
-      );
-      setModalOpen(true);
     } finally {
+      inFlight.current = false;
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen">
-      <main>
+      <div>
         {/* Hero Section */}
         <section className="pt-32 pb-20 gradient-primary text-primary-foreground">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -183,13 +158,36 @@ const Contact = () => {
                 <div className="bg-card rounded-2xl p-8 shadow-elegant border border-border">
                   <h3 className="text-2xl font-bold mb-6">Send us a Message</h3>
 
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-6" aria-busy={loading}>
+                    {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
+                    <div
+                      aria-hidden="true"
+                      style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
+                    >
+                      <label htmlFor="contact-nickname">Nickname</label>
+                      <input
+                        id="contact-nickname"
+                        name="nickname"
+                        type="text"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={formData.nickname}
+                        onChange={(e) =>
+                          setFormData({ ...formData, nickname: e.target.value })
+                        }
+                      />
+                    </div>
+
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label htmlFor="contact-name" className="block text-sm font-medium mb-2">
                           Full Name *
                         </label>
                         <Input
+                          id="contact-name"
+                          name="name"
+                          autoComplete="name"
+                          maxLength={CONTACT_LIMITS.name}
                           placeholder="John Doe"
                           required
                           value={formData.name}
@@ -199,10 +197,14 @@ const Contact = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label htmlFor="contact-email" className="block text-sm font-medium mb-2">
                           Email *
                         </label>
                         <Input
+                          id="contact-email"
+                          name="email"
+                          autoComplete="email"
+                          maxLength={CONTACT_LIMITS.email}
                           type="email"
                           placeholder="john@company.com"
                           required
@@ -216,10 +218,14 @@ const Contact = () => {
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label htmlFor="contact-phone" className="block text-sm font-medium mb-2">
                           Phone Number
                         </label>
                         <Input
+                          id="contact-phone"
+                          name="phone"
+                          autoComplete="tel"
+                          maxLength={CONTACT_LIMITS.phone}
                           type="tel"
                           placeholder="+1 (614)-783-0443"
                           value={formData.phone}
@@ -229,10 +235,14 @@ const Contact = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium mb-2">
+                        <label htmlFor="contact-company" className="block text-sm font-medium mb-2">
                           Company
                         </label>
                         <Input
+                          id="contact-company"
+                          name="company"
+                          autoComplete="organization"
+                          maxLength={CONTACT_LIMITS.company}
                           placeholder="Your company name"
                           value={formData.company}
                           onChange={(e) =>
@@ -246,7 +256,7 @@ const Contact = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label htmlFor="contact-service" className="block text-sm font-medium mb-2">
                         Service Interest *
                       </label>
                       <Select
@@ -256,7 +266,7 @@ const Contact = () => {
                           setFormData({ ...formData, service: value })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger id="contact-service">
                           <SelectValue placeholder="Select a service" />
                         </SelectTrigger>
                         <SelectContent>
@@ -286,10 +296,13 @@ const Contact = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2">
+                      <label htmlFor="contact-message" className="block text-sm font-medium mb-2">
                         Message *
                       </label>
                       <Textarea
+                        id="contact-message"
+                        name="message"
+                        maxLength={CONTACT_LIMITS.message}
                         placeholder="Tell us about your project and how we can help..."
                         rows={6}
                         required
@@ -298,6 +311,30 @@ const Contact = () => {
                           setFormData({ ...formData, message: e.target.value })
                         }
                       />
+                    </div>
+
+                    {/* Always mounted so screen readers announce the error when it appears. */}
+                    <div aria-live="assertive" aria-atomic="true">
+                      {errorMessage && (
+                        <div
+                          role="alert"
+                          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
+                        >
+                          <p>{errorMessage}</p>
+                          <p className="mt-1">
+                            You can also{" "}
+                            <a
+                              href={CALENDLY_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold underline"
+                            >
+                              book a call
+                            </a>
+                            .
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     <Button
@@ -335,30 +372,22 @@ const Contact = () => {
             referrerPolicy="no-referrer-when-downgrade"
           ></iframe>
         </section>
-      </main>
+      </div>
 
-      {/* Success/Error Modal */}
+      {/* Success Modal (errors are shown inline, next to the form) */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="mx-auto mb-4">
-              {modalType === "success" ? (
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                  <CheckCircle2 className="w-10 h-10 text-green-600" />
-                </div>
-              ) : (
-                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="w-10 h-10 text-red-600" />
-                </div>
-              )}
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-green-600" aria-hidden="true" />
+              </div>
             </div>
             <DialogTitle className="text-center text-2xl">
-              {modalType === "success"
-                ? "Message Sent Successfully!"
-                : "Oops! Something Went Wrong"}
+              Message Sent Successfully!
             </DialogTitle>
             <DialogDescription className="text-center text-base pt-2">
-              {modalMessage}
+              Thank you for contacting us! We've received your message and will get back to you within 24-48 hours.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-4">
@@ -366,7 +395,7 @@ const Contact = () => {
               onClick={() => setModalOpen(false)}
               className="w-full sm:w-auto bg-accent hover:bg-accent-light"
             >
-              {modalType === "success" ? "Great, Thanks!" : "Close"}
+              Great, Thanks!
             </Button>
           </div>
         </DialogContent>
