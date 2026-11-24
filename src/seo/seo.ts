@@ -87,6 +87,33 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
     description:
       "Join the SarayaTech Solutions team in Columbus, Ohio. See how we work and how to get in touch about working with a digital agency team.",
   },
+  // STS-032 service pages. Each title carries the page's keyword from the keyword map
+  // (08-MARKETING-OPERATIONS.md section 7, REQ-078); each description differs from the page's h1.
+  "/services/website-design": {
+    title: "Small Business Website Design in Columbus, OH | SarayaTech",
+    description:
+      "Mobile-friendly websites for Columbus small businesses, built to turn visitors into calls and bookings. See what's included, then book a free consultation.",
+  },
+  "/services/app-development": {
+    title: "App & Custom Software Developer in Columbus, OH | SarayaTech",
+    description:
+      "Booking systems, customer portals and mobile apps for Columbus small businesses. See how a project works, from scoping to support, and ask for a quote.",
+  },
+  "/services/local-seo": {
+    title: "Local SEO & Google Visibility in Columbus, OH | SarayaTech",
+    description:
+      "Help nearby customers find you: Google Business Profile setup, local SEO and a simple monthly report for Columbus small businesses. Book a consultation.",
+  },
+  "/services/social-media-marketing": {
+    title: "Social Media Marketing in Columbus, OH | SarayaTech",
+    description:
+      "Social media for Columbus small businesses, planned, posted and reported every month. You always own your accounts. Book a free consultation to start.",
+  },
+  "/services/paid-ads": {
+    title: "Google & Meta Ads Management in Columbus, OH | SarayaTech",
+    description:
+      "Google and Meta ads for Columbus small businesses, with tracking on every call and form. Your ad spend stays separate from our management fee.",
+  },
 };
 
 const NOT_FOUND_SEO = {
