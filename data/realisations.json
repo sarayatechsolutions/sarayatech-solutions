@@ -85,23 +85,6 @@
     "link": "https://asta-edu.com/"
   },
   {
-    "company": "Plateforme DGFPT",
-    "industry": "Education",
-    "challenge": "Digital transformation of vocational training accreditation processes",
-    "solution": "Digital platform for the General Directorate of Vocational and Technical Training (DGFPT), designed to manage accreditation requests and teaching authorization processes.",
-    "results": [
-      { "metric": "75%", "label": "Process Digitization" },
-      { "metric": "50%", "label": "Application Processing Time" },
-      { "metric": "90%", "label": "User Adoption Rate" }
-    ],
-    "quote": "The DGFPT platform has modernized our accreditation processes. The digital system has significantly improved efficiency and transparency.",
-    "author": "Mamadou Sow",
-    "role": "IT Director, DGFPT",
-    "image": "/images/placeholder-project.svg",
-    "isActive": false,
-    "link": "https://dev.dgfpt.portal.sarayatechsenegal.com/"
-  },
-  {
     "company": "SarayaTech Senegal",
     "industry": "Technology",
     "challenge": "Creating a professional online presence for SarayaTech Senegal's services and portfolio",
