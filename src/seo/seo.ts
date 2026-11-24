@@ -53,9 +53,10 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
       "SarayaTech Solutions is a Columbus, Ohio digital agency. See our web, software, cloud, data and AI services, recent work, and how to start a conversation.",
   },
   "/about": {
-    title: "About SarayaTech Solutions | Columbus, OH Agency",
+    // STS-036: written for the click and different from the page's h1 ("Your neighbors in tech").
+    title: "About SarayaTech | Columbus Small Business Web & Marketing",
     description:
-      "Meet the SarayaTech Solutions team, a Columbus, Ohio digital agency. Read how we work and what we build for the businesses we partner with.",
+      "Meet the SarayaTech team behind websites, apps and local marketing for Columbus small businesses. See how we work, then book a free consultation.",
   },
   "/contact": {
     title: "Contact SarayaTech Solutions | Columbus, Ohio",

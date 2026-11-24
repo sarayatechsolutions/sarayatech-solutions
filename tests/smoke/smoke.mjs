@@ -62,6 +62,20 @@ export const HOME_FORBIDDEN_PHRASES = [
  */
 export const SERVICE_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "fixed price", "30-minute"];
 
+/**
+ * About page (STS-036): the home list, "Enterprise" in any form, the stock group photo that was
+ * presented as the team (REQ-015), and the founding-year / founder placeholders (C7, REQ-062).
+ * Years, counts and percentages are guarded by About.test.tsx, which can match a pattern.
+ */
+export const ABOUT_FORBIDDEN_PHRASES = [
+  ...HOME_FORBIDDEN_PHRASES,
+  "Enterprise",
+  "team-photo",
+  "founded in",
+  "[year]",
+  "[founder",
+];
+
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
   { path: "/services/website-design", expectH1: "Websites that win customers" },
@@ -85,7 +99,12 @@ export function buildRoutes() {
       // STS-031: the source's banned phrases (REQ-011, REQ-012) and the unbacked ads claim (REQ-058).
       forbidText: HOME_FORBIDDEN_PHRASES,
     },
-    { path: "/about", expectH1: "Building Digital Solutions that Make a Difference" },
+    {
+      path: "/about",
+      expectH1: "Your neighbors in tech",
+      // STS-036: banned phrases, the stock "team" photo, and claims C7 has not supplied.
+      forbidText: ABOUT_FORBIDDEN_PHRASES,
+    },
     {
       path: "/contact",
       expectH1: "Let's talk about your business",
