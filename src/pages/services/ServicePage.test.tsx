@@ -80,8 +80,7 @@ describe.each(SERVICE_PAGES)("service page /services/$slug (STS-032)", (page) =>
     const byText = (label: string) => [...main.querySelectorAll("a")].find((a) => text(a) === label);
     expect(byText("Book a Free Consultation")?.getAttribute("href")).toBe(bookingHref());
     expect(main.querySelector('a[href*="calendly"]')).toBeNull();
-    // TODO(STS-034): expect "/free-audit" once that route exists.
-    expect(byText("Get My Free Audit")?.getAttribute("href")).toBe("/contact");
+    expect(byText("Get My Free Audit")?.getAttribute("href")).toBe("/free-audit");
   });
 
   it("opens external links only to allow-listed projects, safely and announced", () => {

@@ -35,10 +35,9 @@ export const PROOF_PATH = "/realisation";
 
 /**
  * Destination of the final CTA "Get My Free Audit" (REQ-063).
- * TODO(STS-034): point to "/free-audit" once that route exists. Until then it goes to the
- * contact form so the button is never a broken link (REQ-018).
+ * STS-034: the free audit page and its lead form.
  */
-export const FREE_AUDIT_PATH = CONTACT_PATH;
+export const FREE_AUDIT_PATH = "/free-audit";
 
 /**
  * Destination of the packages teaser.

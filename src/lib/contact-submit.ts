@@ -61,8 +61,36 @@ function serverMessage(body: unknown): string | undefined {
   return undefined;
 }
 
-export async function submitContact(
+/** The audit lead form (STS-034): same endpoint, `leadType: "audit"`. */
+export interface AuditPayload {
+  leadType: "audit";
+  name: string;
+  email: string;
+  company: string;
+  website: string;
+  phone?: string;
+  message?: string;
+  source?: "google" | "referral" | "social" | "ads" | "other";
+  /** Honeypot: humans never see or fill it. */
+  nickname: string;
+}
+
+export function submitContact(
   payload: ContactPayload,
+  options: { apiUrl?: string; fetchImpl?: typeof fetch } = {},
+): Promise<ContactResult> {
+  return postLead(payload, options);
+}
+
+export function submitAudit(
+  payload: AuditPayload,
+  options: { apiUrl?: string; fetchImpl?: typeof fetch } = {},
+): Promise<ContactResult> {
+  return postLead(payload, options);
+}
+
+async function postLead(
+  payload: ContactPayload | AuditPayload,
   options: { apiUrl?: string; fetchImpl?: typeof fetch } = {},
 ): Promise<ContactResult> {
   const { apiUrl = import.meta.env.VITE_API_URL || "", fetchImpl = fetch } = options;

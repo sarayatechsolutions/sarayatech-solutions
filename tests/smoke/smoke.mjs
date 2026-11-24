@@ -102,6 +102,12 @@ export function buildRoutes() {
       // STS-044: no response time is promised until the owner confirms one (C16, I-12).
       forbidText: ["24 hours", "24-48 hours"],
     },
+    {
+      path: "/free-audit",
+      expectH1: "Free Website & Google Profile Audit",
+      // STS-034: no reply-time promise until the owner confirms one (C16, I-12).
+      forbidText: [...HOME_FORBIDDEN_PHRASES, "24 hours", "2 business days"],
+    },
     { path: "/realisation", expectH1: "Recent Realisations" },
     { path: "/insights", expectH1: "Insights & Resources" },
     { path: "/careers", expectH1: "Join Our Team" },
