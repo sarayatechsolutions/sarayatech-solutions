@@ -11,7 +11,8 @@ import {
   Lightbulb,
   Bot,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { motion } from "@/components/motion";
 import solutionsData from "../../data/solutions.json";
 import {
   containerVariants,

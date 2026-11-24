@@ -51,6 +51,16 @@ describe("smoke h1 assertions (STS-020)", () => {
     const route = { path: "/x", expectH1: "Hello" };
     expect(checkRouteBody(route, 200, "text/html", '<div id="root"></div>')).toHaveLength(1);
     expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1>Other</h1>')).toHaveLength(1);
-    expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1 style="opacity:0">Hello</h1>')).toEqual([]);
+    expect(checkRouteBody(route, 200, "text/html", '<div id="root"><h1 class="x">Hello</h1>')).toEqual([]);
+  });
+});
+
+describe("smoke first-paint visibility (STS-022)", () => {
+  it("fails a section served at inline opacity 0, passes one served visible", () => {
+    const route = { path: "/x", expectH1: "Hello" };
+    const hidden = '<div id="root"><h1>Hello</h1><section style="opacity:0;transform:translateY(20px)">x</section>';
+    const visible = '<div id="root"><h1>Hello</h1><section style="opacity:1">x</section><i class="opacity-0">';
+    expect(checkRouteBody(route, 200, "text/html", hidden)).toHaveLength(1);
+    expect(checkRouteBody(route, 200, "text/html", visible)).toEqual([]);
   });
 });

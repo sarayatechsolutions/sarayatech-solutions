@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import heroBg from "@/assets/hero-bg.jpg";
 import dashboardMockup from "@/assets/dashboard-mockup.jpg";
 import {

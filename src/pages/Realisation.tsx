@@ -1,7 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import realisationsData from "../../data/realisations.json";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import {
   containerVariants,
   fadeInUpVariants,
@@ -24,7 +24,7 @@ const Realisation = () => {
   const [loading, setLoading] = useState(false);
   return (
     <div className="min-h-screen bg-background">
-      <main>
+      <div>
         {/* Hero */}
         <motion.section
           className="pt-32 pb-20 gradient-primary text-primary-foreground"
@@ -250,7 +250,7 @@ const Realisation = () => {
             </motion.div>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 };

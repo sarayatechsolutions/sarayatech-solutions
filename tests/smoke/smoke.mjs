@@ -59,7 +59,12 @@ export function buildRoutes() {
     { path: "/about", expectH1: "Building Digital Solutions that Make a Difference" },
     { path: "/contact", expectH1: "Let's Start a Conversation" },
     { path: "/solutions", expectH1: "Our Services" },
-    ...jsonItems("data/solutions.json", "title").map(({ id, text }) => ({ path: `/solutions/${id}`, expectH1: text })),
+    ...jsonItems("data/solutions.json", "title").map(({ id, text }) => ({
+      path: `/solutions/${id}`,
+      expectH1: text,
+      // Tabbed content is in the HTML (hidden panels), not only behind a click.
+      expectText: "Technical Specifications",
+    })),
     { path: "/industries", expectH1: "Industry-Leading Solutions for Every Sector" },
     ...tsIndustries("src/constants/industries.ts").map(({ id, text }) => ({ path: `/industry/${id}`, expectH1: text })),
     { path: "/realisation", expectH1: "Recent Realisations" },
@@ -69,6 +74,9 @@ export function buildRoutes() {
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];
 }
+
+// framer-motion writes an `initial` of opacity 0 into the HTML (STS-022).
+const HIDDEN_AT_FIRST_PAINT = /style="[^"]*opacity:\s*0[;"]/;
 
 // "sk-" as a token (not the tail of e.g. "task-"), then 20+ key characters.
 export const SECRET_PATTERNS = [
@@ -94,6 +102,9 @@ export function checkRouteBody(route, status, contentType, body) {
     const h1 = firstH1Text(body);
     if (h1 === null) errors.push("no <h1> in the served HTML (empty client-rendered shell?)");
     else if (h1 !== route.expectH1) errors.push(`expected <h1> ${JSON.stringify(route.expectH1)}, got ${JSON.stringify(h1)}`);
+  }
+  if (route.expectH1 !== undefined && HIDDEN_AT_FIRST_PAINT.test(body)) {
+    errors.push("an element is served hidden (inline opacity:0), so no-JS visitors and crawlers see a blank section");
   }
   if (route.expectText && !body.includes(route.expectText)) {
     errors.push(`missing expected text ${JSON.stringify(route.expectText)}`);

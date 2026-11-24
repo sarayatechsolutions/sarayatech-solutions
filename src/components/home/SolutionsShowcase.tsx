@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Cloud, Database, Cpu, Globe, Server, Shield, Zap, Lightbulb, Bot, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
 import { fadeInUpVariants, staggerItemVariants } from "@/constants/animations";
 

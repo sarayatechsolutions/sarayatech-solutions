@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { motion } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 

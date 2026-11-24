@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import ScrollToTop from "@/components/ScrollToTop";
+import { MotionProvider } from "@/components/motion";
 import { AppRoutes } from "./routes";
 
 const queryClient = new QueryClient();
@@ -15,7 +16,7 @@ export const AppProviders = ({ children }: { children: ReactNode }) => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      {children}
+      <MotionProvider>{children}</MotionProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

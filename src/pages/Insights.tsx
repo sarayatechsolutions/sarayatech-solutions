@@ -1,5 +1,3 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { Calendar, Clock, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -58,9 +56,7 @@ const Insights = () => {
 
   return (
     <div className="min-h-screen">
-      <Header />
-      
-      <main>
+      <div>
         {/* Hero */}
         <section className="pt-32 pb-20 gradient-primary text-primary-foreground">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -164,9 +160,7 @@ const Insights = () => {
             </div>
           </div>
         </section>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 };
