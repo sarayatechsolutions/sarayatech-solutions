@@ -47,15 +47,29 @@ export function firstH1Text(html) {
     .trim();
 }
 
+/** Phrases the built home page must not contain (REQ-011, REQ-012, REQ-058), as written in the source. */
+export const HOME_FORBIDDEN_PHRASES = [
+  "Enterprise-grade",
+  "Enterprise Technology Solutions",
+  "Digital Transformation",
+  "Transform your business",
+  "pay for themselves",
+];
+
 /**
  * Public routes: every path src/routes.tsx prerenders (STS-020), each with the page's
  * real <h1> text, so an empty client-rendered shell fails. A unit test keeps this list
  * in step with getPublicPaths().
- * @type {{ path: string, expectH1?: string, expectText?: string, contentType?: string, shell?: boolean }[]}
+ * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean }[]}
  */
 export function buildRoutes() {
   return [
-    { path: "/", expectH1: "Your Partner for Digital Transformation & AI Innovation" },
+    {
+      path: "/",
+      expectH1: "We build your website. Then we bring you customers.",
+      // STS-031: the source's banned phrases (REQ-011, REQ-012) and the unbacked ads claim (REQ-058).
+      forbidText: HOME_FORBIDDEN_PHRASES,
+    },
     { path: "/about", expectH1: "Building Digital Solutions that Make a Difference" },
     { path: "/contact", expectH1: "Let's Start a Conversation" },
     { path: "/solutions", expectH1: "Our Services" },
@@ -164,6 +178,9 @@ export function checkRouteBody(route, status, contentType, body) {
   }
   if (route.expectText && !body.includes(route.expectText)) {
     errors.push(`missing expected text ${JSON.stringify(route.expectText)}`);
+  }
+  for (const phrase of route.forbidText ?? []) {
+    if (body.includes(phrase)) errors.push(`contains forbidden text ${JSON.stringify(phrase)}`);
   }
   return errors;
 }
