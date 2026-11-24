@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildRoutes, checkRouteBody, findSecretLeaks, firstH1Text } from "./smoke.mjs";
+import { buildRoutes, checkRouteBody, checkSeoHead, findDuplicateSeo, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
 import { getPublicPaths } from "../../src/routes";
 
 // Unit tests for the smoke script's own checks, so the guard is known to have teeth.
@@ -62,5 +62,31 @@ describe("smoke first-paint visibility (STS-022)", () => {
     const visible = '<div id="root"><h1>Hello</h1><section style="opacity:1">x</section><i class="opacity-0">';
     expect(checkRouteBody(route, 200, "text/html", hidden)).toHaveLength(1);
     expect(checkRouteBody(route, 200, "text/html", visible)).toEqual([]);
+  });
+});
+
+describe("smoke SEO assertions (STS-021)", () => {
+  const good = (t = "T", d = "D", c = "https://x.test/a") =>
+    `<html><head><title>${t}</title><meta name="description" content="${d}" /><link rel="canonical" href="${c}" /></head><body></body></html>`;
+
+  it("passes a page with one title, a description and the right canonical", () => {
+    expect(checkSeoHead(good(), "https://x.test/a")).toEqual([]);
+  });
+
+  it("fails the generic-shell cases: missing, duplicated, empty or off-host", () => {
+    expect(checkSeoHead("<head></head>", "https://x.test/a")).toHaveLength(3);
+    expect(checkSeoHead(good().replace("<head>", "<head><title>Two</title>"), "https://x.test/a")[0]).toMatch(/exactly one <title>/);
+    expect(checkSeoHead(good("T", ""), "https://x.test/a")[0]).toMatch(/empty meta description/);
+    expect(checkSeoHead(good("T", "D", "https://x.test/b"), "https://x.test/a")[0]).toMatch(/is not/);
+    expect(checkSeoHead(good("T", "D", "https://x.test/a/"), "https://x.test/a")).toHaveLength(1);
+  });
+
+  it("flags duplicate titles and descriptions across pages", () => {
+    expect(findDuplicateSeo([{ path: "/a", title: "t1", description: "d1" }, { path: "/b", title: "t2", description: "d2" }])).toEqual([]);
+    expect(findDuplicateSeo([{ path: "/a", title: "t", description: "d1" }, { path: "/b", title: "t", description: "d2" }])).toHaveLength(1);
+  });
+
+  it("reads sitemap locs", () => {
+    expect(sitemapLocs("<urlset><url><loc>https://x.test/</loc></url><url><loc>https://x.test/a</loc></url></urlset>")).toEqual(["https://x.test/", "https://x.test/a"]);
   });
 });
