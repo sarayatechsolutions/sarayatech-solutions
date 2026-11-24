@@ -56,3 +56,35 @@ describe("classifyHref: plain text, not a link", () => {
     expect(isInternalHref(href)).toBe(false);
   });
 });
+
+// Security review integrate/s2 (MEDIUM): a single leading slash followed by dot segments passed
+// the "starts with exactly one slash" test, then normalised to "//evil.example", a
+// protocol-relative href to another host. A dot-segment off-site link is never legitimate,
+// so it is plain text, not an internal route and not an external link either.
+describe("classifyHref: dot-segment paths that normalise to another host", () => {
+  it.each([
+    "/.//evil.example",
+    "/..//evil.example",
+    "/a/..//evil.example",
+    "/%2e//evil.example",
+    "/%2E//evil.example",
+    "/%2e%2e//evil.example",
+    "/%2E%2E//evil.example",
+    "/././/evil.example",
+    "/a/b/../..//evil.example",
+    `/./${BS}evil.example`,
+    `/../${BS}evil.example`,
+    `/.${BS}${BS}evil.example`,
+  ])("renders %j as text, never as an internal route", (href) => {
+    expect(classifyHref(href)).toEqual({ kind: "text" });
+    expect(isInternalHref(href)).toBe(false);
+  });
+
+  it.each([
+    ["/./contact", "/contact"],
+    ["/solutions/../contact", "/contact"],
+    ["/%2e/contact", "/contact"],
+  ])("still routes the harmless dot-segment path %j internally as %j", (href, expected) => {
+    expect(classifyHref(href)).toEqual({ kind: "internal", href: expected });
+  });
+});
