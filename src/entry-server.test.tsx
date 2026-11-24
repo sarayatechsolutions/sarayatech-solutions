@@ -14,10 +14,11 @@ describe("prerender entry (STS-020)", () => {
   it("prerenders every public route, with dynamic detail pages expanded", () => {
     expect(paths).toEqual(getPublicPaths());
     expect(paths).toEqual(
-      expect.arrayContaining(["/", "/about", "/contact", "/solutions", "/industries", "/realisation", "/insights", "/careers"]),
+      expect.arrayContaining(["/", "/about", "/contact", "/services", "/realisation", "/insights", "/careers"]),
     );
-    expect(paths.filter((p) => p.startsWith("/solutions/")).length).toBeGreaterThan(1);
-    expect(paths.filter((p) => p.startsWith("/industry/")).length).toBeGreaterThan(1);
+    expect(paths.filter((p) => p.startsWith("/services/")).length).toBe(5);
+    // STS-039: the enterprise solution and industry pages are retired (301s), never prerendered.
+    expect(paths.filter((p) => /^\/(solutions|industries|industry)(\/|$)/.test(p))).toEqual([]);
     expect(paths).not.toContain("/auth");
     expect(paths).not.toContain("/dashboard");
   });

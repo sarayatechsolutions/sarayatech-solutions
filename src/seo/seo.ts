@@ -5,9 +5,6 @@
 // Copy rules: describe only what the page contains. No price, statistic, review, client
 // name or founding year. Business name follows the C1 fallback ("SarayaTech Solutions").
 
-import { SOLUTIONS_DATA } from "@/constants/solutions";
-import { industries } from "@/constants/industries";
-
 /**
  * Canonical host (B2 is OPEN; documented fallback = apex, no www). Overridable at build time
  * with VITE_SITE_URL. Kept here, not in src/config/, until the business config lands and the
@@ -38,19 +35,12 @@ export interface SeoData {
 
 export const NOT_FOUND_SEO_PATH = "/__not-found__";
 
-const AGENCY = "a Columbus, Ohio digital agency";
-
-/** Longest suffix that keeps the description within `max` characters. */
-function withSuffix(base: string, suffixes: string[], max = 160): string {
-  const fit = suffixes.filter((s) => base.length + s.length <= max).sort((a, b) => b.length - a.length)[0];
-  return `${base}${fit ?? ""}`;
-}
-
 const STATIC_SEO: Record<string, { title: string; description: string }> = {
   "/": {
     title: "SarayaTech Solutions | Columbus, OH Digital Agency",
     description:
-      "SarayaTech Solutions is a Columbus, Ohio digital agency. See our web, software, cloud, data and AI services, recent work, and how to start a conversation.",
+      // STS-039: names the five live services; cloud, data and AI pages are retired (REQ-014).
+      "SarayaTech Solutions is a Columbus, Ohio digital agency for websites, apps, local SEO, social media and ads. See our services, recent work and how to start.",
   },
   "/about": {
     // STS-036: written for the click and different from the page's h1 ("Your neighbors in tech").
@@ -62,16 +52,6 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
     title: "Contact SarayaTech Solutions | Columbus, Ohio",
     description:
       "Start a conversation with SarayaTech Solutions in Columbus, Ohio. Send a message through our contact form and tell us about your project.",
-  },
-  "/solutions": {
-    title: "Web, Software, Cloud and AI Services | SarayaTech",
-    description:
-      "Browse SarayaTech Solutions services: web and mobile development, custom software, cloud, data and BI, security, digital strategy and AI automation.",
-  },
-  "/industries": {
-    title: "Industries We Serve | SarayaTech Solutions",
-    description:
-      "Explore the industries SarayaTech Solutions builds for, including financial services, healthcare, manufacturing, retail, education and enterprise.",
   },
   "/realisation": {
     title: "Our Work and Recent Projects | SarayaTech Solutions",
@@ -87,6 +67,14 @@ const STATIC_SEO: Record<string, { title: string; description: string }> = {
     title: "Careers at SarayaTech Solutions | Columbus, OH",
     description:
       "Join the SarayaTech Solutions team in Columbus, Ohio. See how we work and how to get in touch about working with a digital agency team.",
+  },
+  // STS-039: the hub that replaced the retired /solutions index. The retired /solutions/*,
+  // /industries and /industry/* paths have no entry: they are 301s now (public/_redirects), and a
+  // client-side visit to one renders the 404 page, which must carry the noindex data.
+  "/services": {
+    title: "Websites, Apps & Marketing in Columbus, OH | SarayaTech",
+    description:
+      "Website design, app development, local SEO, social media and paid ads for Columbus small businesses. Pick a service to see what's included.",
   },
   // STS-032 service pages. Each title carries the page's keyword from the keyword map
   // (08-MARKETING-OPERATIONS.md section 7, REQ-078); each description differs from the page's h1.
@@ -122,54 +110,16 @@ const NOT_FOUND_SEO = {
   description: "The page you were looking for could not be found. Return to the SarayaTech Solutions home page.",
 };
 
-/** Request path -> "/about", "/solutions/x"; drops query, hash and trailing slashes. */
+/** Request path -> "/about", "/services/x"; drops query, hash and trailing slashes. */
 export function normalizePath(path: string): string {
   const p = path.split(/[?#]/)[0].replace(/\/+$/, "");
   return p === "" ? "/" : p.startsWith("/") ? p : `/${p}`;
 }
 
-function safeDecode(s: string): string {
-  try {
-    return decodeURIComponent(s);
-  } catch {
-    return s;
-  }
-}
-
-/** "<name> | SarayaTech Solutions", or the short brand when that would pass 60 characters. */
-function fitTitle(name: string): string {
-  const full = `${name} | SarayaTech Solutions`;
-  return full.length <= 60 ? full : `${name} | SarayaTech`;
-}
-
-function solutionSeo(slug: string): { title: string; description: string } | null {
-  const s = Object.prototype.hasOwnProperty.call(SOLUTIONS_DATA, slug) ? SOLUTIONS_DATA[slug] : undefined;
-  if (!s) return null;
-  return {
-    title: fitTitle(s.title),
-    description: withSuffix(s.description, [` From SarayaTech Solutions, ${AGENCY}.`, " SarayaTech Solutions, Columbus, OH."]),
-  };
-}
-
-function industrySeo(slug: string): { title: string; description: string } | null {
-  const i = industries.find((x) => x.id === slug);
-  if (!i) return null;
-  return {
-    title: `${i.name} Technology Solutions | SarayaTech`,
-    description: withSuffix(`${i.shortDescription}: ${i.description}.`, [
-      ` From SarayaTech Solutions, ${AGENCY}.`,
-      " SarayaTech Solutions, Columbus, OH.",
-    ]),
-  };
-}
-
 /** SEO data for a URL path. Unknown paths get the 404 data (noindex, no canonical). */
 export function getSeo(rawPath: string): SeoData {
   const path = normalizePath(rawPath);
-  const hit =
-    STATIC_SEO[path] ??
-    (path.startsWith("/solutions/") ? solutionSeo(safeDecode(path.slice("/solutions/".length))) : null) ??
-    (path.startsWith("/industry/") ? industrySeo(safeDecode(path.slice("/industry/".length))) : null);
+  const hit = STATIC_SEO[path];
   if (!hit) return { ...NOT_FOUND_SEO, path: NOT_FOUND_SEO_PATH, noindex: true };
   return { ...hit, path };
 }

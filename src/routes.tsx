@@ -5,18 +5,13 @@ import Seo from "@/components/Seo";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
-import Solutions from "./pages/Solutions";
 import Realisation from "./pages/Realisation";
 import Insights from "./pages/Insights";
-import SolutionDetails from "./pages/SolutionDetails";
-import Industries from "./pages/Industries";
-import IndustryDetails from "./pages/IndustryDetails";
 import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
 import ServicePage from "./pages/services/ServicePage";
-import { SOLUTIONS_DATA } from "@/constants/solutions";
-import { industries } from "@/constants/industries";
-import { SERVICE_PAGES, servicePath } from "@/content/services/services";
+import ServicesIndex from "./pages/services/ServicesIndex";
+import { SERVICE_PAGES, SERVICES_BASE_PATH, servicePath } from "@/content/services/services";
 
 export interface AppRoute {
   /** react-router path pattern. */
@@ -24,7 +19,7 @@ export interface AppRoute {
   element: ReactElement;
   /** For a pattern with a param: the values to prerender, one page each. */
   slugs?: () => string[];
-  /** Param name filled by `slugs` (e.g. "solutionId" for /solutions/:solutionId). */
+  /** Param name filled by `slugs` (e.g. "slug" for /blog/:slug). */
   param?: string;
 }
 
@@ -34,29 +29,23 @@ export interface AppRoute {
  * not be routed without also being prerendered.
  *
  * /auth and /dashboard are intentionally not routed (STS-016); the page files are kept.
+ *
+ * STS-039 retired the enterprise-oriented /solutions, /solutions/:id, /industries and
+ * /industry/:id pages: they are no longer routed, so they are neither prerendered nor in the
+ * sitemap, and public/_redirects sends each old URL (301) to the closest live page. The page and
+ * data files are kept. A path that comes back here must leave public/_redirects in the same
+ * change (tests/redirects.test.mjs fails otherwise: Cloudflare applies a redirect before the page).
  */
 export const APP_ROUTES: AppRoute[] = [
   { path: "/", element: <Index /> },
   { path: "/about", element: <About /> },
   { path: "/contact", element: <Contact /> },
-  { path: "/solutions", element: <Solutions /> },
-  {
-    path: "/solutions/:solutionId",
-    element: <SolutionDetails />,
-    param: "solutionId",
-    slugs: () => Object.keys(SOLUTIONS_DATA),
-  },
-  { path: "/industries", element: <Industries /> },
-  {
-    path: "/industry/:industryId",
-    element: <IndustryDetails />,
-    param: "industryId",
-    slugs: () => industries.map((i) => i.id),
-  },
   { path: "/realisation", element: <Realisation /> },
   { path: "/insights", element: <Insights /> },
   { path: "/careers", element: <Careers /> },
-  // STS-032: the five service pages. The /solutions/* pages stay routed until STS-039 retires them.
+  // STS-039: the hub listing every service; it replaces the retired /solutions index.
+  { path: SERVICES_BASE_PATH, element: <ServicesIndex /> },
+  // STS-032: the five service pages.
   ...SERVICE_PAGES.map((page) => ({ path: servicePath(page.slug), element: <ServicePage page={page} /> })),
 ];
 

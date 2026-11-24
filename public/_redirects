@@ -1,0 +1,24 @@
+# Cloudflare Pages path redirects. Format: <source> <target> <status>. The first match wins, and a
+# redirect fires even when a file exists at the source, so a path that is routed again must leave
+# this file in the same change (tests/redirects.test.mjs enforces it). Static rules come before the
+# splat rules. Host-level redirects (www, .dev) are a Cloudflare rule, not this file (REQ-017).
+
+# STS-039: enterprise-oriented solution pages, retired. Each goes to the closest live service page;
+# a page with no equivalent service goes to the /services hub (07-ANALYTICS-AND-SEO.md 3.4).
+/solutions                               /services                   301
+/solutions/web-mobile-development        /services/website-design    301
+/solutions/custom-business-software      /services/app-development   301
+/solutions/ai-automation-chatbots        /services/app-development   301
+/solutions/data-bi-solutions             /services                   301
+/solutions/cloud-infrastructure          /services                   301
+/solutions/digital-strategy-consulting   /services                   301
+/solutions/security-compliance           /services                   301
+
+# STS-039: the six enterprise industry verticals, retired (C18 open). STS-042 will add
+# /industries/<slug> pages for the owner's 2-3 industries; it must drop the /industries lines then.
+/industries                              /services                   301
+/industries/                             /services                   301
+
+# Any other old URL under the retired prefixes (a trailing slash, an unknown slug).
+/solutions/*                             /services                   301
+/industry/*                              /services                   301

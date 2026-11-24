@@ -134,7 +134,7 @@ const Footer = ({ config = BUSINESS }: { config?: FooterConfig }) => {
                 </li>
               ))}
               <li>
-                <Link to="/solutions" className={linkClass}>
+                <Link to="/services" className={linkClass}>
                   All Services
                 </Link>
               </li>
