@@ -47,6 +47,15 @@ describe("prerender SEO injection (STS-021)", () => {
     expect(out).toContain('<div id="root"><h1>x</h1></div>');
   });
 
+  it("drops a JSON-LD block from the shell, so a page never carries two Organizations (STS-024)", () => {
+    const withLd = shell.replace("</head>", '<script type="application/ld+json">{"@type":"Organization"}</script></head>');
+    const pageLd = '<script type="application/ld+json" data-seo-jsonld>{"@type":"BreadcrumbList"}</script>';
+    const out = inject(withLd, "<h1>x</h1>", `${head}\n${pageLd}`);
+    expect(out.match(/application\/ld\+json/g)).toHaveLength(1);
+    expect(out).toContain(pageLd);
+    expect(out).not.toContain('"Organization"');
+  });
+
   it("leaves the generic shell alone when no head html is given", () => {
     expect(inject(shell, "<h1>x</h1>")).toContain("Generic");
   });

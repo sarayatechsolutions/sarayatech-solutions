@@ -1,5 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { CONSENT_BANNER } from "@/content/legal/consent";
+import { CONSENT_SETTINGS_EVENT } from "@/lib/analytics";
 import { MemoryRouter } from "react-router-dom";
 import Footer from "./Footer";
 import { POPULATED_CONFIG } from "./chrome.fixtures";
@@ -57,7 +59,7 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
 
   it("labels the case-study page Our Work, never Realisation", () => {
     const { container } = renderFooter();
-    expect(screen.getByRole("link", { name: "Our Work" })).toHaveAttribute("href", "/realisation");
+    expect(screen.getByRole("link", { name: "Our Work" })).toHaveAttribute("href", "/our-work");
     expect(container.textContent).not.toMatch(/Realisation|Case Studies/);
   });
 
@@ -76,6 +78,24 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
     expect(within(legal).getByRole("link", { name: "Terms of Use" })).toHaveAttribute("href", "/terms");
     const routed = new Set(getPublicPaths());
     expect(routed.has("/privacy") && routed.has("/terms")).toBe(true);
+  });
+
+  it("shows no Cookie settings control while no GA4 id is configured (STS-071)", () => {
+    renderFooter();
+    expect(screen.queryByRole("button", { name: CONSENT_BANNER.settingsLink })).toBeNull();
+  });
+
+  it("with a GA4 id, a Cookie settings button in the Legal landmark re-opens the banner (STS-071)", () => {
+    renderFooter(<Footer analyticsId="G-TEST1234" />);
+    const legal = screen.getByRole("navigation", { name: "Legal" });
+    const button = within(legal).getByRole("button", { name: CONSENT_BANNER.settingsLink });
+    expect(button).toHaveAttribute("type", "button");
+    expect(button.className.split(/\s+/)).toContain("min-h-11");
+    const heard = vi.fn();
+    window.addEventListener(CONSENT_SETTINGS_EVENT, heard);
+    fireEvent.click(button);
+    window.removeEventListener(CONSENT_SETTINGS_EVENT, heard);
+    expect(heard).toHaveBeenCalledTimes(1);
   });
 
   it("labels its link groups as navigation landmarks", () => {

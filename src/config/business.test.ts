@@ -11,7 +11,10 @@ import {
   hasPhone,
   hasVerifiedBooking,
   phoneHref,
+  smsHref,
+  acceptsTexts,
   socialLinks,
+  verifiedPhoneE164,
 } from "./business";
 
 const FILLED = {
@@ -80,4 +83,30 @@ describe("helpers with supplied values", () => {
     expect(hasHours(empty)).toBe(false);
     expect(bookingHref(empty)).toBe("/contact");
   });
+});
+
+describe("phone actions (STS-045, C2)", () => {
+  it("offers neither tel: nor sms: today (C2 open)", () => {
+    expect(verifiedPhoneE164()).toBeNull();
+    expect(acceptsTexts()).toBe(false);
+    expect(smsHref()).toBeNull();
+  });
+
+  it("builds sms: only when the number receives texts, and only from an E.164 number", () => {
+    expect(smsHref(FILLED)).toBeNull();
+    const texts = { ...FILLED, phone: { ...FILLED.phone, acceptsTexts: true } };
+    expect(smsHref(texts)).toBe("sms:+15550000000");
+    expect(phoneHref(texts)).toBe("tel:+15550000000");
+  });
+
+  it.each(["555-000-0000", "15550000000", "+0123456789", "+1 555 000 0000", "+1", "tel:+15550000000"])(
+    "treats %j as not supplied (not E.164)",
+    (tel) => {
+      const c = { ...FILLED, phone: { display: "x", tel, acceptsTexts: true } };
+      expect(verifiedPhoneE164(c)).toBeNull();
+      expect(hasPhone(c)).toBe(false);
+      expect(phoneHref(c)).toBeNull();
+      expect(smsHref(c)).toBeNull();
+    },
+  );
 });

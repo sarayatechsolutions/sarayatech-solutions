@@ -18,11 +18,17 @@ const ROOT_MARKER = '<div id="root"></div>';
 const OWNED_META = /<meta\b(?=[^>]*\b(?:name|property)=["'](?:description|robots|og:[\w:]+|twitter:[\w:]+)["'])[^>]*>\s*/gi;
 const OWNED_CANONICAL = /<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>\s*/gi;
 const OWNED_TITLE = /<title\b[^>]*>[\s\S]*?<\/title>\s*/gi;
+// JSON-LD (STS-024) is owned per page too: a copy in the shell would duplicate the Organization.
+const OWNED_JSONLD = /<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>\s*/gi;
 
 /** Replaces the shell's title/description/canonical/OG/Twitter tags with `headHtml`, just before </head>. */
 export function injectHead(template, headHtml) {
   if (!template.includes("</head>")) throw new Error("index.html has no </head>; cannot inject SEO tags");
-  const stripped = template.replace(OWNED_TITLE, "").replace(OWNED_META, "").replace(OWNED_CANONICAL, "");
+  const stripped = template
+    .replace(OWNED_TITLE, "")
+    .replace(OWNED_META, "")
+    .replace(OWNED_CANONICAL, "")
+    .replace(OWNED_JSONLD, "");
   return stripped.replace("</head>", () => `  ${headHtml}
   </head>`);
 }
@@ -62,8 +68,12 @@ export async function prerender({ distDir, serverEntry }) {
 
   const template = readFileSync(shellPath, "utf8");
   const entry = await import(/* @vite-ignore */ pathToFileURL(serverEntry).href);
-  const { render, paths, sitemapPaths, NOT_FOUND_PATH, getSeo, renderHeadTags, buildSitemapXml, SITE_URL } = entry;
+  const { render, paths, sitemapPaths, NOT_FOUND_PATH, getSeo, renderHeadTags, renderJsonLd, buildSitemapXml, SITE_URL } = entry;
   if (!getSeo || !renderHeadTags || !buildSitemapXml) throw new Error("the SSR entry exports no SEO helpers (src/seo/seo.ts)");
+  if (!renderJsonLd) throw new Error("the SSR entry exports no renderJsonLd (src/seo/structuredData.ts)");
+
+  /** SEO tags (STS-021), then the page's JSON-LD (STS-024) when it has any. */
+  const headFor = (urlPath) => [renderHeadTags(getSeo(urlPath)), renderJsonLd(urlPath)].filter(Boolean).join("\n    ");
   if (!paths?.length) throw new Error("the SSR entry exported no paths; refusing to prerender nothing");
   if (!Array.isArray(sitemapPaths)) throw new Error("the SSR entry exports no sitemapPaths; refusing to guess which pages are indexable");
 
@@ -76,9 +86,9 @@ export async function prerender({ distDir, serverEntry }) {
   };
 
   for (const urlPath of paths) {
-    write(outputFile(urlPath), inject(template, render(urlPath), renderHeadTags(getSeo(urlPath))));
+    write(outputFile(urlPath), inject(template, render(urlPath), headFor(urlPath)));
   }
-  write("404.html", inject(template, render(NOT_FOUND_PATH), renderHeadTags(getSeo(NOT_FOUND_PATH))));
+  write("404.html", inject(template, render(NOT_FOUND_PATH), headFor(NOT_FOUND_PATH)));
 
   // Sitemap: the prerendered public paths minus noindex pages (STS-037), on the canonical host.
   // lastmod is the build date.

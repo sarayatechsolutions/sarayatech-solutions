@@ -3,6 +3,10 @@ import { Linkedin, Twitter, Facebook, Youtube } from "lucide-react";
 import { BUSINESS, contactHref, emailHref, hasAddress, hasHours, phoneHref, socialLinks } from "@/config/business";
 import { SERVICE_PAGES, servicePath } from "@/content/services/services";
 import { PRIVACY_PATH, TERMS_PATH } from "@/content/legal/legal";
+import { WORK_PATH } from "@/content/work/work";
+import { GA4_ID } from "@/config/analytics";
+import { CONSENT_BANNER } from "@/content/legal/consent";
+import { openConsentSettings } from "@/lib/analytics";
 
 /**
  * Site footer (STS-038).
@@ -35,7 +39,7 @@ const SERVICE_LINKS = SERVICE_PAGES.map((p) => ({ label: p.navLabel, to: service
 
 const COMPANY_LINKS = [
   { label: "About Us", to: "/about" },
-  { label: "Our Work", to: "/realisation" },
+  { label: "Our Work", to: WORK_PATH },
   { label: "Pricing", to: "/pricing" },
   { label: "Careers", to: "/careers" },
   { label: "Contact", to: contactHref() },
@@ -51,7 +55,7 @@ const focusRing =
 
 const linkClass = `inline-flex min-h-11 items-center text-sm text-primary-foreground/80 transition-smooth hover:text-primary-foreground md:min-h-0 md:py-1 ${focusRing}`;
 
-const Footer = ({ config = BUSINESS }: { config?: FooterConfig }) => {
+const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterConfig; analyticsId?: string | null }) => {
   const social = socialLinks(config).flatMap(([network, url]) => {
     const entry = SOCIAL_NETWORKS[network as keyof typeof SOCIAL_NETWORKS];
     return entry ? [{ network, url, ...entry }] : [];
@@ -176,6 +180,14 @@ const Footer = ({ config = BUSINESS }: { config?: FooterConfig }) => {
                   </Link>
                 </li>
               ))}
+              {/* STS-071: only when analytics can run, so a visitor can change or withdraw consent. */}
+              {analyticsId !== null && (
+                <li>
+                  <button type="button" className={linkClass} onClick={() => openConsentSettings(analyticsId)}>
+                    {CONSENT_BANNER.settingsLink}
+                  </button>
+                </li>
+              )}
             </ul>
           </nav>
         </div>

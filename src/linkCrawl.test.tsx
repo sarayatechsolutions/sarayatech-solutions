@@ -72,7 +72,21 @@ describe("header and footer links (STS-039, REQ-018)", () => {
     );
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
     expect(hrefs).toContain("/services");
-    expect(hrefs.filter((h) => h && /^\/(solutions|industries|industry)(\/|$)/.test(h))).toEqual([]);
+    expect(hrefs.filter((h) => h && /^\/(solutions|industries|industry|realisation)(\/|$)/.test(h))).toEqual([]);
+  });
+
+  it("send Our Work to /our-work, and the crawl rejects a link to the old /realisation (STS-057)", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <Header />
+        <Footer />
+      </MemoryRouter>,
+    );
+    const work = [...container.querySelectorAll("a")].filter((a) => a.textContent === "Our Work");
+    expect(work.length).toBeGreaterThanOrEqual(2);
+    for (const a of work) expect(a.getAttribute("href")).toBe("/our-work");
+    // The guard has teeth: the old slug is redirected, not live, so a stale link fails the crawl.
+    expect(() => expectLive(["/realisation"], "probe")).toThrow(/retired, redirected URL/);
   });
 });
 

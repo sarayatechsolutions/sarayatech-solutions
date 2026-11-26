@@ -3,15 +3,18 @@ import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "@/components/motion";
 import { Button } from "@/components/ui/button";
-import { Menu, Phone, X } from "lucide-react";
-import { BUSINESS, bookingHref, contactHref, hasVerifiedBooking, phoneHref } from "@/config/business";
+import { Menu, MessageSquare, Phone, X } from "lucide-react";
+import { BUSINESS, bookingHref, contactHref, hasVerifiedBooking, phoneHref, smsHref } from "@/config/business";
+import { WORK_PATH } from "@/content/work/work";
 
 /**
  * Site header (STS-038).
  *
  * Every business fact comes from src/config/business.ts through its helpers, so the header is
  * correct with the documented fallbacks today and updates itself once the owner fills the config:
- *  - phone (C2): the tel: action renders only when a number is configured;
+ *  - phone (C2): the tel: action renders only when a valid E.164 number is configured, and the
+ *    sms: action only when the owner has also confirmed it receives texts (STS-045). With no
+ *    number nothing renders: no dead link, no placeholder;
  *  - booking (C15): the primary CTA reads "Book a Free Consultation" and opens the booking page only
  *    when the link is verified; otherwise it reads "Contact Us" and goes to the /contact form.
  *
@@ -40,9 +43,15 @@ const NAV_ITEMS: NavItem[] = [
   { name: "Home", path: "/" },
   // STS-039: /solutions and /industries are retired (301 in public/_redirects); the service hub replaces them.
   { name: "Services", path: "/services", section: ["/services/"] },
-  { name: "Our Work", path: "/realisation" },
+  // STS-057: Our Work lives at /our-work (the old /realisation is a 301).
+  { name: "Our Work", path: WORK_PATH },
+  // STS-057 (GAP-12): the packages page (STS-033) is in the main nav.
+  { name: "Pricing", path: "/pricing" },
   { name: "About", path: "/about" },
 ];
+
+/** "/about/" and "/about" are the same page (a static host may serve either). */
+const normalizePath = (path: string) => (path.length > 1 ? path.replace(/\/+$/, "") || "/" : path);
 
 const CONTACT_ITEM: NavItem = { name: "Contact", path: contactHref() };
 
@@ -53,7 +62,14 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
 
   const verifiedBooking = hasVerifiedBooking(config);
   const tel = phoneHref(config);
+  const sms = smsHref(config);
   const phoneLabel = config.phone?.display || config.phone?.tel || "";
+  // STS-045: every action is named for who you reach and how. The bar's icon links carry the
+  // number in their name because the call link shows it as its visible label at xl (WCAG 2.5.3);
+  // the menu buttons are named by their visible text. `data-cta` + `data-cta-location` are the
+  // hooks for the phone_click / text_click events (STS-050).
+  const callName = `Call ${config.name} at ${phoneLabel}`;
+  const textName = `Text ${config.name} at ${phoneLabel}`;
 
   // When the CTA goes to the booking page, the contact form still needs a way in from the nav.
   const navigation = verifiedBooking ? [...NAV_ITEMS, CONTACT_ITEM] : NAV_ITEMS;
@@ -66,9 +82,14 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
     ? { href: bookingHref(config), external: true, lead: "Book", rest: " a Free Consultation", restShown: "sm:not-sr-only" }
     : { href: contactHref(), external: false, lead: "Contact", rest: " Us", restShown: "min-[360px]:not-sr-only" };
 
-  const isCurrent = (item: NavItem) => pathname === item.path;
+  // Active state (STS-057): the link to the page you are on is aria-current="page"; on a detail page
+  // (/services/website-design) its section link (Services) is styled active and aria-current="true",
+  // because that link is not the current page itself. Same rule on desktop and mobile.
+  const here = normalizePath(pathname);
+  const isCurrent = (item: NavItem) => here === item.path;
   const isInSection = (item: NavItem) =>
-    isCurrent(item) || (item.section ?? []).some((prefix) => pathname.startsWith(prefix));
+    isCurrent(item) || (item.section ?? []).some((prefix) => here.startsWith(prefix));
+  const ariaCurrent = (item: NavItem) => (isCurrent(item) ? "page" : isInSection(item) ? "true" : undefined);
 
   // Close the menu on navigation.
   useEffect(() => {
@@ -128,7 +149,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                   <li key={item.path}>
                     <Link
                       to={item.path}
-                      aria-current={isCurrent(item) ? "page" : undefined}
+                      aria-current={ariaCurrent(item)}
                       className={`relative group rounded-sm text-sm font-medium transition-smooth ${focusRing} ${
                         active ? "text-primary" : "text-secondary hover:text-primary"
                       }`}
@@ -152,7 +173,9 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
             {tel && phoneLabel && (
               <a
                 href={tel}
-                aria-label={`Call ${phoneLabel}`}
+                aria-label={callName}
+                data-cta="phone_click"
+                data-cta-location="header"
                 className={`inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-primary transition-smooth hover:bg-muted ${focusRing}`}
               >
                 <Phone aria-hidden="true" className="h-5 w-5" />
@@ -160,13 +183,29 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
               </a>
             )}
 
+            {/* Text action in the bar from `sm` to `lg` only: below sm it would not fit beside the
+                CTA at 320 px, so it lives in the menu; desktops rarely send texts. */}
+            {sms && phoneLabel && (
+              <a
+                href={sms}
+                aria-label={textName}
+                data-cta="text_click"
+                data-cta-location="header"
+                className={`hidden sm:inline-flex lg:hidden h-11 w-11 items-center justify-center rounded-md text-primary transition-smooth hover:bg-muted ${focusRing}`}
+              >
+                <MessageSquare aria-hidden="true" className="h-5 w-5" />
+              </a>
+            )}
+
             <Button asChild className={ctaClass}>
               {cta.external ? (
-                <a href={cta.href} target="_blank" rel="noopener noreferrer">
+                <a href={cta.href} target="_blank" rel="noopener noreferrer" data-track-cta="header_cta">
                   {ctaLabel}
                 </a>
               ) : (
-                <Link to={cta.href}>{ctaLabel}</Link>
+                <Link to={cta.href} data-track-cta="header_cta">
+                  {ctaLabel}
+                </Link>
               )}
             </Button>
 
@@ -201,9 +240,12 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                     <Link
                       to={item.path}
                       onClick={() => setIsMenuOpen(false)}
-                      aria-current={isCurrent(item) ? "page" : undefined}
-                      className={`flex min-h-11 items-center rounded-md px-4 font-medium transition-smooth ${focusRing} ${
-                        isInSection(item) ? "bg-primary/10 text-primary" : "text-secondary hover:bg-muted hover:text-primary"
+                      aria-current={ariaCurrent(item)}
+                      className={`flex min-h-11 items-center rounded-md border-l-4 px-4 font-medium transition-smooth ${focusRing} ${
+                        // Not colour alone: the active row also carries a left bar (WCAG 1.4.1).
+                        isInSection(item)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-transparent text-secondary hover:bg-muted hover:text-primary"
                       }`}
                     >
                       {item.name}
@@ -212,13 +254,21 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                 ))}
               </ul>
               {tel && phoneLabel && (
-                <div className="mt-4 border-t border-border px-4 pt-4">
+                <div className="mt-4 flex flex-col gap-2 border-t border-border px-4 pt-4">
                   <Button asChild variant="outline" className={`h-11 w-full text-primary hover:bg-muted hover:text-primary ${focusRing}`}>
-                    <a href={tel}>
+                    <a href={tel} data-cta="phone_click" data-cta-location="menu">
                       <Phone aria-hidden="true" />
-                      Call {phoneLabel}
+                      Call {config.name}
                     </a>
                   </Button>
+                  {sms && (
+                    <Button asChild variant="outline" className={`h-11 w-full text-primary hover:bg-muted hover:text-primary ${focusRing}`}>
+                      <a href={sms} data-cta="text_click" data-cta-location="menu">
+                        <MessageSquare aria-hidden="true" />
+                        Text {config.name}
+                      </a>
+                    </Button>
+                  )}
                 </div>
               )}
             </motion.nav>

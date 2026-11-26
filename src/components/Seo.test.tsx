@@ -38,6 +38,28 @@ describe("<Seo /> (STS-021)", () => {
     expect(tag('meta[property="og:url"]')).toHaveLength(1);
   });
 
+  it("replaces the JSON-LD on navigation: the home Organization never lingers on an inner page (STS-024)", () => {
+    // The prerendered home page ships its JSON-LD; hydration and navigation replace it.
+    document.head.insertAdjacentHTML("beforeend", '<script type="application/ld+json" data-seo-jsonld>{"stale":true}</script>');
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Seo />
+        <Link to="/services/paid-ads">go</Link>
+        <Routes>
+          <Route path="*" element={null} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    const ld = () => [...tag('script[type="application/ld+json"]')].map((s) => JSON.parse(s.textContent ?? ""));
+    expect(ld()).toHaveLength(1);
+    expect(JSON.stringify(ld())).toContain('"Organization"');
+    expect(JSON.stringify(ld())).not.toContain("stale");
+
+    act(() => document.querySelector("a")!.click());
+    expect(ld().map((d) => d["@type"])).toEqual(["Service", "BreadcrumbList"]);
+    expect(ld().some((d) => Array.isArray(d["@graph"]))).toBe(false);
+  });
+
   it("drops the canonical and adds noindex on an unknown route", () => {
     render(
       <MemoryRouter initialEntries={["/about"]}>

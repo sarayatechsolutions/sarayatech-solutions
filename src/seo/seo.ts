@@ -6,6 +6,10 @@
 // name or founding year. Business name follows the C1 fallback ("SarayaTech Solutions").
 
 import { LEGAL_PAGES_APPROVED, PRIVACY_PATH, TERMS_PATH } from "../content/legal/legal";
+import { postSeoFor } from "../content/insights/blog";
+import { PUBLISHED_POSTS } from "../content/insights/posts";
+import { industrySeoFor, PUBLISHED_INDUSTRIES } from "../content/industries/industries";
+import { areaSeoFor, PUBLISHED_AREAS } from "../content/locations/locations";
 
 /**
  * Canonical host (B2 is OPEN; documented fallback = apex, no www). Overridable at build time
@@ -68,7 +72,7 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
     description:
       "Get a free look at your website and Google profile from SarayaTech. We'll show you three quick wins for your Columbus business, whether you hire us or not.",
   },
-  "/realisation": {
+  "/our-work": {
     title: "Websites and Apps We Have Built | SarayaTech Solutions",
     description:
       "Four websites and apps built by SarayaTech Solutions in Columbus, Ohio: what each one is, what we built, and a link to see it live.",
@@ -78,8 +82,9 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
     description:
       "Practical guides from SarayaTech Solutions on websites, Google Maps and social media for Columbus, Ohio small business owners.",
     // STS-040: no article is published yet (GAP-10). Out of the index and the sitemap until the
-    // first real one exists (REQ-018); then delete this flag.
-    noindex: true,
+    // first real one exists (REQ-018). STS-055: that is now automatic. The flag drops by itself
+    // once one post is approved (src/content/insights/posts.ts); nobody edits it.
+    ...(PUBLISHED_POSTS.length === 0 ? { noindex: true as const } : {}),
   },
   "/careers": {
     title: "Careers at SarayaTech Solutions | Columbus, OH",
@@ -147,10 +152,23 @@ export function normalizePath(path: string): string {
   return p === "" ? "/" : p.startsWith("/") ? p : `/${p}`;
 }
 
+/**
+ * SEO data for the owner-gated pages (STS-055 posts, STS-042 industries, STS-043 areas). Each
+ * source holds only PUBLISHED entries, so a path that is not live returns null and gets the 404
+ * data below: an unapproved page never has a title, a canonical or a sitemap entry.
+ */
+function gatedSeo(path: string): { title: string; description: string } | null {
+  return (
+    postSeoFor(path, PUBLISHED_POSTS) ??
+    industrySeoFor(path, PUBLISHED_INDUSTRIES) ??
+    areaSeoFor(path, PUBLISHED_AREAS)
+  );
+}
+
 /** SEO data for a URL path. Unknown paths get the 404 data (noindex, no canonical). */
 export function getSeo(rawPath: string): SeoData {
   const path = normalizePath(rawPath);
-  const hit = STATIC_SEO[path];
+  const hit = STATIC_SEO[path] ?? gatedSeo(path);
   if (!hit) return { ...NOT_FOUND_SEO, path: NOT_FOUND_SEO_PATH, noindex: true };
   return { ...hit, path };
 }

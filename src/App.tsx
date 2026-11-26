@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import ScrollToTop from "@/components/ScrollToTop";
+import Analytics from "@/components/Analytics";
 import { MotionProvider } from "@/components/motion";
 import { AppRoutes } from "./routes";
 
@@ -31,6 +32,8 @@ const App = () => (
     >
       <ScrollToTop />
       <AppRoutes />
+      {/* STS-050: browser only, off until a GA4 id is configured; never in the prerendered HTML. */}
+      <Analytics />
     </BrowserRouter>
   </AppProviders>
 );

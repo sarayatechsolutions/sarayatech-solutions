@@ -75,6 +75,9 @@ export const WORK_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Enterprise", 
 /** Insights (STS-040): the home list plus the retired article cards and "enterprise" in any form. */
 export const INSIGHTS_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Read Article", "Digital Transformation", "Enterprise", "enterprise"];
 
+/** Careers (STS-056, GAP-11): the "Apply Now" button that had no action. */
+export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now"];
+
 /**
  * REQ-011 (P0): no built page may contain these, whoever owns it. Matched case-insensitively.
  * STS-039 retired the last pages that carried them (the enterprise industry pages); the
@@ -84,6 +87,16 @@ export const SITEWIDE_FORBIDDEN_PHRASES = ["Enterprise-grade", "Enterprise Techn
 
 /** Legal drafts (STS-037): no compliance claim (C21) and no blanket "never shared" promise. */
 export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compliant", "never be shared", "never share"];
+
+/**
+ * STS-046 (GAP-05): every public page ends with the sitewide closing block. These pages are the
+ * conversion step (or keep their own CTA) and carry the trust slot only. Kept in step with
+ * TRUST_ONLY_PATHS in src/content/trust/trust.ts by src/components/FinalCta.sitewide.test.tsx.
+ */
+export const TRUST_ONLY_ROUTES = ["/contact", "/free-audit", "/careers"];
+
+/** The closing block a public page must serve: "full" (CTA + trust slot) or "trust-only". */
+export const closingBlockFor = (path) => (TRUST_ONLY_ROUTES.includes(path) ? "trust-only" : "full");
 
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
@@ -100,10 +113,10 @@ export const SERVICE_ROUTES = [
  * in step with getPublicPaths().
  * `noindex: true` (STS-037 legal drafts): the page must carry a robots noindex meta and no
  * canonical, and must NOT be in the sitemap.
- * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean }[]}
+ * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean, closingBlock?: "full" | "trust-only" }[]}
  */
 export function buildRoutes() {
-  return [
+  const pages = [
     {
       path: "/",
       expectH1: "We build your website. Then we bring you customers.",
@@ -129,16 +142,20 @@ export function buildRoutes() {
       // STS-034: no reply-time promise until the owner confirms one (C16, I-12).
       forbidText: [...HOME_FORBIDDEN_PHRASES, "24 hours", "2 business days"],
     },
-    { path: "/realisation", expectH1: "Our Work", forbidText: WORK_FORBIDDEN_PHRASES },
+    { path: "/our-work", expectH1: "Our Work", forbidText: WORK_FORBIDDEN_PHRASES },
     // STS-040: no article is published yet, so the page is noindex and out of the sitemap (REQ-018).
     { path: "/insights", expectH1: "Plain-English guides for local business owners", noindex: true, forbidText: INSIGHTS_FORBIDDEN_PHRASES },
-    { path: "/careers", expectH1: "Join Our Team" },
+    // STS-056: the dead "Apply Now" button is gone; each role links to /contact instead.
+    { path: "/careers", expectH1: "Join Our Team", forbidText: CAREERS_FORBIDDEN_PHRASES },
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
     { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
     ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),
     // STS-037: legal drafts, served but noindex and out of the sitemap until C23 approval.
     { path: "/privacy", expectH1: "Privacy Policy", noindex: true, expectText: "Draft — pending legal review", forbidText: LEGAL_FORBIDDEN_PHRASES },
     { path: "/terms", expectH1: "Terms of Use", noindex: true, expectText: "Draft — pending legal review", forbidText: LEGAL_FORBIDDEN_PHRASES },
+  ].map((r) => ({ ...r, closingBlock: closingBlockFor(r.path) }));
+  return [
+    ...pages,
     { path: "/404.html", expectH1: "404" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];
@@ -202,6 +219,88 @@ export function checkNoindexHead(html) {
   return errors;
 }
 
+/**
+ * Every <script type="application/ld+json"> in `html`, parsed (STS-024). `errors` names each block
+ * that is not valid JSON. JSON-LD lives in a raw-text element, so its text is parsed as is.
+ */
+export function readJsonLd(html) {
+  const values = [];
+  const errors = [];
+  const blocks = [...html.matchAll(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>([\s\S]*?)<\/script>/gi)];
+  blocks.forEach((m, i) => {
+    try {
+      values.push(JSON.parse(m[1]));
+    } catch (err) {
+      errors.push(`JSON-LD block ${i + 1} is not valid JSON (${err.message})`);
+    }
+  });
+  return { values, errors, count: blocks.length };
+}
+
+/** schema.org types that declare the business itself (Organization and the subtypes this site may use). */
+export const ORGANIZATION_TYPES = ["Organization", "LocalBusiness", "ProfessionalService"];
+
+/**
+ * Business entities a page declares: top-level JSON-LD documents and @graph members whose @type is
+ * an organisation type. A nested reference (a Service's `provider`) is not a declaration.
+ */
+export function countOrganizations(values) {
+  const nodes = values.flatMap((v) => (Array.isArray(v?.["@graph"]) ? v["@graph"] : [v]));
+  return nodes.filter((n) => [n?.["@type"]].flat().some((t) => ORGANIZATION_TYPES.includes(t))).length;
+}
+
+/** Keys that must never appear while C14 is open (07 section 3.6): a rating or review, at any depth. */
+export const FORBIDDEN_SCHEMA_KEYS = ["aggregateRating", "review", "reviews", "reviewRating"];
+
+export function findForbiddenSchemaKeys(values) {
+  const found = new Set();
+  const walk = (v) => {
+    if (Array.isArray(v)) return v.forEach(walk);
+    if (v && typeof v === "object") {
+      for (const [k, child] of Object.entries(v)) {
+        if (FORBIDDEN_SCHEMA_KEYS.includes(k)) found.add(k);
+        walk(child);
+      }
+    }
+  };
+  walk(values);
+  return [...found];
+}
+
+/**
+ * STS-024 route check: every JSON-LD block parses; "/" declares exactly one organisation; no other
+ * page declares one (noindex pages carry a breadcrumb at most); no rating or review anywhere.
+ * `expectBlocks` false = the page must carry no JSON-LD at all (the 404 page).
+ */
+export function checkJsonLd(route, html) {
+  const { values, errors, count } = readJsonLd(html);
+  const out = [...errors];
+  const orgs = countOrganizations(values);
+  if (route.path === "/") {
+    if (orgs !== 1) out.push(`expected exactly one Organization in the JSON-LD, found ${orgs}`);
+  } else if (orgs !== 0) {
+    out.push(`expected no Organization declaration outside the home page, found ${orgs}`);
+  }
+  if (route.noindex && values.some((v) => v?.["@type"] !== "BreadcrumbList")) {
+    out.push("a noindex page may carry a BreadcrumbList at most");
+  }
+  if (route.path === "/404.html" && count > 0) out.push("the 404 page must carry no JSON-LD");
+  const types = values.map((v) => v?.["@type"]);
+  if (route.path !== "/" && route.path !== "/404.html" && (route.expectH1 !== undefined || route.expectAnyH1) && !types.includes("BreadcrumbList")) {
+    out.push("an inner page must carry a BreadcrumbList");
+  }
+  if (/^\/insights\/[^/]+$/.test(route.path) && types.filter((t) => t === "Article").length !== 1) {
+    out.push("a blog post must carry exactly one Article");
+  }
+  if (SERVICE_ROUTES.some((r) => r.path === route.path) && types.filter((t) => t === "Service").length !== 1) {
+    out.push("a service page must carry exactly one Service");
+  }
+  const forbidden = findForbiddenSchemaKeys(values);
+  if (forbidden.length) out.push(`JSON-LD contains ${forbidden.join(", ")} (C14 is open)`);
+  for (const v of values) if (v?.["@context"] !== "https://schema.org") out.push("a JSON-LD block has no https://schema.org @context");
+  return out;
+}
+
 /** Titles and descriptions must be unique across pages. `pages` is [{ path, title, description }]. */
 export function findDuplicateSeo(pages) {
   const out = [];
@@ -218,6 +317,26 @@ export function findDuplicateSeo(pages) {
 /** <loc> values of a sitemap.xml. */
 export function sitemapLocs(xml) {
   return [...xml.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => decodeEntities(m[1]));
+}
+
+/** Text that must never reach a public page: an owner marker left in owner-gated content (STS-055, STS-042, STS-043). */
+export const OWNER_MARKERS = ["[Owner to confirm", "[OWNER", "[VERIFY"];
+
+/** URL shapes of the owner-gated pages: /insights/<slug>, /industries (hub) and /industries/<slug>, /locations/<slug>. */
+const GATED_PATH = /^\/(insights\/[a-z0-9-]+|industries(\/[a-z0-9-]+)?|locations\/[a-z0-9-]+)$/;
+
+/**
+ * Routes for the owner-gated pages the build actually published, read from the served sitemap
+ * (they exist only when the owner approved them, so the static table cannot list them). Each one
+ * must serve an h1, its SEO head, a breadcrumb, the closing block and no owner marker. With none
+ * published this is empty, which is the shipped state.
+ */
+export function gatedRoutesFromSitemap(xml, siteUrl) {
+  return sitemapLocs(xml)
+    .filter((u) => u.startsWith(`${siteUrl}/`))
+    .map((u) => u.slice(siteUrl.length))
+    .filter((p) => GATED_PATH.test(p))
+    .map((path) => ({ path, expectAnyH1: true, forbidText: OWNER_MARKERS, closingBlock: "full" }));
 }
 
 /**
@@ -305,6 +424,23 @@ function checkSitewidePhrases(distDir) {
   return { failures, count };
 }
 
+/**
+ * STS-050: analytics is client-only and consent-gated, so no prerendered page may carry a Google
+ * tag, a gtag call or a Google Analytics host, whether or not a GA4 id is configured.
+ */
+export const ANALYTICS_HTML_MARKERS = ["gtag", "googletagmanager", "google-analytics", "data-sts-analytics", "data-consent-banner"];
+
+function checkNoAnalyticsInHtml(distDir) {
+  if (!existsSync(distDir)) return { failures: [`${distDir} does not exist (run the build first)`], count: 0 };
+  const count = listHtml(distDir).length;
+  if (count === 0) return { failures: [`no .html files in ${distDir}`], count: 0 };
+  const failures = findForbiddenInHtml(distDir, ANALYTICS_HTML_MARKERS).map(
+    ({ file, phrase }) => `${file.slice(distDir.length + 1)}: contains ${JSON.stringify(phrase)} (STS-050: analytics must never be prerendered)`,
+  );
+  if (!failures.length) console.log(`  ok   ${count} built HTML file(s) free of analytics markers (${ANALYTICS_HTML_MARKERS.join(" / ")})`);
+  return { failures, count };
+}
+
 // "sk-" as a token (not the tail of e.g. "task-"), then 20+ key characters.
 export const SECRET_PATTERNS = [
   { name: "OpenAI-style secret key", re: /(?<![A-Za-z0-9_-])sk-(?:proj-)?[A-Za-z0-9_-]{20,}/ },
@@ -330,7 +466,8 @@ export function checkRouteBody(route, status, contentType, body) {
     if (h1 === null) errors.push("no <h1> in the served HTML (empty client-rendered shell?)");
     else if (h1 !== route.expectH1) errors.push(`expected <h1> ${JSON.stringify(route.expectH1)}, got ${JSON.stringify(h1)}`);
   }
-  if (route.expectH1 !== undefined && HIDDEN_AT_FIRST_PAINT.test(body)) {
+  if (route.expectAnyH1 && !firstH1Text(body)) errors.push("no <h1> in the served HTML (empty client-rendered shell?)");
+  if ((route.expectH1 !== undefined || route.expectAnyH1) && HIDDEN_AT_FIRST_PAINT.test(body)) {
     errors.push("an element is served hidden (inline opacity:0), so no-JS visitors and crawlers see a blank section");
   }
   if (route.expectText && !body.includes(route.expectText)) {
@@ -339,13 +476,28 @@ export function checkRouteBody(route, status, contentType, body) {
   for (const phrase of route.forbidText ?? []) {
     if (body.includes(phrase)) errors.push(`contains forbidden text ${JSON.stringify(phrase)}`);
   }
+  if (route.closingBlock) {
+    const blocks = body.match(/data-final-cta="[^"]*"/g) ?? [];
+    const want = `data-final-cta="${route.closingBlock}"`;
+    if (blocks.length !== 1 || blocks[0] !== want) {
+      errors.push(`expected exactly one closing block ${want}, found ${JSON.stringify(blocks)} (STS-046)`);
+    }
+  }
   return errors;
 }
 
 async function checkRoutes(baseUrl) {
   const failures = [];
-  const routes = buildRoutes();
   const siteUrl = siteUrlFromEnv();
+  // Owner-gated pages (STS-055, STS-042, STS-043) are found in the served sitemap; none by default.
+  let gated = [];
+  try {
+    const sm = await fetch(new URL("/sitemap.xml", baseUrl), { redirect: "manual" });
+    if (sm.status === 200) gated = gatedRoutesFromSitemap(await sm.text(), siteUrl);
+  } catch {
+    // checkSitemap below reports an unreachable sitemap.
+  }
+  const routes = [...buildRoutes(), ...gated];
   const seoPages = [];
   for (const route of routes) {
     const url = new URL(route.path, baseUrl).toString();
@@ -353,7 +505,8 @@ async function checkRoutes(baseUrl) {
       const res = await fetch(url, { redirect: "manual" });
       const body = await res.text();
       const errors = checkRouteBody(route, res.status, res.headers.get("content-type"), body);
-      if (route.expectH1 !== undefined && route.path !== "/404.html") {
+      if (route.shell !== false) errors.push(...checkJsonLd(route, body));
+      if ((route.expectH1 !== undefined || route.expectAnyH1) && route.path !== "/404.html") {
         errors.push(...(route.noindex ? checkNoindexHead(body) : checkSeoHead(body, `${siteUrl}${route.path}`)));
         const h = readSeoHead(body);
         seoPages.push({ path: route.path, title: h.titles[0], description: h.descriptions[0] });
@@ -374,7 +527,9 @@ async function checkSitemap(baseUrl, siteUrl, routes) {
   const res = await fetch(new URL("/sitemap.xml", baseUrl), { redirect: "manual" });
   if (res.status !== 200) return [`/sitemap.xml: expected HTTP 200, got ${res.status}`];
   const locs = sitemapLocs(await res.text());
-  const expected = routes.filter((r) => r.expectH1 !== undefined && r.path !== "/404.html" && !r.noindex).map((r) => `${siteUrl}${r.path}`);
+  const expected = routes
+    .filter((r) => (r.expectH1 !== undefined || r.expectAnyH1) && r.path !== "/404.html" && !r.noindex)
+    .map((r) => `${siteUrl}${r.path}`);
   const missing = expected.filter((u) => !locs.includes(u));
   const extra = locs.filter((u) => !expected.includes(u));
   const dup = locs.length !== new Set(locs).size;
@@ -470,6 +625,7 @@ async function main() {
   const fonts = checkFonts(join(ROOT, "dist"));
   const redirects = checkRedirectsBuild(join(ROOT, "dist"));
   const phrases = checkSitewidePhrases(join(ROOT, "dist"));
+  const analytics = checkNoAnalyticsInHtml(join(ROOT, "dist"));
   const failures = [
     ...routes.failures,
     ...assets.failures,
@@ -477,6 +633,7 @@ async function main() {
     ...fonts.failures,
     ...redirects.failures,
     ...phrases.failures,
+    ...analytics.failures,
   ];
   if (failures.length) {
     console.error(`\nsmoke FAILED (${failures.length}):`);
@@ -484,7 +641,7 @@ async function main() {
     process.exit(1);
   }
   console.log(
-    `\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget, ${fonts.count} woff2 font(s), ${redirects.count} redirect(s), ${phrases.count} HTML file(s) phrase-checked`,
+    `\nsmoke passed: ${routes.count} route(s), ${assets.count} asset(s) scanned, ${images.count} image(s) in budget, ${fonts.count} woff2 font(s), ${redirects.count} redirect(s), ${phrases.count} HTML file(s) phrase-checked, ${analytics.count} free of analytics markers`,
   );
 }
 

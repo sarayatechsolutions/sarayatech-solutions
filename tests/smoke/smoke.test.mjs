@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { HOME_FORBIDDEN_PHRASES, SITEWIDE_FORBIDDEN_PHRASES, buildRoutes, checkRedirectsBuild, findForbiddenInHtml, checkRouteBody, checkSeoHead, findDuplicateSeo, findGoogleFontRefs, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
+import { HOME_FORBIDDEN_PHRASES, checkJsonLd, countOrganizations, findForbiddenSchemaKeys, readJsonLd, SITEWIDE_FORBIDDEN_PHRASES, buildRoutes, checkRedirectsBuild, findForbiddenInHtml, checkRouteBody, checkSeoHead, findDuplicateSeo, findGoogleFontRefs, findSecretLeaks, firstH1Text, sitemapLocs } from "./smoke.mjs";
 import { getPublicPaths } from "../../src/routes";
 
 // Unit tests for the smoke script's own checks, so the guard is known to have teeth.
@@ -20,13 +20,13 @@ describe("smoke secret guard", () => {
 });
 
 describe("smoke route table", () => {
-  it("covers every public route, and no retired one (STS-039)", () => {
+  it("covers every public route, and no retired one (STS-039, STS-057)", () => {
     const paths = buildRoutes().map((r) => r.path);
     expect(paths.length).toBeGreaterThan(0);
-    for (const p of ["/", "/about", "/contact", "/services", "/realisation", "/insights", "/careers", "/robots.txt"]) {
+    for (const p of ["/", "/about", "/contact", "/services", "/our-work", "/insights", "/careers", "/robots.txt"]) {
       expect(paths).toContain(p);
     }
-    expect(paths.filter((p) => /^\/(solutions|industries|industry)(\/|$)/.test(p))).toEqual([]);
+    expect(paths.filter((p) => /^\/(solutions|industries|industry|realisation)(\/|$)/.test(p))).toEqual([]);
   });
 
   it("rejects a non-200, a missing shell and missing expected text", () => {
@@ -161,6 +161,20 @@ describe("smoke built-redirects guard (STS-039)", () => {
       rmSync(bad, { recursive: true, force: true });
     }
   });
+
+  it("accepts the real public/_redirects against the real route list, and fails if /realisation is still built (STS-057)", () => {
+    const real = readFileSync(join(process.cwd(), "public", "_redirects"), "utf8");
+    expect(real).toMatch(/^\/realisation\s+\/our-work\s+301\s*$/m);
+    const good = fakeDist(getPublicPaths(), real);
+    const stale = fakeDist([...getPublicPaths(), "/realisation"], real);
+    try {
+      expect(checkRedirectsBuild(good).failures).toEqual([]);
+      expect(checkRedirectsBuild(stale).failures.join("\n")).toMatch(/\/realisation is still a built page/);
+    } finally {
+      rmSync(good, { recursive: true, force: true });
+      rmSync(stale, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("smoke sitewide REQ-011 phrase guard (STS-039)", () => {
@@ -178,5 +192,58 @@ describe("smoke sitewide REQ-011 phrase guard (STS-039)", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("smoke JSON-LD assertions (STS-024)", () => {
+  const ld = (obj) => `<script type="application/ld+json" data-seo-jsonld>${JSON.stringify(obj)}</script>`;
+  const ctx = "https://schema.org";
+  const org = { "@context": ctx, "@graph": [{ "@type": "Organization", name: "X" }, { "@type": "WebSite", name: "X" }] };
+  const crumb = { "@context": ctx, "@type": "BreadcrumbList", itemListElement: [] };
+  const service = { "@context": ctx, "@type": "Service", provider: { "@type": "Organization", "@id": "x" } };
+
+  it("passes the home page with exactly one Organization", () => {
+    expect(checkJsonLd({ path: "/" }, `<head>${ld(org)}</head>`)).toEqual([]);
+  });
+
+  it("fails the home page with no Organization, or with two", () => {
+    expect(checkJsonLd({ path: "/" }, "<head></head>").join()).toMatch(/exactly one Organization.*found 0/);
+    expect(checkJsonLd({ path: "/" }, `<head>${ld(org)}${ld({ "@context": ctx, "@type": "ProfessionalService" })}</head>`).join()).toMatch(/found 2/);
+  });
+
+  it("fails a block that is not valid JSON", () => {
+    const html = `<head><script type="application/ld+json">{"@type": "Organization",}</script></head>`;
+    expect(checkJsonLd({ path: "/" }, html).join()).toMatch(/not valid JSON/);
+  });
+
+  it("fails a rating or review at any depth", () => {
+    const rated = { ...org, "@graph": [{ ...org["@graph"][0], aggregateRating: { ratingValue: 5 } }] };
+    expect(checkJsonLd({ path: "/" }, ld(rated)).join()).toMatch(/aggregateRating/);
+    expect(findForbiddenSchemaKeys([{ a: [{ review: [] }] }])).toEqual(["review"]);
+  });
+
+  it("counts a Service provider reference as no Organization declaration", () => {
+    expect(countOrganizations([service])).toBe(0);
+    expect(checkJsonLd({ path: "/services/paid-ads", expectH1: "x" }, ld(service) + ld(crumb))).toEqual([]);
+  });
+
+  it("fails a service page without its Service, and an inner page without a breadcrumb", () => {
+    expect(checkJsonLd({ path: "/services/paid-ads", expectH1: "x" }, ld(crumb)).join()).toMatch(/exactly one Service/);
+    expect(checkJsonLd({ path: "/about", expectH1: "x" }, "").join()).toMatch(/BreadcrumbList/);
+  });
+
+  it("fails an Organization on an inner page and anything but a breadcrumb on a noindex page", () => {
+    expect(checkJsonLd({ path: "/about", expectH1: "x" }, ld(org) + ld(crumb)).join()).toMatch(/no Organization declaration/);
+    expect(checkJsonLd({ path: "/insights", expectH1: "x", noindex: true }, ld(crumb))).toEqual([]);
+    expect(checkJsonLd({ path: "/insights", expectH1: "x", noindex: true }, ld(crumb) + ld(service)).join()).toMatch(/BreadcrumbList at most/);
+  });
+
+  it("fails JSON-LD on the 404 page", () => {
+    expect(checkJsonLd({ path: "/404.html", expectH1: "404" }, ld(crumb)).join()).toMatch(/404 page must carry no JSON-LD/);
+  });
+
+  it("reads escaped JSON-LD back to the original value", () => {
+    const html = `<script type="application/ld+json">{"name":"a\\u003c/script\\u003eb"}</script>`;
+    expect(readJsonLd(html)).toEqual({ values: [{ name: "a</script>b" }], errors: [], count: 1 });
   });
 });

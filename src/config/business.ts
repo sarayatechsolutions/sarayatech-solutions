@@ -16,6 +16,13 @@
  *    No other file should change.
  */
 
+/** C14 shape. `url` is the public Google reviews page for the business profile. */
+export interface GoogleReviews {
+  rating: number;
+  count: number;
+  url: string;
+}
+
 export const BUSINESS = {
   /** C1: one business name. Fallback per 06. */
   name: "SarayaTech Solutions",
@@ -27,8 +34,13 @@ export const BUSINESS = {
    */
   siteUrl: "https://sarayatechsolutions.com",
 
-  /** C2: public phone. null = hidden (booking + form only). Display and tel: forms are separate. */
-  phone: null as null | { display: string; tel: string },
+  /**
+   * C2: public phone. null = hidden (booking + form only). Display and tel: forms are separate.
+   * `tel` must be E.164 ("+16145550100"); any other form is treated as not supplied.
+   * `acceptsTexts` is the second half of C2 ("can it receive texts?"): the sms: action renders
+   * only when it is exactly `true` (STS-045).
+   */
+  phone: null as null | { display: string; tel: string; acceptsTexts: boolean },
 
   /** C3: public email on the main domain. null = contact form only. */
   email: null as null | string,
@@ -63,6 +75,13 @@ export const BUSINESS = {
     youtube?: string;
   },
 
+  /**
+   * C14: Google Business Profile reviews, copied from the live profile. null = no rating, no
+   * review count and no stars anywhere (REQ-052, REQ-035), and no `aggregateRating` in schema.
+   * Setting real values here lights up the sitewide trust slot (GAP-05) with no other change.
+   */
+  googleReviews: null as null | GoogleReviews,
+
   /** C17: GA4 measurement ID. null = analytics stays off. */
   ga4Id: null as null | string,
 } as const;
@@ -73,23 +92,38 @@ export type BusinessConfig = typeof BUSINESS;
 export const CONTACT_PATH = "/contact";
 
 type Cfg = {
-  phone: null | { display: string; tel: string };
+  phone: null | { display: string; tel: string; acceptsTexts?: boolean };
   email: null | string;
   address: null | { lines: readonly string[]; mapEmbedUrl?: string };
   hours: null | readonly string[];
   booking: { url: string; verified: boolean };
   social: null | Record<string, string | undefined>;
+  googleReviews?: null | GoogleReviews;
 };
 
 // Helpers take the config as an optional argument so tests can pass populated values
 // without mutating the shared constant.
 const cfg = (c?: Cfg): Cfg => c ?? (BUSINESS as unknown as Cfg);
 
-export const hasPhone = (c?: Cfg) => !!cfg(c).phone?.tel;
-export const phoneHref = (c?: Cfg): string | null => {
-  const p = cfg(c).phone;
-  return p?.tel ? `tel:${p.tel}` : null;
+/** E.164: "+", a country code that does not start with 0, then up to 15 digits in total. */
+const E164 = /^\+[1-9]\d{6,14}$/;
+
+/** The C2 number in E.164 when one is configured and well formed, otherwise null. */
+export const verifiedPhoneE164 = (c?: Cfg): string | null => {
+  const tel = cfg(c).phone?.tel?.trim() ?? "";
+  return E164.test(tel) ? tel : null;
 };
+
+export const hasPhone = (c?: Cfg) => verifiedPhoneE164(c) !== null;
+export const phoneHref = (c?: Cfg): string | null => {
+  const tel = verifiedPhoneE164(c);
+  return tel ? `tel:${tel}` : null;
+};
+
+/** True only when there is a valid number AND the owner said it receives texts (C2). */
+export const acceptsTexts = (c?: Cfg) => hasPhone(c) && cfg(c).phone?.acceptsTexts === true;
+/** sms: link for the C2 number, or null when texts are not confirmed. Never an empty sms:. */
+export const smsHref = (c?: Cfg): string | null => (acceptsTexts(c) ? `sms:${verifiedPhoneE164(c)}` : null);
 
 export const hasEmail = (c?: Cfg) => !!cfg(c).email;
 export const emailHref = (c?: Cfg): string | null => {
@@ -114,3 +148,21 @@ export const contactHref = (): string => CONTACT_PATH;
 /** Social links that are actually set, as [network, url] pairs. Empty when social is null. */
 export const socialLinks = (c?: Cfg): [string, string][] =>
   Object.entries(cfg(c).social ?? {}).filter((e): e is [string, string] => !!e[1]);
+
+/**
+ * C14 reviews when they are real and publishable, otherwise null. A rating outside 1-5, a
+ * count below 1 or a non-https link is treated as not supplied, so a half-filled config can
+ * never render "0 reviews" or an empty star line.
+ */
+export const verifiedGoogleReviews = (c?: Cfg): GoogleReviews | null => {
+  const r = cfg(c).googleReviews;
+  if (!r) return null;
+  const ok =
+    Number.isFinite(r.rating) &&
+    r.rating >= 1 &&
+    r.rating <= 5 &&
+    Number.isInteger(r.count) &&
+    r.count >= 1 &&
+    r.url.startsWith("https://");
+  return ok ? r : null;
+};

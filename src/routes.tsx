@@ -15,8 +15,16 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ServicePage from "./pages/services/ServicePage";
 import ServicesIndex from "./pages/services/ServicesIndex";
+import BlogPost from "./pages/BlogPost";
+import IndustriesHub from "./pages/IndustriesHub";
+import IndustryPage from "./pages/IndustryPage";
+import AreaPage from "./pages/AreaPage";
 import { SERVICE_PAGES, SERVICES_BASE_PATH, servicePath } from "@/content/services/services";
 import { PRIVACY_PATH, TERMS_PATH } from "@/content/legal/legal";
+import { WORK_PATH } from "@/content/work/work";
+import { PUBLISHED_POSTS } from "@/content/insights/posts";
+import { INDUSTRIES_BASE_PATH, PUBLISHED_INDUSTRIES } from "@/content/industries/industries";
+import { LOCATIONS_BASE_PATH, PUBLISHED_AREAS } from "@/content/locations/locations";
 
 export interface AppRoute {
   /** react-router path pattern. */
@@ -49,7 +57,8 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/contact", element: <Contact /> },
   // STS-034: the free audit offer and its lead form.
   { path: "/free-audit", element: <FreeAudit /> },
-  { path: "/realisation", element: <Realisation /> },
+  // STS-057: Our Work moved from /realisation (301 in public/_redirects).
+  { path: WORK_PATH, element: <Realisation /> },
   { path: "/insights", element: <Insights /> },
   { path: "/careers", element: <Careers /> },
   // STS-039: the hub listing every service; it replaces the retired /solutions index.
@@ -59,6 +68,24 @@ export const APP_ROUTES: AppRoute[] = [
   // STS-037: legal drafts. Prerendered (HTTP 200) but noindex and out of the sitemap until C23.
   { path: PRIVACY_PATH, element: <Privacy /> },
   { path: TERMS_PATH, element: <Terms /> },
+  // Owner-gated content (STS-055, STS-042, STS-043). Each group is spread in ONLY while its list has a
+  // published entry, so with the lists as shipped (nothing approved) none of these paths is routed,
+  // prerendered or in the sitemap, and a visit to one renders the 404 page. See docs/ops/owner-content.md.
+  // STS-055: an article per approved post. /insights itself stays routed above.
+  ...(PUBLISHED_POSTS.length > 0
+    ? [{ path: "/insights/:slug", element: <BlogPost />, param: "slug", slugs: () => PUBLISHED_POSTS.map((p) => p.slug) }]
+    : []),
+  // STS-042: the hub and one page per listed industry. The hub replaces the /industries 301 in public/_redirects.
+  ...(PUBLISHED_INDUSTRIES.length > 0
+    ? [
+        { path: INDUSTRIES_BASE_PATH, element: <IndustriesHub /> },
+        { path: `${INDUSTRIES_BASE_PATH}/:slug`, element: <IndustryPage />, param: "slug", slugs: () => PUBLISHED_INDUSTRIES.map((e) => e.slug) },
+      ]
+    : []),
+  // STS-043: one page per owner-confirmed suburb, at the matrix path /locations/<area> (REQ-033).
+  ...(PUBLISHED_AREAS.length > 0
+    ? [{ path: `${LOCATIONS_BASE_PATH}/:slug`, element: <AreaPage />, param: "slug", slugs: () => PUBLISHED_AREAS.map((e) => e.slug) }]
+    : []),
 ];
 
 /** Every concrete public URL path to prerender, dynamic detail pages expanded. */

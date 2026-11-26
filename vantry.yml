@@ -6,7 +6,7 @@ stack: "React 18 + Vite 5 + TypeScript + Tailwind 3 + shadcn/ui + react-router-d
 project_type: web
 
 # /adopt always starts relaxed; Sprint 1 (Stabilize & Harden) ends by raising this to standard.
-strictness: relaxed
+strictness: standard
 
 run:
   install: npm ci

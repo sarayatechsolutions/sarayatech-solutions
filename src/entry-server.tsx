@@ -26,3 +26,6 @@ export function render(url: string): string {
 
 /** SEO helpers for tools/prerender.mjs (STS-021). */
 export { SITE_URL, NOT_FOUND_SEO_PATH, getSeo, renderHeadTags, buildSitemapXml } from "./seo/seo";
+
+/** JSON-LD structured data for tools/prerender.mjs (STS-024). */
+export { renderJsonLd } from "./seo/structuredData";

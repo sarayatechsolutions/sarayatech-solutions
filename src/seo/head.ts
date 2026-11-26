@@ -1,4 +1,21 @@
 import { OWNED_KEYS, type HeadTag } from "./seo";
+import { JSON_LD_ATTR, serializeJsonLd } from "./structuredData";
+
+/**
+ * Client side of STS-024: replaces the page's JSON-LD after a client-side navigation, so the
+ * previous page's Organization or Service never lingers. Only the scripts this module owns
+ * (marked with JSON_LD_ATTR) are touched, and the JSON goes in as text, never as markup.
+ */
+export function applyJsonLd(doc: Document, docs: unknown[]): void {
+  doc.head.querySelectorAll(`script[type="application/ld+json"][${JSON_LD_ATTR}]`).forEach((el) => el.remove());
+  for (const data of docs) {
+    const el = doc.createElement("script");
+    el.type = "application/ld+json";
+    el.setAttribute(JSON_LD_ATTR, "");
+    el.textContent = serializeJsonLd(data);
+    doc.head.appendChild(el);
+  }
+}
 
 function selectorFor(key: string): string {
   if (key === "canonical") return 'link[rel="canonical"]';
