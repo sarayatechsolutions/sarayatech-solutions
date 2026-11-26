@@ -14,6 +14,10 @@ const leads = () =>
   (window.dataLayer ?? [])
     .map((a) => Array.from(a as ArrayLike<unknown>))
     .filter((c) => c[0] === "event" && c[1] === "generate_lead");
+// Each test types about 70 characters through userEvent (one React render per key), and the first one
+// also pays the form's first render. Under a loaded worker pool that passed the 5 s default once
+// (verify 2026-11-26), so the budget matches the work instead of the default. No retry.
+const FORM_TEST_TIMEOUT_MS = 20_000;
 const TYPED = ["Ada Lovelace", "ada@example.com", "614-555-0100", "Ada Bakery", "We need a new website.", "example.com"];
 
 beforeEach(() => {
@@ -42,7 +46,7 @@ async function fillAudit(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Phone/), "614-555-0100");
 }
 
-describe("contact form", () => {
+describe("contact form", { timeout: FORM_TEST_TIMEOUT_MS }, () => {
   it("success: one generate_lead with form=contact and the chosen lead source, and no typed value", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, { success: true })));
     const user = userEvent.setup();
@@ -90,7 +94,7 @@ describe("contact form", () => {
   });
 });
 
-describe("free audit form", () => {
+describe("free audit form", { timeout: FORM_TEST_TIMEOUT_MS }, () => {
   it("success: one generate_lead with form=audit and the chosen lead source, and no typed value", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, { success: true, message: "ok" })));
     const user = userEvent.setup();
