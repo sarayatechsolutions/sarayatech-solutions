@@ -1,6 +1,6 @@
 import { ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import CtaLink from "@/components/home/CtaLink";
+import FinalCta from "@/components/FinalCta";
+import { FREE_AUDIT_ACTION } from "@/content/trust/trust";
 import { bookingHref } from "@/config/business";
 import { responsiveImage } from "@/lib/responsiveImage";
 import { PROJECT_COPY, WORK_CTA, WORK_HERO, WORK_LABELS } from "@/content/work/work";
@@ -94,17 +94,15 @@ const Realisation = () => {
         </div>
       </section>
 
-      <section data-work-section="cta" aria-labelledby="work-cta-heading" className="py-20 gradient-primary text-primary-foreground">
-        <div className={`${container} text-center max-w-2xl space-y-6`}>
-          <h2 id="work-cta-heading" className="text-3xl md:text-4xl font-bold">
-            {WORK_CTA.heading}
-          </h2>
-          <p className="text-lg text-primary-foreground/90">{WORK_CTA.copy}</p>
-          <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-            <CtaLink href={booking}>{WORK_CTA.button}</CtaLink>
-          </Button>
-        </div>
-      </section>
+      {/* STS-046: the sitewide closing block (CTA + trust slot), with this page's copy. */}
+      <FinalCta
+        id="work"
+        heading={WORK_CTA.heading}
+        copy={WORK_CTA.copy}
+        primary={{ label: WORK_CTA.button, href: booking }}
+        secondary={FREE_AUDIT_ACTION}
+        sectionAttrs={{ "data-work-section": "cta" }}
+      />
     </>
   );
 };

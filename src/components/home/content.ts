@@ -20,6 +20,8 @@
  * future translation layer would read from.
  */
 
+import { WORK_PATH } from "@/content/work/work";
+
 /** Service pages (STS-032). Literal paths: content/services imports this module for PROOF. */
 const SERVICE_PAGE_PATH = {
   websiteDesign: "/services/website-design",
@@ -29,8 +31,8 @@ const SERVICE_PAGE_PATH = {
   paidAds: "/services/paid-ads",
 } as const;
 
-/** Route of the proof page (I-9). STS-035 / GAP-12 may move it to /our-work with a 301. */
-export const PROOF_PATH = "/realisation";
+/** Route of the proof page (I-9): the Our Work page (STS-057, GAP-12). */
+export const PROOF_PATH = WORK_PATH;
 
 /**
  * Destination of the final CTA "Get My Free Audit" (REQ-063).

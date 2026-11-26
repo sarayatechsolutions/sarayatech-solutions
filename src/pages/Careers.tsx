@@ -10,12 +10,16 @@ import {
 } from "lucide-react";
 import { motion } from "@/components/motion";
 import { useState } from "react";
+import { TrustSlot } from "@/components/FinalCta";
 import careersData from "../../data/careers.json";
 import {
   containerVariants,
   fadeInUpVariants,
   staggerItemVariants,
 } from "@/constants/animations";
+
+/** Where every Careers call to action goes: the live contact page (src/routes.tsx). */
+const CAREERS_CONTACT_PATH = "/contact";
 
 const Careers = () => {
   const [openPositions, setOpenPositions] = useState(careersData);
@@ -115,7 +119,7 @@ const Careers = () => {
                     whileHover={{ scale: 1.1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Icon className="w-8 h-8 text-primary-foreground" />
+                    <Icon aria-hidden="true" className="w-8 h-8 text-primary-foreground" />
                   </motion.div>
                   <h3 className="text-xl font-bold mb-3">{benefit.title}</h3>
                   <p className="text-secondary leading-relaxed">
@@ -173,23 +177,32 @@ const Careers = () => {
                     </p>
                     <div className="flex flex-wrap gap-4 text-sm text-secondary">
                       <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
+                        <MapPin aria-hidden="true" className="w-4 h-4" />
                         {position.location}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
+                        <Clock aria-hidden="true" className="w-4 h-4" />
                         {position.type}
                       </div>
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
+                        <DollarSign aria-hidden="true" className="w-4 h-4" />
                         {position.salary}
                       </div>
                     </div>
                   </div>
                   <div className="flex-shrink-0">
-                    <Button className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                      Apply Now
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                    {/* STS-056 (GAP-11): this was an "Apply Now" button with no action. There is no
+                        application flow, so it is an honest link to the contact page instead. */}
+                    <Button
+                      asChild
+                      className="min-h-[44px] w-full sm:w-auto group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                    >
+                      <Link to={CAREERS_CONTACT_PATH}>
+                        {/* OWNER REVIEW: label written for STS-056; the source only had "Apply Now". */}
+                        Ask about this role
+                        <span className="sr-only">: {position.title}</span>
+                        <ArrowRight aria-hidden="true" className="w-4 h-4 ml-2" />
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -233,17 +246,19 @@ const Careers = () => {
             transition={{ duration: 0.4, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <Link to="/contact">
-              <Button
-                size="lg"
-                className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent"
-              >
-                Get In Touch
-              </Button>
-            </Link>
+            {/* STS-056: one link styled as a button, not a <button> nested inside an <a>. */}
+            <Button
+              asChild
+              size="lg"
+              className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent"
+            >
+              <Link to={CAREERS_CONTACT_PATH}>Get In Touch</Link>
+            </Button>
           </motion.div>
         </div>
       </motion.section>
+      {/* STS-046: sitewide trust slot; the job-seeker CTA above stays the page CTA. */}
+      <TrustSlot id="careers" standalone />
     </>
   );
 };

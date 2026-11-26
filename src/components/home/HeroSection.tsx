@@ -35,9 +35,11 @@ const HeroSection = () => {
             <Button
               asChild
               size="lg"
-              className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-xl font-bold px-8 h-14 group"
+              // STS-041: at 320 px the nowrap 20 px label measured 333 px in a 288 px column (page scrolled
+              // sideways). Full width and wrapping below `sm`, unchanged from `sm` up.
+              className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-lg sm:text-xl font-bold px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto group"
             >
-              <CtaLink href={bookingHref()}>
+              <CtaLink href={bookingHref()} cta="hero_consultation">
                 {HERO.primaryCta}
                 <ArrowRight aria-hidden="true" className="ml-2 group-hover:translate-x-1 transition-smooth" />
               </CtaLink>
@@ -46,7 +48,7 @@ const HeroSection = () => {
               asChild
               size="lg"
               variant="outline"
-              className="bg-white/10 hover:bg-white/20 text-white border-white/40 text-xl font-bold px-8 h-14"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/40 text-lg sm:text-xl font-bold px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto"
             >
               <Link to={PROOF_PATH}>{HERO.secondaryCta}</Link>
             </Button>

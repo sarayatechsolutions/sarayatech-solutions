@@ -66,7 +66,7 @@ const ProofTeaser = () => {
         )}
 
         <div className="text-center mt-12">
-          <Button asChild size="lg" className="bg-primary hover:bg-primary-light text-primary-foreground text-lg px-8 h-14">
+          <Button asChild size="lg" className="bg-primary hover:bg-primary-light text-primary-foreground text-lg px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto">
             <Link to={PROOF_PATH}>
               {PROOF.cta}
               <ArrowRight aria-hidden="true" className="ml-2" />

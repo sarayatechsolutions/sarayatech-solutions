@@ -7,9 +7,9 @@ import { workProjects } from "@/pages/Realisation";
 import realisations from "../../data/realisations.json";
 import { WORK_FORBIDDEN_PHRASES, buildRoutes } from "../../tests/smoke/smoke.mjs";
 
-// STS-035. /realisation is rendered exactly as the build prerenders it (entry-server), then read
+// STS-035. /our-work (STS-057; formerly /realisation) is rendered exactly as the build prerenders it (entry-server), then read
 // as a document, so these assertions hold for the HTML a crawler or no-JS visitor gets.
-const html = render("/realisation");
+const html = render("/our-work");
 const doc = new DOMParser().parseFromString(html, "text/html");
 const main = doc.querySelector("main") as HTMLElement;
 const text = (el: Element | null) => (el?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -21,7 +21,7 @@ describe("Our Work page (STS-035, REQ-007, REQ-028)", () => {
     const h1s = doc.querySelectorAll("h1");
     expect(h1s).toHaveLength(1);
     expect(text(h1s[0])).toBe("Our Work");
-    expect(buildRoutes().find((r) => r.path === "/realisation")?.expectH1).toBe(WORK_HERO.headline);
+    expect(buildRoutes().find((r) => r.path === "/our-work")?.expectH1).toBe(WORK_HERO.headline);
   });
 
   it("shows exactly the four verified projects, in the data's order", () => {
@@ -51,7 +51,7 @@ describe("Our Work page (STS-035, REQ-007, REQ-028)", () => {
   });
 
   it("has a title within 60 characters and a description that is not the h1", () => {
-    const seo = getSeo("/realisation");
+    const seo = getSeo("/our-work");
     expect(seo.title.length).toBeLessThanOrEqual(60);
     expect(seo.description.length).toBeLessThanOrEqual(155);
     expect(seo.title).not.toBe(WORK_HERO.headline);

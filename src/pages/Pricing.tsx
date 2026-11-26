@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CtaLink from "@/components/home/CtaLink";
+import FinalCta from "@/components/FinalCta";
 import { FREE_AUDIT_PATH } from "@/components/home/content";
 import { BUSINESS, bookingHref } from "@/config/business";
 import {
@@ -55,7 +56,7 @@ export const PriceCard = ({
         {price ?? fallback}
       </p>
       {note && <p className="text-sm text-foreground/70 -mt-3">{note}</p>}
-      <Button asChild className="bg-primary hover:bg-primary-light text-primary-foreground">
+      <Button asChild className="min-h-11 h-auto whitespace-normal bg-primary hover:bg-primary-light text-primary-foreground">
         <CtaLink href={href}>{kind === "custom" ? PRICING_LABELS.customCta : PRICING_LABELS.packageCta}</CtaLink>
       </Button>
     </li>
@@ -131,26 +132,15 @@ const Pricing = () => {
         </div>
       </section>
 
-      <section
-        data-pricing-section="cta"
-        aria-labelledby="pricing-cta-heading"
-        className="py-20 gradient-primary text-primary-foreground"
-      >
-        <div className={`${container} text-center max-w-2xl space-y-6`}>
-          <h2 id="pricing-cta-heading" className="text-3xl md:text-4xl font-bold">
-            {PRICING_CTA.heading}
-          </h2>
-          <p className="text-lg text-primary-foreground/90">{PRICING_CTA.copy}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-              <CtaLink href={booking}>{PRICING_CTA.button}</CtaLink>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white/10">
-              <CtaLink href={FREE_AUDIT_PATH}>{PRICING_LABELS.auditCta}</CtaLink>
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* STS-046: the sitewide closing block (CTA + trust slot), with this page's copy. */}
+      <FinalCta
+        id="pricing"
+        heading={PRICING_CTA.heading}
+        copy={PRICING_CTA.copy}
+        primary={{ label: PRICING_CTA.button, href: booking }}
+        secondary={{ label: PRICING_LABELS.auditCta, href: FREE_AUDIT_PATH }}
+        sectionAttrs={{ "data-pricing-section": "cta" }}
+      />
     </>
   );
 };

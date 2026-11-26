@@ -1,6 +1,6 @@
 /**
- * Our Work page copy (STS-035). Every user-facing string on /realisation lives here, not in JSX.
- * The URL stays /realisation until STS-057 sets the final scheme (I-9 names /our-work).
+ * Our Work page copy (STS-035). Every user-facing string on /our-work lives here, not in JSX.
+ * STS-057 moved the page from /realisation to /our-work (I-9); public/_redirects keeps the old URL (301).
  *
  * Source: docs/source/SarayaTech-Website-Fix-and-Marketing-Plan.md, Pages table ("Case Studies /
  * Our Work": the problem, what you did, the result in numbers) and the "See Our Work" button.
@@ -24,6 +24,9 @@
  * The site is English only (C24), so there is no i18n runtime; this module is the one place a
  * future translation layer would read from.
  */
+
+/** Route of the Our Work page (I-9, STS-057). The one place the URL is written; links import it. */
+export const WORK_PATH = "/our-work";
 
 export const WORK_HERO = {
   /** Source label for the proof page ("Our Work", I-9, REQ-171). */

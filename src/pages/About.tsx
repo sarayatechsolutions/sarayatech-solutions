@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CtaLink from "@/components/home/CtaLink";
+import FinalCta from "@/components/FinalCta";
+import { FREE_AUDIT_ACTION } from "@/content/trust/trust";
 import { BUSINESS, bookingHref } from "@/config/business";
 import { responsiveImage } from "@/lib/responsiveImage";
 import {
@@ -159,21 +161,15 @@ const About = () => {
         </div>
       </section>
 
-      <section
-        data-about-section="cta"
-        aria-labelledby="about-cta-heading"
-        className="py-20 gradient-primary text-primary-foreground"
-      >
-        <div className={`${container} text-center max-w-2xl space-y-6`}>
-          <h2 id="about-cta-heading" className="text-3xl md:text-4xl font-bold">
-            {ABOUT_CTA.heading}
-          </h2>
-          <p className="text-lg text-primary-foreground/90">{ABOUT_CTA.copy}</p>
-          <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-            <CtaLink href={booking}>{ABOUT_CTA.button}</CtaLink>
-          </Button>
-        </div>
-      </section>
+      {/* STS-046: the sitewide closing block (CTA + trust slot), with this page's copy. */}
+      <FinalCta
+        id="about"
+        heading={ABOUT_CTA.heading}
+        copy={ABOUT_CTA.copy}
+        primary={{ label: ABOUT_CTA.button, href: booking }}
+        secondary={FREE_AUDIT_ACTION}
+        sectionAttrs={{ "data-about-section": "cta" }}
+      />
     </>
   );
 };

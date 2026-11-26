@@ -86,7 +86,7 @@ describe("home page calls to action (REQ-051, REQ-063, REQ-175)", () => {
   });
 
   it("sends See Our Work to the proof page, and Get My Free Audit to an existing route", () => {
-    expect(linkByText("See Our Work")?.getAttribute("href")).toBe("/realisation");
+    expect(linkByText("See Our Work")?.getAttribute("href")).toBe("/our-work");
     expect(linkByText("Get My Free Audit")?.getAttribute("href")).toBe("/free-audit");
   });
 

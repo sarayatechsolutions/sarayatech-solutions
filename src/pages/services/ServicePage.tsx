@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import CtaLink from "@/components/home/CtaLink";
 import { BUSINESS, bookingHref } from "@/config/business";
-import { FINAL_CTA, FREE_AUDIT_PATH, PROOF_PATH } from "@/components/home/content";
+import { PROOF_PATH } from "@/components/home/content";
+import FinalCta from "@/components/FinalCta";
 import {
   SERVICE_PAGES,
   SERVICE_PAGE_LABELS as L,
@@ -192,32 +193,8 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
         </div>
       </nav>
 
-      <section
-        data-service-section="final-cta"
-        aria-labelledby={`service-${page.slug}-final-cta`}
-        className="py-20 gradient-hero text-primary-foreground"
-      >
-        <div className={container}>
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h2 id={`service-${page.slug}-final-cta`} className="text-3xl md:text-5xl font-extrabold leading-tight">
-              {FINAL_CTA.heading}
-            </h2>
-            <p className="text-lg md:text-xl text-primary-foreground/90 leading-relaxed">{FINAL_CTA.copy}</p>
-            <div className="pt-2">
-              <Button
-                asChild
-                size="lg"
-                className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-xl font-bold px-8 h-14 group"
-              >
-                <Link to={FREE_AUDIT_PATH}>
-                  {FINAL_CTA.button}
-                  <ArrowRight aria-hidden="true" className="ml-2 group-hover:translate-x-1 transition-smooth" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* STS-046: the sitewide closing block (free audit, consultation, trust slot). */}
+      <FinalCta id={`service-${page.slug}`} sectionAttrs={{ "data-service-section": "final-cta" }} />
     </>
   );
 };

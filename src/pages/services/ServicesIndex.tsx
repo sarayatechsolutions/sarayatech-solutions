@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CtaLink from "@/components/home/CtaLink";
 import ServicePillars from "@/components/home/ServicePillars";
-import CTASection from "@/components/home/CTASection";
+import FinalCta from "@/components/FinalCta";
 import { BUSINESS, bookingHref } from "@/config/business";
 import { SERVICES_INDEX as C } from "@/content/services/servicesIndex";
 
@@ -43,7 +43,7 @@ const ServicesIndex = () => (
       </div>
     </section>
     <ServicePillars />
-    <CTASection />
+    <FinalCta id="services-index" sectionAttrs={{ "data-service-section": "final-cta" }} />
   </>
 );
 
