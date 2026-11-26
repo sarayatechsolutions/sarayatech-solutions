@@ -1,314 +1,58 @@
 {
-  "website_development": [
+  "packages": [
     {
-      "tier": "Basic Brochure Website",
+      "tier": "Local Starter",
+      "for": "New or very small businesses",
       "cost": "Packages are quoted after a free consultation.",
-      "timeline": "2-4 weeks",
+      "billing": "One-time",
       "includes": [
-        "5-10 pages (Home, About, Services, Contact, Blog)",
-        "Mobile responsive design",
-        "Basic SEO setup",
-        "Contact form",
-        "CMS (WordPress/Webflow)",
-        "Hosting and domain setup"
+        "5-page website",
+        "Google Business Profile setup",
+        "Review system"
       ]
     },
     {
-      "tier": "Corporate/Business Website",
+      "tier": "Local Growth",
+      "for": "Businesses ready to grow",
       "cost": "Packages are quoted after a free consultation.",
-      "timeline": "4-8 weeks",
+      "billing": "Monthly",
       "includes": [
-        "10-25 pages with custom design",
-        "Advanced responsive design",
-        "E-commerce functionality (basic)",
-        "Blog with categories",
-        "Portfolio/gallery",
-        "Newsletter integration",
-        "Analytics setup",
-        "Post-launch support options"
+        "Website",
+        "Local SEO",
+        "2 social platforms",
+        "Monthly report"
       ]
     },
     {
-      "tier": "E-commerce Website",
+      "tier": "Full Growth",
+      "for": "Established small businesses",
       "cost": "Packages are quoted after a free consultation.",
-      "timeline": "6-12 weeks",
+      "billing": "Monthly, plus ad spend. Ad spend is billed separately.",
       "includes": [
-        "Product catalog (50-500 products)",
-        "Shopping cart & checkout",
-        "Payment gateway integration",
-        "Inventory management",
-        "User accounts/order history",
-        "Shipping calculation",
-        "Admin dashboard",
-        "SEO optimization"
+        "Everything in Local Growth",
+        "More social platforms",
+        "Google and Meta ads management",
+        "Quarterly strategy call"
       ]
     }
   ],
-  "mobile_apps": [
+  "custom_app": [
     {
-      "tier": "Basic App (Both Platforms)",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "3-4 months",
-      "features": [
-        "Simple UI/UX",
-        "Basic functionality",
-        "User authentication",
-        "API integration",
-        "Push notifications",
-        "App store deployment"
-      ]
-    },
-    {
-      "tier": "Medium Complexity App",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "4-6 months",
-      "features": [
-        "Custom UI/animations",
-        "Payment integration",
-        "Social features",
-        "Real-time updates",
-        "Admin panel",
-        "Analytics",
-        "Multiple user roles"
-      ]
-    },
-    {
-      "tier": "Complex/Enterprise App",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "6-12 months",
-      "features": [
-        "Advanced algorithms",
-        "Real-time chat/video",
-        "Offline functionality",
-        "Custom animations/UI",
-        "Complex backend",
-        "Third-party integrations",
-        "Scalable architecture"
-      ]
-    }
-  ],
-  "ai_chatbot_development": [
-    {
-      "tier": "Basic Rule-Based Chatbot",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "1-2 weeks",
-      "features": "Pre-defined Q&A, button navigation"
-    },
-    {
-      "tier": "Standard AI Chatbot (NLP)",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "3-6 weeks",
-      "features": "Understands natural language, learns from content"
-    },
-    {
-      "tier": "Advanced AI Chatbot (LLM Integration)",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "6-10 weeks",
-      "features": "GPT-4 integration, multi-language, complex queries"
-    },
-    {
-      "tier": "Enterprise AI Assistant",
-      "cost": "Packages are quoted after a free consultation.",
-      "timeline": "10-16 weeks",
-      "features": "Custom training, CRM integration, voice interface"
-    }
-  ],
-  "ai_email_automation": [
-    {
-      "tier": "Basic Email Automation Setup",
-      "cost": "Packages are quoted after a free consultation.",
+      "tier": "Custom App or Software",
+      "for": "Any business with a process to automate",
+      "cost": "Quoted after scoping, in a written plan you see before any work starts.",
       "includes": [
-        "Welcome sequence",
-        "Drip campaigns",
-        "Basic segmentation",
-        "Analytics setup",
-        "Template design"
-      ]
-    },
-    {
-      "tier": "Advanced AI Email Marketing",
-      "cost": "Packages are quoted after a free consultation.",
-      "includes": [
-        "AI-driven personalization",
-        "Predictive sending times",
-        "Behavior-based triggers",
-        "A/B testing automation",
-        "Advanced analytics",
-        "Integration with CRM"
-      ]
-    },
-    {
-      "tier": "Complete Marketing Automation Suite",
-      "cost": "Packages are quoted after a free consultation.",
-      "includes": [
-        "Multi-channel automation",
-        "Lead scoring AI",
-        "Customer journey mapping",
-        "Revenue attribution",
-        "Custom AI models",
-        "Team training"
+        "Scoping",
+        "Design",
+        "Build",
+        "Support"
       ]
     }
   ],
-  "bundled_packages": [
-    {
-      "name": "Bronze Package: Startup Solution",
-      "total_cost": "Packages are quoted after a free consultation.",
-      "items": [
-        { "item": "Responsive Website", "price": "Packages are quoted after a free consultation." },
-        { "item": "Basic SEO Setup", "price": "Packages are quoted after a free consultation." },
-        { "item": "Email Automation", "price": "Packages are quoted after a free consultation." },
-        { "item": "3 Months Support", "price": "Packages are quoted after a free consultation." }
-      ]
-    },
-    {
-      "name": "Silver Package: Growing Business",
-      "total_cost": "Packages are quoted after a free consultation.",
-      "items": [
-        { "item": "Custom Web App", "price": "Packages are quoted after a free consultation." },
-        { "item": "Mobile App (One Platform)", "price": "Packages are quoted after a free consultation." },
-        { "item": "AI Chatbot", "price": "Packages are quoted after a free consultation." },
-        { "item": "Email Marketing Setup", "price": "Packages are quoted after a free consultation." },
-        { "item": "6 Months Support", "price": "Packages are quoted after a free consultation." }
-      ]
-    },
-    {
-      "name": "Gold Package: Enterprise Solution",
-      "total_cost": "Packages are quoted after a free consultation.",
-      "items": [
-        { "item": "Fullstack Platform", "price": "Packages are quoted after a free consultation." },
-        { "item": "iOS + Android Apps", "price": "Packages are quoted after a free consultation." },
-        { "item": "Advanced AI Chatbot", "price": "Packages are quoted after a free consultation." },
-        { "item": "Complete Marketing Automation", "price": "Packages are quoted after a free consultation." },
-        { "item": "Year-long Support", "price": "Packages are quoted after a free consultation." }
-      ]
-    }
+  "how_a_quote_works": [
+    "Book a free consultation. We review your website, Google profile and competitors with you.",
+    "You get a written plan with a clear price.",
+    "If it fits, we build and launch, then grow it every month."
   ],
-  "specialized_solutions": [
-    {
-      "name": "AI-Powered Business Website",
-      "cost": "Packages are quoted after a free consultation.",
-      "description": "Website + basic AI chatbot + SEO"
-    },
-    {
-      "name": "Banking Tech MVP",
-      "cost": "Packages are quoted after a free consultation.",
-      "description": "Web app + basic mobile + secure features"
-    },
-    {
-      "name": "Complete Digital Transformation",
-      "cost": "Packages are quoted after a free consultation.",
-      "description": "Fullstack + mobile + AI automation + training"
-    }
-  ],
-  "cloud_system_services": {
-    "roi_focused_pricing": {
-      "note": "Cloud and digitalization work is scoped and quoted after a free consultation."
-    },
-    "discovery_and_strategy_packages": [
-      {
-        "name": "Strategy Workshop",
-        "cost": "Packages are quoted after a free consultation.",
-        "duration": "2 Days Intensive",
-        "description": "Align stakeholders and define high-level cloud goals."
-      },
-      {
-        "name": "Technical Assessment",
-        "cost": "Packages are quoted after a free consultation.",
-        "duration": "1-2 Weeks",
-        "description": "Deep dive into current infrastructure with gap analysis."
-      },
-      {
-        "name": "Architecture Blueprint",
-        "cost": "Packages are quoted after a free consultation.",
-        "duration": "3-4 Weeks",
-        "description": "Complete technical roadmap and implementation plan."
-      }
-    ],
-    "service_categories": [
-      {
-        "category": "Cloud Digitalization & Strategy",
-        "services": [
-          { "name": "Discovery & Roadmapping", "price": "Packages are quoted after a free consultation." },
-          { "name": "Proof of Concept (PoC)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Full Digital Transformation", "price": "Packages are quoted after a free consultation." }
-        ]
-      },
-      {
-        "category": "Cloud Migration Services",
-        "services": [
-          { "name": "Lift-and-Shift (Per Application)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Replatforming (Per Application)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Full Data Center Migration", "price": "Packages are quoted after a free consultation." },
-          { "name": "Ongoing Migration Management", "price": "Packages are quoted after a free consultation." }
-        ]
-      },
-      {
-        "category": "Cloud-Native Application Development",
-        "services": [
-          { "name": "Minimum Viable Product (MVP)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Enterprise Microservices Application", "price": "Packages are quoted after a free consultation." },
-          { "name": "Per Feature/Module Development", "price": "Packages are quoted after a free consultation." },
-          { "name": "Monthly Retainer (DevOps + Feature Delivery)", "price": "Packages are quoted after a free consultation." }
-        ]
-      },
-      {
-        "category": "AWS Connect Call Center Solutions",
-        "services": [
-          { "name": "Basic Implementation (Up to 50 agents)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Advanced Implementation (AI, CRM Integration)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Omnichannel Contact Center", "price": "Packages are quoted after a free consultation." },
-          { "name": "Monthly Management & Optimization", "price": "Packages are quoted after a free consultation." }
-        ]
-      },
-      {
-        "category": "Application Modernization",
-        "services": [
-          { "name": "Monolith to Microservices (Per Application)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Containerization & Orchestration", "price": "Packages are quoted after a free consultation." },
-          { "name": "Serverless Transformation", "price": "Packages are quoted after a free consultation." },
-          { "name": "Legacy System Refactoring", "price": "Packages are quoted after a free consultation." }
-        ]
-      },
-      {
-        "category": "Managed Cloud Services (Ongoing)",
-        "services": [
-          { "name": "Cloud Management (24/7 Monitoring, Basic)", "price": "Packages are quoted after a free consultation." },
-          { "name": "DevOps as a Service (CI/CD, IaC)", "price": "Packages are quoted after a free consultation." },
-          { "name": "Security & Compliance Management", "price": "Packages are quoted after a free consultation." },
-          { "name": "Performance Optimization Retainer", "price": "Packages are quoted after a free consultation." }
-        ]
-      }
-    ],
-    "strategic_offers": []
-  },
-  "related_services": {
-    "ui_ux_design": [
-      { "service": "Wireframing", "price": "Packages are quoted after a free consultation." },
-      { "service": "UI Design", "price": "Packages are quoted after a free consultation." },
-      { "service": "UX Research", "price": "Packages are quoted after a free consultation." },
-      { "service": "Design System", "price": "Packages are quoted after a free consultation." },
-      { "service": "Complete Design Package", "price": "Packages are quoted after a free consultation." }
-    ],
-    "devops_and_deployment": [
-      { "service": "Basic Server Setup", "price": "Packages are quoted after a free consultation." },
-      { "service": "CI/CD Pipeline", "price": "Packages are quoted after a free consultation." },
-      { "service": "Cloud Migration", "price": "Packages are quoted after a free consultation." },
-      { "service": "Kubernetes Setup", "price": "Packages are quoted after a free consultation." },
-      { "service": "Monitoring Setup", "price": "Packages are quoted after a free consultation." }
-    ],
-    "seo_services": [
-      { "service": "Technical SEO Audit", "price": "Packages are quoted after a free consultation." },
-      { "service": "On-page SEO Setup", "price": "Packages are quoted after a free consultation." },
-      { "service": "Content Strategy", "price": "Packages are quoted after a free consultation." },
-      { "service": "Monthly SEO Management", "price": "Packages are quoted after a free consultation." },
-      { "service": "Complete SEO Package", "price": "Packages are quoted after a free consultation." }
-    ],
-    "maintenance_and_support": [
-      { "service": "Basic Maintenance", "price": "Packages are quoted after a free consultation." },
-      { "service": "Standard Support", "price": "Packages are quoted after a free consultation." },
-      { "service": "Premium Support", "price": "Packages are quoted after a free consultation." },
-      { "service": "Enterprise SLA", "price": "Packages are quoted after a free consultation." }
-    ]
-  }
+  "page": "/pricing"
 }

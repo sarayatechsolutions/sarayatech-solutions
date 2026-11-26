@@ -23,6 +23,13 @@ interface Intent {
   threshold: number;
   context?: string;
   responses?: string[];
+  /**
+   * Narrow, phrase-driven topics (technology, integrations, site speed). A priority intent scores
+   * on whole-keyword hits only (no partial-word credit) and, once it passes its threshold, wins
+   * over broad intents such as website design or local SEO, which collect many partial-word
+   * points and would otherwise take the question.
+   */
+  priority?: number;
 }
 
 interface IntentMatch {
@@ -100,7 +107,7 @@ class ChatbotService {
   /**
    * Calculates the intent score based on keyword matching with weights
    */
-  private calculateIntentScore(userMessage: string, intent: Intent): number {
+  private calculateIntentScore(userMessage: string, intent: Intent, exactOnly = false): number {
     const normalizedMessage = this.normalizeText(userMessage);
     let totalScore = 0;
 
@@ -110,6 +117,10 @@ class ChatbotService {
       // Exact match
       if (normalizedMessage.includes(normalizedKeyword)) {
         totalScore += weight;
+      }
+      // Priority intents are phrase-driven: no partial credit, or broad intents' leftovers leak in.
+      else if (exactOnly) {
+        return;
       }
       // Partial match (word boundaries). Short and filler words are ignored: otherwise "i" or
       // "a" is contained in nearly every keyword and "How can I contact you?" scores highest
@@ -136,7 +147,7 @@ class ChatbotService {
     const intentMatches: IntentMatch[] = [];
 
     this.intents.forEach(intent => {
-      const score = this.calculateIntentScore(userMessage, intent);
+      const score = this.calculateIntentScore(userMessage, intent, (intent.priority ?? 0) > 0);
 
       if (score >= intent.threshold) {
         const maxPossibleScore = intent.keywords.reduce((sum, kw) => sum + kw.weight, 0);
@@ -150,8 +161,10 @@ class ChatbotService {
       }
     });
 
-    // Sort by score descending
-    intentMatches.sort((a, b) => b.score - a.score);
+    // Priority tier first, then score descending
+    intentMatches.sort(
+      (a, b) => (b.intent.priority ?? 0) - (a.intent.priority ?? 0) || b.score - a.score
+    );
 
     // Debug log (can be removed in production)
     if (intentMatches.length > 0) {
@@ -175,7 +188,7 @@ class ChatbotService {
     const services = Object.values(this.knowledgeBase.services);
     const servicesList = services.map(s => `• **${s.name}**: ${s.description}`).join("\n");
 
-    return `We offer a comprehensive range of digital solutions:\n\n${servicesList}\n\nWhich service interests you? I'd be happy to provide more details!\n\n🔗 **Explore all our services:** /solutions`;
+    return `We offer a comprehensive range of digital solutions:\n\n${servicesList}\n\nWhich service interests you? I'd be happy to provide more details!\n\n🔗 **Explore all our services:** /services`;
   }
 
   /**
@@ -206,7 +219,7 @@ class ChatbotService {
       response += `**Benefits:**\n${service.benefits.map(b => `• ${b}`).join("\n")}\n\n`;
     }
 
-    response += `🔗 **View all our solutions:** /solutions\n\n`;
+    response += `🔗 **View all our solutions:** /services\n\n`;
     response += `Would you like to discuss your specific needs? ${bookingCta(this.business)}`;
 
     return response;
@@ -218,6 +231,7 @@ class ChatbotService {
   private generatePricingResponse(): string {
     // No published price list: every figure is quoted per project.
     return `${PRICING_REPLY}\n\n` +
+      `🔗 **See our packages:** /pricing\n` +
       `🔗 **Contact us:** /contact\n` +
       `📅 ${bookingCta(this.business)}`;
   }
@@ -272,7 +286,7 @@ class ChatbotService {
     return `**About SarayaTech Solutions**\n\n` +
       `${company.description}\n\n` +
       `🔗 **Learn more about our team:** /about\n` +
-      `🔗 **View our case studies:** /realisation`;
+      `🔗 **View our case studies:** /our-work`;
   }
 
   /**
@@ -288,14 +302,12 @@ class ChatbotService {
    * Generates response for contract inquiry
    */
   private generateContractResponse(): string {
-    return `**Our Contract & Terms**\n\n` +
-      `We believe in transparent, fair agreements:\n\n` +
-      `• **Clear Scope**: Detailed project scope with deliverables and timelines\n` +
-      `• **Intellectual Property**: You own all code and assets upon final payment\n` +
-      `• **Confidentiality**: NDA protection for your business ideas and data\n` +
-      `• **Revisions**: Agreed-upon revision rounds included in the scope\n\n` +
-      `🔗 **Contact us for contract details:** /contact\n\n` +
-      `We're happy to review our standard agreement or work with your legal team. ${bookingCta(this.business)}`;
+    // OWNER REVIEW: the site has no confirmed contract wording. Make no commitment on ownership,
+    // confidentiality or revisions here; the written proposal is where they are set out.
+    return `**Scope, ownership and payment terms**\n\n` +
+      `We set out the scope, ownership and payment terms in a written proposal that you see before any work starts.\n\n` +
+      `🔗 **Contact us for details:** /contact\n\n` +
+      `Questions about the proposal? ${bookingCta(this.business)}`;
   }
 
   /**
@@ -304,7 +316,7 @@ class ChatbotService {
   private generateSupportResponse(): string {
     return `**Post-Launch Support & Maintenance**\n\n` +
       `We can support your solution after launch. The scope of that support is agreed with you during a free consultation and included in your quote.\n\n` +
-      `🔗 **Learn more:** /solutions\n` +
+      `🔗 **Learn more:** /services\n` +
       `🔗 **Contact us:** /contact\n\n` +
       `Need ongoing support? ${bookingCta(this.business)}`;
   }
@@ -374,7 +386,7 @@ class ChatbotService {
     }
 
     response += recommendations.slice(0, 3).join('\n\n');
-    response += `\n\n🔗 **Explore all solutions:** /solutions\n`;
+    response += `\n\n🔗 **Explore all solutions:** /services\n`;
     response += `🔗 **Get a custom quote:** /contact\n\n`;
     response += `Want to discuss which solution fits your specific situation? ${bookingCta(this.business)}`;
 
@@ -386,9 +398,9 @@ class ChatbotService {
    */
   private generateDefaultResponse(): string {
     return `That's a great question! While I'm still learning, I'd be happy to connect you with our team who can provide detailed answers.\n\n` +
-      `🔗 **Explore our services:** /solutions\n` +
+      `🔗 **Explore our services:** /services\n` +
       `🔗 **Learn about us:** /about\n` +
-      `🔗 **View our projects:** /realisation\n` +
+      `🔗 **View our projects:** /our-work\n` +
       `🔗 **Get in touch:** /contact\n\n` +
       `${reachUsBlock(this.business)}\n\n` +
       `What else would you like to know about SarayaTech?`;
@@ -465,6 +477,7 @@ class ChatbotService {
         return this.generatePricingResponse();
 
       case "contact":
+      case "contact_channels":
         return this.generateContactResponse();
 
       case "booking":
@@ -542,7 +555,7 @@ class ChatbotService {
   public getSuggestedQuestions(): string[] {
     return [
       "What services do you offer?",
-      "Tell me about AI automation",
+      "Tell me about local SEO",
       "How much does a website cost?",
       "How can I contact you?",
       "What is your development process?",

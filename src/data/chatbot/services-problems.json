@@ -1,142 +1,57 @@
 {
   "services_solutions_map": [
     {
-      "category": "Website Development",
+      "category": "Website Design",
       "services": [
         {
-          "service_name": "Basic Brochure Website",
-          "problem_resolved": "Lack of online presence and credibility for small businesses; inability to be found by local customers.",
-          "target_audience": "Startups, Local Businesses, Consultants"
-        },
-        {
-          "service_name": "Corporate Website",
-          "problem_resolved": "Outdated brand image, poor lead generation, and inability to showcase complex service offerings effectively.",
-          "target_audience": "Mid-sized Companies, B2B Firms"
-        },
-        {
-          "service_name": "E-commerce Website",
-          "problem_resolved": "Limited sales channels (offline only), manual order processing, and inability to reach global customers.",
-          "target_audience": "Retailers, D2C Brands"
+          "service_name": "Website Design: Websites that win customers (/services/website-design)",
+          "problem_resolved": "No website or a slow one, so there is no online presence and nearby customers cannot find you; visitors leave without calling or booking, so a site that is not converting needs a clear next step on every page.",
+          "target_audience": "New or very small businesses, and businesses whose site is not converting visitors into calls and bookings"
         }
       ]
     },
     {
-      "category": "Mobile App Development",
+      "category": "App Development",
       "services": [
         {
-          "service_name": "Basic Mobile App",
-          "problem_resolved": "Lack of direct customer engagement channel and inability to offer mobile-first convenience.",
-          "target_audience": "Startups, Service Providers"
+          "service_name": "App Development: Booking systems and customer portals (/services/app-development)",
+          "problem_resolved": "Repetitive tasks done by hand, the same questions answered again and again, and customers who must call to find a time instead of booking online.",
+          "target_audience": "Small businesses with a process to automate"
         },
         {
-          "service_name": "Medium Complexity App",
-          "problem_resolved": "Inefficient user retention, lack of real-time customer interaction, and manual payment collection.",
-          "target_audience": "Growing Tech Companies, Marketplaces"
-        },
-        {
-          "service_name": "Enterprise Mobile App",
-          "problem_resolved": "Fragmented workforce communication, lack of secure mobile access to enterprise data, and poor field operational efficiency.",
-          "target_audience": "Large Enterprises, Logistics, Healthcare"
+          "service_name": "App Development: Mobile apps (/services/app-development)",
+          "problem_resolved": "No mobile access for customers or staff, and no way for customers to interact with the business or check their status from a phone.",
+          "target_audience": "Businesses whose customers or team need an app on their phone"
         }
       ]
     },
     {
-      "category": "AI Automation Solutions",
+      "category": "Local SEO",
       "services": [
         {
-          "service_name": "Basic Rule-Based Chatbot",
-          "problem_resolved": "High volume of repetitive customer support queries and delayed response times outside business hours.",
-          "target_audience": "Small Support Teams, E-commerce"
-        },
-        {
-          "service_name": "Standard AI Chatbot (NLP)",
-          "problem_resolved": "Customer frustration with rigid bot responses and inability to handle natural language variations.",
-          "target_audience": "Mid-market Customer Service"
-        },
-        {
-          "service_name": "Advanced AI Chatbot (LLM)",
-          "problem_resolved": "Inability to handle complex, multi-turn inquiries and need for support in multiple languages without hiring more staff.",
-          "target_audience": "Global Companies, Tech Support"
-        },
-        {
-          "service_name": "Enterprise AI Assistant",
-          "problem_resolved": "Disconnected internal knowledge bases, slow employee onboarding, and inefficient data retrieval.",
-          "target_audience": "Large Corporations, Knowledge-heavy Industries"
-        },
-        {
-          "service_name": "AI Email Automation",
-          "problem_resolved": "Low email open rates, generic messaging that fails to convert, and manual follow-up fatigue.",
-          "target_audience": "Marketing Teams, Sales Departments"
+          "service_name": "Local SEO: Get found on Google (/services/local-seo)",
+          "problem_resolved": "Poor visibility on Google: your business is not found online by nearby customers, your Google Business Profile is unclaimed or incomplete, and few customers leave reviews.",
+          "target_audience": "Local businesses that want nearby customers to find them first"
         }
       ]
     },
     {
-      "category": "Cloud System Services",
+      "category": "Social Media Marketing",
       "services": [
         {
-          "service_name": "Discovery & Roadmapping",
-          "problem_resolved": "Unclear digital strategy, wasted IT budget on ad-hoc fixes, and lack of alignment between tech and business goals.",
-          "target_audience": "CTOs, CIOs, Digital Transformation Leaders"
-        },
-        {
-          "service_name": "Cloud Migration (Lift-and-Shift / Replatforming)",
-          "problem_resolved": "High on-premise infrastructure costs, lack of scalability during peak loads, and hardware end-of-life risks.",
-          "target_audience": "Legacy Enterprises, Growing SaaS"
-        },
-        {
-          "service_name": "App Modernization (Microservices)",
-          "problem_resolved": "Slow feature release cycles due to monolithic codebases, high technical debt, and system fragility.",
-          "target_audience": "Software Companies, Banks, Insurance"
-        },
-        {
-          "service_name": "AWS Connect Call Center",
-          "problem_resolved": "Expensive legacy telephony hardware, lack of customer insights, and inability to scale support agents flexibly.",
-          "target_audience": "Call Centers, Customer Support Departments"
-        },
-        {
-          "service_name": "Managed Cloud Services",
-          "problem_resolved": "Internal team burnout from 24/7 maintenance, security vulnerabilities, and unpredictable cloud bills.",
-          "target_audience": "Companies without dedicated DevOps teams"
+          "service_name": "Social Media Marketing: Done for you (/services/social-media-marketing)",
+          "problem_resolved": "Social media keeps falling to the bottom of your list, so customer engagement is low and you rarely post; we plan, post and report monthly, and you always own your accounts.",
+          "target_audience": "Business owners with no time to post consistently"
         }
       ]
     },
     {
-      "category": "Specialized Solutions",
+      "category": "Paid Ads",
       "services": [
         {
-          "service_name": "AI-Powered Business Website",
-          "problem_resolved": "Website traffic not converting into leads due to lack of instant engagement and personalization.",
-          "target_audience": "Professional Services, High-ticket Sales"
-        },
-        {
-          "service_name": "Banking Tech MVP",
-          "problem_resolved": "Slow time-to-market for fintech ideas and high barrier to entry due to security/compliance complexity.",
-          "target_audience": "Fintech Startups, Neobanks"
-        },
-        {
-          "service_name": "Complete Digital Transformation",
-          "problem_resolved": "Organizational silos, manual paper-based processes, and inability to compete with digital-native competitors.",
-          "target_audience": "Traditional Industries (Manufacturing, Logistics)"
-        }
-      ]
-    },
-    {
-      "category": "Related Services",
-      "services": [
-        {
-          "service_name": "UI/UX Design",
-          "problem_resolved": "High user churn due to confusing interfaces and poor product usability.",
-          "target_audience": "Product Teams, Startups"
-        },
-        {
-          "service_name": "DevOps & Deployment",
-          "problem_resolved": "Frequent deployment failures, slow time-to-production, and \"works on my machine\" issues.",
-          "target_audience": "Development Teams"
-        },
-        {
-          "service_name": "SEO Services",
-          "problem_resolved": "Invisible to potential customers on search engines and high dependency on paid ads.",
-          "target_audience": "Marketing Managers, Business Owners"
+          "service_name": "Paid Ads: Track every ad dollar (/services/paid-ads)",
+          "problem_resolved": "Ad money spent with no way to see which ads generate leads, because calls and forms are not tracked.",
+          "target_audience": "Established small businesses already advertising, or ready to start on Google and Meta"
         }
       ]
     }
