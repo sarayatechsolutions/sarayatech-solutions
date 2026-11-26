@@ -1,0 +1,1403 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "security",
+  "verdict": "pass",
+  "reviewer": "security-engineer",
+  "at": "2026-11-26T14:41:55Z",
+  "first_pass_at": "2026-11-25T10:18:11Z",
+  "head": "123159f433edcfa27dfe151e1bb3fdd4eeb7de28",
+  "head_commit": "123159f433edcfa27dfe151e1bb3fdd4eeb7de28",
+  "base": "71bf12c3f2710fb63b983390367b9967966d9211 (integrate/s2), reviewed PASS in .vantry/reviews/integrate-s2.security.json.",
+  "reviewed_tree_digest": "b1e6e947823daefae6270b606246b60797a0b1bfe6a5ab7de2037f063c108223",
+  "scope": "Delta 71bf12c..working-tree: committed 71bf12c..f4e4093 (14 commits: STS-033 pricing, STS-034 free audit, STS-035 our work, STS-037 privacy/terms, STS-040 insights, the seo.ts env fix), plus staged, unstaged and untracked work (STS-046 FinalCta/TrustSlot and trust.ts, STS-056 careers, STS-057 /realisation -> /our-work, NotFound test, chatbot.routes.test.ts). ADDENDUM: STS-041 (the a11y pass) was integrated after the first pass. On the final tree, 37 files are staged, 1 is unstaged (src/pages/Careers.tsx) and 9 are untracked, excluding this verdict. That makes 67 delta files, exactly the 61 from the first pass plus the 6 STS-041 additions: src/index.css, src/components/home/HeroSection.tsx, src/design/contrast.ts, src/design/contrast.test.ts, src/design/motion-focus.test.ts and src/a11y.test.tsx. STS-041 also modified Contact.tsx, FreeAudit.tsx, AminaChatbot.tsx, NotFound.tsx and Careers.tsx, which were already in the delta. ADDENDUM 2 (integration teaser fix, none of it on a sensitive path): src/components/home/PackagesTeaser.tsx and src/components/home/ProofTeaser.tsx change one Button className each (to 'text-lg px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto'). The Link destinations PRICING_PATH and PROOF_PATH are unchanged. src/a11y.test.tsx gains a test-only describe block ('home teaser calls to action fit a 320 px screen'), and DECORATIVE_SVG_GAPS is now an empty Set. The unstaged Careers.tsx change is still aria-hidden on 4 icons only. The delta is now 68 files: the 67 above plus ProofTeaser.tsx (PackagesTeaser.tsx was already in the delta). Static SPA on Cloudflare Pages. The backend is out of scope.",
+  "sensitive_paths_hit": [
+    "public/_redirects",
+    "src/pages/Contact.tsx",
+    "src/services/chatbot.service.ts",
+    "src/services/chatbot.routes.test.ts"
+  ],
+  "sensitive_paths_not_hit": "vendor/**, auth globs, public/_headers, index.html, vite.config.ts, package.json, package-lock.json and .github/workflows/** have no change in the delta (git diff 71bf12c --stat on those paths is empty).",
+  "precondition": "NOT run by the reviewer. The orchestrator instructed the reviewer not to run scripts/verify.sh, because it owns verification and another agent may hold port 4173. This verdict covers only the tree identified by reviewed_tree_digest. It does not replace the verification receipt: the orchestrator must still produce a passing receipt for this same tree. The reviewer ran the targeted vitest suites listed under tests_executed_by_reviewer. The reviewer did not build dist, so the bundle-level greps from the s2 review were not repeated. ADDENDUM 7: same arrangement (scripts/verify.sh not run by the reviewer, by instruction). This time the reviewer did inspect the orchestrator-built dist/ read-only (receipt run 15:47:08Z) and repeated the bundle-level greps. ADDENDUM 8: re-review covers only the A7-2 fix delta (src/lib/links.ts, chatbot/links.ts re-export, blog.ts, PostBody.tsx, their tests, docs/ops/analytics.md, docs/ops/owner-content.md); any further edit makes 8c6ca032 stale and requires a new addendum. ADDENDUM 9: covers only the A8-1 fix delta (src/content/insights/blog.ts, src/content/insights/blog.test.ts); any further edit makes 381d04b0 stale and requires a new addendum.",
+  "threat_model": "none. docs/security/ does not exist in this worktree. Carried-over INFO; this delta adds a second PII lead form (/free-audit), which makes the gap larger.",
+  "checklist": [
+    "data-authz",
+    "privileged-credential",
+    "boundary-validation",
+    "secrets-pii",
+    "webhooks",
+    "storage",
+    "headers-csp",
+    "ai-context",
+    "owasp-top-10"
+  ],
+  "evidence": {
+    "data-authz": "N/A. No database, table, policy or query in the delta. New routes (src/routes.tsx) are public static pages only: /pricing, /free-audit, /our-work (replaces /realisation), /privacy and /terms. /auth and /dashboard are still unrouted, and App.routes.test.tsx passes. No access-control change, so no allow/deny test is due.",
+    "privileged-credential": "No new env read. Every live read in src and tools: VITE_API_URL (contact-submit.ts:96, openai.service.ts:45) and VITE_SITE_URL (seo.ts:24, now in the static form). VITE_OPENAI_API_KEY is read nowhere. A grep of the added lines and the untracked files for sk-, AKIA, AIza, ghp_ and whsec_ found nothing.",
+    "boundary-validation": "Contact.tsx changes are presentational only: FormPrivacyNote replaces the 'never shared' line (:442), and TrustSlot is added (:473). handleSubmit and submitContact are unchanged. The new /free-audit form (FreeAudit.tsx) posts through submitAudit -> postLead (contact-submit.ts:85-124) to the same ${VITE_API_URL}/api/contact. It reuses the existing response handling: 429 -> fixed message; 400/422 -> the server message, at most 200 chars, rendered as React text; anything else -> a fixed message. Client checks (required fields, EMAIL_RE, normalizeWebsite allowing only http/https with a dotted host, maxLength, honeypot) are UX only. The server must re-validate; see the INFO finding.",
+    "secrets-pii": "The audit form keeps PII in component state only and resets it on success (FreeAudit.tsx:98). No console logging of form or chat content was added. The only console calls in src/services are pre-existing and log intent ids/scores or a failure class (chatbot.service.ts:158, :408). Live code writes nothing to localStorage, sessionStorage or cookies: the only document.cookie is src/components/ui/sidebar.tsx:68, and no file imports it. googleReviews is null (business.ts:78). verifiedGoogleReviews (business.ts:138) returns null unless rating is 1-5, count is an integer of at least 1, and the url is https. No aggregateRating appears anywhere. The trust slot (trust.ts proofItems) is built only from serviceAreaText, the live allow-listed PROOF.projects (BMV INSPECTION, MIMAP, ASTA) and a generic 'one team' line. Nothing is fabricated: no testimonial, count, years in business or guarantee. The legal drafts contain no compliance claim; LEGAL_FORBIDDEN_PHRASES is enforced in smoke.",
+    "webhooks": "N/A. A static SPA has no webhook receiver.",
+    "storage": "N/A. There is no upload or object-storage access.",
+    "headers-csp": "public/_headers, index.html and vite.config.ts are unchanged in the delta. tests/headers.test.mjs passes 5/5. The CSP is still Report-Only (accepted risk, carried over). No new third-party origin is loaded. The new outbound links are user-navigated anchors, not resources.",
+    "ai-context": "chatbot.service.ts changes only fixed link paths in canned local replies (/solutions -> /services, /realisation -> /our-work). They add no prompt, user data or new request. chatbot.routes.test.ts (3/3) proves that every local reply and every intent keyword links only to prerendered routes. The chat privacy notice (AminaChatbot.tsx) now names the processor and links /privacy with target=_blank rel=noopener noreferrer. The classifyHref link policy (links.test.ts 45/45) is unchanged.",
+    "addendum_sts041": "Reviewed the final-tree diffs of every STS-041 file. Contact.tsx (sensitive): the form gains id/aria-labelledby/aria-describedby, a visible 'Fields marked with * are required.' note, asterisks wrapped in <span aria-hidden>, and id='contact-form-error' on the existing alert. onSubmit={handleSubmit} is only reformatted across lines. handleSubmit, the honeypot, the field limits and submitContact are untouched, so the submit path is unchanged. FreeAudit.tsx: the same ARIA pattern, a className 'aria-[invalid=true]:border-destructive' added to common(), and data-field-error on the error text. handleSubmit, validate, normalizeWebsite and submitAudit are unchanged. AminaChatbot.tsx: classes, aria-hidden on icons, data-chat-* markers and sizing only. No change to message handling, MarkdownRenderer use or the link policy, and the privacy link keeps target=_blank rel=noopener noreferrer. HeroSection.tsx and NotFound.tsx: classes only (the destinations are the same constants, bookingHref(), PROOF_PATH and '/'). Careers.tsx: aria-hidden on icons only. src/index.css: added lines contain no url(), @import, content: or external origin. Its only reference to src/design/contrast.ts is a comment. src/design/contrast.ts has no imports, no DOM, no env and no network access, and nothing in src imports it at runtime. The new test files hold only tests. A grep of the STS-041 files for dangerouslySetInnerHTML, innerHTML, document.write, eval, new Function, import.meta.env, storage, cookies, console.log and secret patterns found none.",
+    "owasp-top-10": "Open redirect: public/_redirects adds '/realisation /our-work 301' and '/realisation/* /our-work 301'. Both have a fixed same-origin target, with no :placeholder, no :splat substitution, no scheme or host. A reviewer parser (scratchpad redir-check3.mjs) found 14 rules, problems [], no target that is itself a source, and no shadowing of 26 live or asset paths (including /our-work, /our-work/, /privacy, /terms, /free-audit, /pricing, /api/*, /assets/*, /images/*, /_headers). No public asset lives under /realisation (images are under /images/). Hostile inputs /realisation/https://evil.example, //evil.example, /%2f%2fevil.example, /x?next=//evil.example and /..%2f..%2fevil all map to the constant /our-work. tests/redirects.test.mjs passes 12/12. XSS: the only dangerouslySetInnerHTML in src is still components/ui/chart.tsx:70 (unused, unchanged). The delta adds no innerHTML, document.write, eval or new Function. Tabnabbing: every new target=_blank has rel=noopener noreferrer (FormPrivacyNote.tsx, AminaChatbot.tsx privacy link, Realisation.tsx:71-73, FinalCta.tsx:96-98). The Realisation hrefs come from build-time data/realisations.json, all https. The TrustSlot external href exists only when verifiedGoogleReviews passes its https check, and it is null today. CtaLink and Link destinations are build-time constants (bookingHref(), FREE_AUDIT_PATH, WORK_PATH, /contact), never user input. NotFound now uses <Link to='/'>, a constant. Dependencies: package.json and package-lock.json are unchanged."
+  },
+  "prior_findings_status": [
+    {
+      "id": "integrate-s2 LOW src/seo/seo.ts:21 import.meta.env?. optional chaining",
+      "status": "closed",
+      "proof": "Fixed in 5fc3569: seo.ts:24 is now import.meta.env.VITE_SITE_URL (static form). seo.test.ts asserts the static form in source (passes, 28/28). Not re-proved at bundle level, because the reviewer did not build dist. The owner action to delete VITE_OPENAI_API_KEY from the Cloudflare Pages environment is still open (see accepted_risks)."
+    },
+    {
+      "id": "integrate-s2 INFO vite.config.ts:15 preview existsSync oracle",
+      "status": "open",
+      "proof": "vite.config.ts is unchanged in the delta. Re-listed below."
+    },
+    {
+      "id": "integrate-s2 INFO openai.service.ts:54 backend obligations for /api/chat",
+      "status": "open",
+      "proof": "Backend repo, out of scope. Re-listed below."
+    },
+    {
+      "id": "integrate-s2 INFO tools/require-api-url.ts:8 localhost accepted in production build",
+      "status": "open",
+      "proof": "Unchanged in the delta. Re-listed below."
+    },
+    {
+      "id": "integrate-s2 INFO no threat model",
+      "status": "open",
+      "proof": "docs/security/ is absent. Re-listed below."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "info",
+      "file": "src/lib/contact-submit.ts",
+      "line": 85,
+      "introduced_by_this_diff": true,
+      "summary": "New: the /free-audit form posts a second payload shape (leadType 'audit', website, source) to /api/contact via submitAudit. All client-side checks in FreeAudit.tsx:16-56 can be bypassed by a direct POST. If the backend accepts the payload loosely, or later fetches the submitted website to automate the audit, an attacker can supply an internal URL (for example http://169.254.169.254.x or an internal host): SSRF. Mail-header or HTML injection is also possible if the fields are interpolated into the notification email. The backend was not reviewed here, so whether it handles this shape correctly cannot be determined.",
+      "fix": "Backend (out of this repo): a Zod discriminated union on leadType ('contact'|'audit'). For audit: website z.string().url().max(300) with a protocol in [http, https]; source z.enum(['google','referral','social','ads','other']).optional(); the same name/email/phone/company/message limits as CONTACT_LIMITS; reject unknown keys (.strict()); honeypot non-empty -> silent 200. Never fetch `website` server-side without an SSRF guard (resolve, deny private/link-local/loopback ranges, no redirects). HTML-escape every field in the notification email.",
+      "recommendation": "Verify in the backend review before /free-audit receives production traffic.",
+      "addendum_3_status": "partially addressed: source enum enforced FE :104 and BE lib/validation.ts:148; SSRF/mail-escaping remain backend-owned; see addendum_3.findings[1]."
+    },
+    {
+      "severity": "info",
+      "file": "src/content/legal/privacy.ts",
+      "line": 170,
+      "introduced_by_this_diff": true,
+      "summary": "New: the privacy draft states backend security controls as fact. :170 says the server refuses cross-site form/chat requests, validates every field and rate-limits. :97 says chat bodies are never stored or logged. :117 says logs contain no name, email, message or IP. The frontend-side claims were checked and hold: no cookies or web storage in live code (sidebar.tsx:68 is unreachable), the chat history is capped at 10 (openai.service.ts:27, :69), and browser logs carry no message content. The backend claims are cited to BE commit ae4a9c5 but cannot be verified from this repo. A published security or privacy statement that is false is a deceptive-practice exposure. The drafts are noindex (LEGAL_PAGES_APPROVED = false, legal.ts:23), but every form and the chat already link to them.",
+      "fix": "Before C23 flips LEGAL_PAGES_APPROVED to true, the backend security reviewer checks each F1-F10 citation in privacy.ts:5-30 against the deployed backend commit and records the result in the backend verdict. Any claim not backed by code is reworded or removed.",
+      "recommendation": "Gate C23 approval on it. It does not block this PR.",
+      "addendum_3_status": "open: F4/F5 citations now point at the Next.js backend (lib/abuse.ts, lib/rate-limit.ts) and match that code, but that code is uncommitted in wt-be-next; see addendum_3.findings[0]. The security claim formerly at :170 is now at :184."
+    },
+    {
+      "severity": "info",
+      "file": "vite.config.ts",
+      "line": 15,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over, unchanged. The preview middleware calls existsSync on an un-normalised req.url, which reveals whether a directory exists outside dist. It runs only in the local preview, bound to localhost.",
+      "fix": "Resolve the path against distDir and require target.startsWith(distDir + path.sep) before calling existsSync.",
+      "recommendation": "Optional hardening."
+    },
+    {
+      "severity": "info",
+      "file": "src/services/openai.service.ts",
+      "line": 54,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over. The backend must treat client `history` as untrusted, rate-limit and token-cap /api/chat, and keep retired unverified facts out of the system prompt and knowledge base. The frontend side is unchanged in this delta.",
+      "fix": "Backend review of /api/chat covering Zod validation, the role allowlist, caps, the rate limit and a prompt/KB grep for 2765, 783-0443, calendly and info@.",
+      "recommendation": "Track in the backend repo before enabling chat in production."
+    },
+    {
+      "severity": "info",
+      "file": "tools/require-api-url.ts",
+      "line": 8,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over. A production build accepts http://localhost as VITE_API_URL, and build:verify injects http://localhost:3001. If the Cloudflare build command were ever build:verify, the live site would POST contact, audit and chat data to the visitor's own localhost.",
+      "fix": "Keep the Cloudflare build command as `npm run build`. Optionally reject localhost when CF_PAGES === '1'.",
+      "recommendation": "Note in the deploy runbook."
+    },
+    {
+      "severity": "info",
+      "file": "docs/security/threat-models",
+      "line": 0,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over. No threat model exists, and docs/security/ is absent. This delta adds a second PII-collecting form (/free-audit) to the contact and AI chat boundaries that are already live.",
+      "fix": "Run /threat-model for the lead-capture (contact + audit) and chat boundary.",
+      "recommendation": "Before the backend chat goes live."
+    },
+    {
+      "severity": "info",
+      "file": "src/content/legal/privacy.ts",
+      "line": 90,
+      "introduced_by_this_diff": true,
+      "status": "open (non-blocking, gate on C23)",
+      "summary": "The F4 copy is accurate for the backend tree read, but it is backed only by an UNCOMMITTED Next.js migration in wt-be-next (git status shows index.js and src/*.js deleted, not yet committed or deployed). If the frontend ships before that backend is deployed, the published draft describes eviction behaviour the live backend may not have. Precision: the two hash sets are swept independently. The 24 h auto-reply code is swept only when a later submission reaches the auto-reply check (a non-duplicate whose staff email succeeded, lib/services/contact.ts:79-92). A later duplicate, invalid or failed-send submission does not sweep it. The copy ('the next time our server checks a new form submission against these codes') holds only if 'these codes' is read per set. Also, 'one-way scrambled code' is an unsalted SHA-256 of the email (lib/abuse.ts:15-17), so anyone holding memory can confirm a guessed address. That is not false, but it is weaker than the wording suggests.",
+      "fix": "Before C23 flips LEGAL_PAGES_APPROVED: (1) the backend security reviewer re-verifies F1-F10 against the DEPLOYED backend commit, not the working tree, and records it in the backend verdict. (2) Optionally tighten privacy.ts:90 to: 'When that time is up, the code is no longer used, and it is deleted the next time our server performs that same check for a later form submission.' (3) Optionally key the BE hashes with an HMAC secret (hashKey -> createHmac('sha256', config.abuseKeySecret)) so in-memory codes cannot be confirmed by guessing.",
+      "addendum": 3
+    },
+    {
+      "severity": "info",
+      "file": "src/lib/contact-submit.ts",
+      "line": 104,
+      "introduced_by_this_diff": true,
+      "status": "partially addressed",
+      "summary": "Updates the addendum-1 INFO at contact-submit.ts:85. The source enum is now enforced on both sides: the client at :104-106 before fetch, and the backend at BE lib/validation.ts:148 with a CONTACT_KEYS allow-list (:103). Still open and backend-owned: SSRF safety if the backend ever fetches the submitted website, and HTML escaping in the notification mail. Neither can be settled from this repo.",
+      "fix": "Backend review on the deployed commit: website restricted to http/https with a length cap, never fetched without an SSRF guard (resolve, deny private, link-local and loopback ranges, no redirects), and every field HTML-escaped in lib/mail templates.",
+      "addendum": 3
+    },
+    {
+      "severity": "low",
+      "file": "src/lib/analytics.ts",
+      "line": 122,
+      "introduced_by_this_diff": true,
+      "addendum": 4,
+      "status": "open (dormant: GA4 id is null; only reachable after Accept)",
+      "summary": "gtag('config') at :122-128 sets no page_location, and nothing calls gtag('set', ...) on navigation. Only page_view (trackPageView :168-176) carries an explicit origin+path page_location. gtag.js fills page_location / dl from document.location.href for every other event (generate_lead, cta_click, contact_click) and for GA4 Enhanced Measurement events, which are on by default for a new web stream. So the full URL, including query string and fragment, reaches Google. Attack or leak: an inbound link such as /contact?email=victim@x.com&token=... (an email-campaign merge field, a mistyped mailto, a CRM link), followed by a CTA click or a successful submit, sends that query to GA4. This contradicts the privacy ON-state promise ('we never send it your name, email address...', privacy.ts cookieBullets) and the runbook's 'no query string' claim (docs/ops/analytics.md section 2). The dataLayer itself is clean (reviewer probe: 0 PII hits). The leak is gtag.js's documented default URL collection, inferred from that behaviour and not executed, because no Google host was contacted.",
+      "fix": "In loadGtag, add page_location to the config: gtag('config', id, { ..., send_page_view: false, page_location: `${window.location.origin}${window.location.pathname}` }). In trackPageView, call window.gtag('set', { page_location: `${window.location.origin}${path}`, page_referrer: '' }) before the page_view event, so later custom events on that route inherit the stripped URL. Add a test: with location ?email=x#t, every dataLayer 'config'/'set' entry carries a page_location without '?' or '#'. Add to docs/ops/analytics.md section 1, as an owner step: in GA4 Admin > Data streams > Enhanced measurement, turn off 'Page changes based on browser history events', 'Site search' and 'Form interactions' (or turn Enhanced measurement off). Must be closed before C17 sets an id."
+    },
+    {
+      "severity": "info",
+      "file": "src/components/ConsentBanner.tsx",
+      "line": 1,
+      "introduced_by_this_diff": true,
+      "addendum": 4,
+      "status": "open (dormant; listed in docs/ops/analytics.md section 7)",
+      "summary": "Once a choice is made, nothing on the site lets a visitor withdraw it. setConsent('denied') after a grant (analytics.ts :151) only sends a consent update, and the existing _ga cookies stay. The privacy ON text is truthful: it tells visitors to clear the site's data, which removes both the storage key and the cookies. But GDPR Art. 7(3) requires withdrawal to be as easy as giving consent.",
+      "fix": "Before C17, for EU/UK traffic: add a 'Cookie settings' link (footer and /privacy) that clears CONSENT_STORAGE_KEY and re-shows the banner. On a 'denied' choice after a grant, delete the _ga and _ga_<id> cookies for the registrable domain."
+    },
+    {
+      "severity": "info",
+      "file": "src/lib/analytics.ts",
+      "line": 170,
+      "introduced_by_this_diff": true,
+      "addendum": 4,
+      "status": "accepted (no route carries user data in its path today)",
+      "summary": "page_path is the raw react-router pathname, including an unmatched 404 path. A mistyped URL such as /contact/bob@x.com would be sent. Low impact, because no route puts user data in its path.",
+      "fix": "Optional: on the NotFound route, send page_path '/404' instead of the pathname."
+    },
+    {
+      "id": "A7-1",
+      "severity": "info",
+      "file": "src/lib/analytics.ts",
+      "line": 208,
+      "introduced_by_this_diff": true,
+      "addendum": 7,
+      "status": "open (info; dormant while GA4 id is null; owner fallback documented at docs/ops/analytics.md:132-138, addendum 8)",
+      "summary": "ga-disable-<id> is set on Decline, i.e. after gtag() has already been called. Google's documentation (developers.google.com/tag-platform/security/guides/privacy) says the property 'must be set before any calls to gtag() are made', while also saying the tag checks it before setting a cookie or sending data. So stopping gtag.js's own automatic events (Enhanced-measurement scroll/outbound click, user_engagement) after a same-page withdrawal is expected but not promised by Google, and was not executed against a Google host. The site's own sends are provably stopped (consentGranted), the Consent Mode denied update is sent, cookies are expired, and after a reload nothing loads, so the worst case is the cookieless-ping residual already described in A6-1, until the next page load.",
+      "fix": "No code change required now. Before C17 the owner must run docs/ops/analytics.md step 6.2 and confirm in DevTools that no collect request follows a same-page Decline (scroll included). If one is observed: either turn off 'Scrolls' and 'Outbound clicks' in Enhanced measurement (the site does not need them), or make a Decline that follows an earlier Accept call window.location.reload() after storing 'denied', so gtag.js is gone."
+    },
+    {
+      "id": "A7-2",
+      "severity": "low",
+      "file": "src/components/blog/PostBody.tsx",
+      "line": 22,
+      "introduced_by_this_diff": true,
+      "addendum": 7,
+      "status": "closed (fixed in addendum 8 delta; PostBody.tsx:21 -> blog.ts:112 postLinkTarget; reviewer probe 48 hrefs, 0 dangerous renders)",
+      "summary": "InlineText renders any href that does not start with '/' as <a href={href}> with no scheme check (:16-25), and anything starting with '/' through <Link> (:17-20), so '//host' becomes an off-site link. publishBlockers (src/content/insights/blog.ts:101-110) does not reject a link scheme, and the only link test (src/content/insights/blog.test.ts:107-108) checks hrefs that start with '/'. Executed probe (vite-node a7-postbody-probe.tsx): '[a](javascript:alert(1))' and '[b](JaVaScRiPt:...)' render <a href=\"javascript:...\" target=\"_blank\">, '[c](data:text/html,...)' renders a data: href, '[d](//evil.example/x)' renders href=\"//evil.example/x\"; and a post containing the javascript: link is isPublishable()=true. React 18.3 only warns on javascript: URLs, and the CSP is Report-Only (public/_headers), so neither is a backstop. The input is repo-authored content behind owner approval and code review, not visitor input, hence LOW: the scenario is a pasted link from a draft or an AI-assisted rewrite that a reviewer misses, producing a script URL or an off-site link on a prerendered page. The site already owns the correct policy for untrusted text (src/components/chatbot/links.ts classifyHref).",
+      "fix": "In PostBody.tsx InlineText, classify every node.href with classifyHref (move src/components/chatbot/links.ts to a shared module, e.g. src/lib/links.ts, and import it from both): 'internal' -> <Link to={target.href}>, 'external' -> keep the new-tab <a> but allow only https: (reject http: and protocol-relative for posts), 'text' -> render node.text as plain text. Add to publishBlockers in blog.ts: for each linkTargets(post) value, push 'link target is not an internal path or an https URL' unless classifyHref gives internal, or external with protocol https:. Add blog.test.ts cases asserting that javascript:, data:, '//host' and 'http://' links make a post unpublishable and render as text in InlineText. Must land before the first post's APPROVED flag is set."
+    },
+    {
+      "id": "A8-1",
+      "severity": "info",
+      "file": "src/content/insights/blog.ts",
+      "line": 152,
+      "introduced_by_this_diff": false,
+      "status": "closed (fixed in addendum 9 delta; blog.ts:157-159 linkTargets built from parseInline; reviewer probe 13 mismatch strings, 0 disagreements)",
+      "summary": "The publish gate extracts link targets with its own regex /\\]\\(([^)\\s]+)\\)/g (linkTargets, :150-154) instead of the renderer's tokenizer (parseInline, :163). They disagree on overlapping brackets: for the text '](/ok[a](javascript:alert)' linkTargets returns ['/ok[a](javascript:alert'], which classifies internal, so publishBlockers is empty and the post publishes, while parseInline renders a link to 'javascript:alert'. The renderer's postLinkTarget turns that into plain text (probe output '](/oka', no <a>), so nothing dangerous reaches the DOM; the effect is that the gate can pass a post whose link silently degrades to text, and the gate is weaker than the docs (owner-content.md:36-37) say.",
+      "fix": "Derive linkTargets from the renderer: visibleText(post).flatMap(t => parseInline(t).filter(n => n.type === 'link').map(n => n.href)). Add '](/ok[a](javascript:alert)' to the rejected list in blog.test.ts so the gate and the renderer are proved to agree.",
+      "addendum": 8
+    }
+  ],
+  "accepted_risks": [
+    "All accepted risks from develop.security.json, 1592f18 and integrate-s2 carry over unchanged. They include the unrotated, previously exposed OpenAI key and the owner action to remove VITE_OPENAI_API_KEY from the Cloudflare Pages environment (human action, still open). They also include the dev/test-only dependency advisories, the react-router moderate advisories (mitigated by classifyHref), the CSP in Report-Only mode, and the dead Auth, Dashboard, chart and sidebar files.",
+    "The unverified Calendly URL is still an inert config string (booking.verified=false), never rendered or linked.",
+    "/our-work lists iSaraya (isarayas.com) with an in-code 'OWNER REVIEW (C11)' note. This is not new (the base Realisation page listed every active entry) and it is a content-ownership question, not a security one. The trust slot excludes iSaraya through PROOF.projects."
+  ],
+  "tests_executed_by_reviewer": {
+    "commands": [
+      "git -C wt-fe-s2-int status / rev-parse / log 71bf12c..HEAD / diff 71bf12c --stat / ls-files --others --exclude-standard",
+      "npx vitest run src/services tests/redirects.test.mjs src/pages/Contact.test.tsx src/pages/FreeAudit.test.tsx src/components/FinalCta.test.tsx src/components/FinalCta.sitewide.test.tsx src/components/FormPrivacyNote.test.tsx src/components/chatbot src/config src/seo src/pages/Legal.test.tsx src/routes.dead-controls.test.tsx src/linkCrawl.test.tsx src/App.routes.test.tsx tests/headers.test.mjs => 21 files, 295/295 pass (includes chatbot.routes.test.ts 3/3, redirects 12/12, headers 5/5, links 45/45)",
+      "node scratchpad/redir-check3.mjs public/_redirects => 14 rules, problems [], 6 hostile inputs all -> /our-work",
+      "ADDENDUM on the final tree (after STS-041): git diff --cached / git diff on the STS-041 files; npx vitest run src/pages/Contact.test.tsx src/pages/FreeAudit.test.tsx src/components/chatbot src/services src/a11y.test.tsx src/design src/pages/NotFound.test.tsx src/pages/Careers.test.tsx tests/redirects.test.mjs tests/headers.test.mjs src/components/FormPrivacyNote.test.tsx src/App.routes.test.tsx => 18 files, 348/348 pass. public/_redirects is unchanged by STS-041, so the redirect parser result stands.",
+      "ADDENDUM 2 on the final tree (after the teaser fix): git diff HEAD on PackagesTeaser.tsx and ProofTeaser.tsx, git diff on Careers.tsx, a grep of src/a11y.test.tsx; npx vitest run src/a11y.test.tsx src/pages/Index.test.tsx src/pages/Careers.test.tsx => 3 files, 164/164 pass.",
+      "greps over the added lines and the untracked files for HTML sinks, env reads, secrets, storage, console, href/target/rel; a whole-src grep for VITE_* reads, dangerouslySetInnerHTML, storage and cookies"
+    ],
+    "not_run": "scripts/verify.sh (orchestrator-owned, by instruction). No dist build, so no bundle-level secret or env grep for this delta."
+  },
+  "verdict_rationale": "The delta introduces no critical, high, medium or low finding. public/_redirects adds two fixed 301s to the same-origin /our-work, with no placeholder, splat substitution or scheme, and shadows no live route or asset, so it is not an open redirect. Contact.tsx changes are presentational and leave the reviewed submit path untouched. chatbot.service.ts changes only constant link paths, and the new test proves that every local reply links to a live route. The new /free-audit PII form reuses the reviewed submitter and endpoint, and stores, logs and echoes nothing. Every new target=_blank carries rel=noopener noreferrer. No new env var is read, VITE_OPENAI_API_KEY is read nowhere, and googleReviews stays null with no fabricated trust claim. The prior LOW (seo.ts optional chaining) is closed. Two new INFO items are backend obligations that this repo cannot settle (audit payload validation and SSRF; the backend claims in the privacy draft). Four INFO items carry over. The STS-041 addendum changes markup, ARIA, classes and CSS tokens only. It touches no submit path, endpoint, link destination, env read or HTML sink, so the verdict is unchanged and no finding is added. The same holds for the integration teaser fix (two className changes and one test block). This pass holds only for the final-tree reviewed_tree_digest (654bce68...) and only together with the orchestrator's passing verification receipt for that same tree. ADDENDUM 3 (tree f911348b..., the current receipt's tree_digest): PASS, no finding at medium or above. See addendum_3. ADDENDUM 4 (2026-11-25T12:24:00Z): PASS. The analytics module is off today (id null) and fails closed. The id cannot inject, nothing loads or is stored before Accept, the dataLayer carries only enum values, the submit logic is unchanged apart from success-only tracking, there are no XSS sinks and no prerendered markers, and the CSP is untouched. The one LOW is a pre-activation item, not a merge blocker: gtag.js's default URL collection on custom events. It is not exploitable while the id is null, and it must be closed before C17 sets an id, together with the withdrawal INFO. ADDENDUM 5 (2026-11-25T13:05:00Z): PASS, no finding at medium or above. One dormant pre-activation LOW (A5-1, collection after withdrawal) and four INFO items. See addendum_5. ADDENDUM 6 (2026-11-25T13:20:00Z): PASS. A5-1 to A5-5 are closed, nothing at low or above remains open, and one dormant INFO (A6-1) is recorded. See addendum_6. ADDENDUM 7 (2026-11-25T16:10:00Z, tree 929ecb06...): PASS, no finding at medium or above. STS-076 closes A6-1 in code (residual INFO A7-1, owner-observed at C17); STS-077 chatbot routing is safe; owner-gated drafts are absent from bundle, HTML and sitemap; _redirects rules unchanged. One dormant LOW (A7-2, PostBody link-scheme allow-list) must be fixed before the first post is approved. See addendum_7. ADDENDUM 8 (A7-2 fix re-review): A7-2 is fixed at the render point, where it matters, and proven by executed deny and allow cases; the classifier move is a byte-identical relocation behind a re-export, so chatbot link handling is unchanged; no sensitive path is touched. The one new observation (A8-1) is a gate/renderer tokenizer mismatch with no dangerous output. Pass on 8c6ca032. ADDENDUM 9 (A8-1 fix re-review): A8-1 is fixed: the publish gate now reads links with the renderer's own parser, so the two cannot disagree, and the executed probe and the new tests show it. Only blog.ts and blog.test.ts changed; no sensitive path is touched; no new finding. Pass on 381d04b0. ADDENDUM 14 (commit binding + A13-1 fix): the uncommitted tree is now 7 commits 2b93c20..123159f on f4e4093. The 5 sensitive files in the range (public/_redirects, src/pages/Contact.tsx, src/services/chatbot.service.ts, chatbot.service.test.ts, chatbot.routes.test.ts) are exactly the union already reviewed in addenda 3-12, and none was written after the addendum-13 review. Only privacy.ts, Legal.test.tsx and owner-content.md changed after it. A13-1 is closed. gitleaks found no secret in the 7 commits. Nothing above LOW is open. Pass on b1e6e947 at 123159f.",
+  "reviewed_tree_digest_basis": "71bf12c..working-tree ADDENDUM 4: this is the tree_digest of the verification receipt .vantry/receipts/integrate-s3.verify.json (verdict pass, created_at 2026-11-25T12:12:30Z, head f4e40938, computed by scripts/verify.sh over its 215-file list, which does not include this verdict file). It was CURRENT per scripts/verify.sh --status before and after this review was written. If --status reports the receipt stale, the tree changed after this review and this verdict does not cover it. ADDENDUM 5: now the tree_digest of the receipt .vantry/receipts/integrate-s3.verify.json (verdict pass, created_at 2026-11-25T12:48:38Z, head f4e40938, 221 non-trivial files, this verdict file excluded). It was CURRENT per scripts/verify.sh --status before and after this review. If --status reports it stale, this verdict does not cover the tree. ADDENDUM 6: now the tree_digest of the receipt .vantry/receipts/integrate-s3.verify.json (verdict pass, created_at 2026-11-25T13:09:45Z, this verdict file excluded). It was CURRENT per scripts/verify.sh --status before this review. ADDENDUM 7: now the tree_digest of the receipt .vantry/receipts/integrate-s3.verify.json (verdict pass, created_at 2026-11-25T15:47:08Z, head f4e40938, 241 files, this verdict file excluded), read with jq. No working-tree file is newer than that receipt (find -newer, excluding node_modules/.git/dist/dist-ssr/.vantry). The reviewer did not run scripts/verify.sh or --status. If --status reports the receipt stale, this verdict does not cover the tree. ADDENDUM 8: receipt tree_digest (scripts/verify.sh) 8c6ca032..., created_at 2026-11-25T16:23:16Z, steps 0-3 exit 0; reviewer confirmed no file under src/, docs/, public/ newer than the receipt. ADDENDUM 9: receipt tree_digest (scripts/verify.sh) 381d04b0..., created_at 2026-11-25T16:44:37Z, steps 0-3 exit 0; reviewer confirmed no file under src/, docs/, public/ newer than the receipt. ADDENDUM 10: receipt tree_digest (scripts/verify.sh) c4bd82d7..., created_at 2026-11-25T20:59:13Z, head f4e40938, steps 0-3 exit 0; scripts/verify.sh --status reported CURRENT before and after the review; the reviewer did not run scripts/verify.sh. ADDENDUM 11: receipt tree_digest (scripts/verify.sh) c6865d74..., created_at 2026-11-25T21:48:48Z, head f4e40938, steps 0-3 exit 0; scripts/verify.sh --status reported CURRENT; no FE file newer than the receipt; the reviewer did not run scripts/verify.sh. ADDENDUM 12: receipt tree_digest (scripts/verify.sh) 64655f4b..., created_at 2026-11-26T12:56:52Z, head f4e40938, steps 0-3 exit 0; scripts/verify.sh --status reported CURRENT before and after the review; no FE file newer than the receipt; the reviewer did not run scripts/verify.sh. Supersedes c6865d74... (addendum 11). ADDENDUM 13: receipt tree_digest (scripts/verify.sh) b566d2c4..., created_at 2026-11-26T13:44:31Z, head f4e40938, steps 0-3 exit 0; scripts/verify.sh --status reported CURRENT before and after the review; no FE file newer than the receipt; the reviewer did not run scripts/verify.sh. Supersedes 64655f4b... (addendum 12). ADDENDUM 14: receipt tree_digest (scripts/verify.sh) b1e6e947..., created_at 2026-11-26T14:10:55Z, head field f4e40938 (the run predates the commits), 246 files. scripts/verify.sh --status at HEAD 123159f reported CURRENT before and after the review, so the committed tree 123159f (git diff HEAD empty; only this verdict file untracked) is the receipt's tree. The reviewer did not run scripts/verify.sh. Supersedes b566d2c4... (addendum 13). From this addendum on, the top-level head is the plain commit 123159f433edcfa27dfe151e1bb3fdd4eeb7de28, not a range.",
+  "superseded_tree_digests": [
+    {
+      "digest": "b566d2c4bab5570109e1f933dff1b9b6a50062a1e12b5a59595e637b6ae9f877",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-26T13:44:31Z",
+      "covered": "addendum 13 (A12 follow-up: erasure caveat, F13 comment, owner alert codes)",
+      "superseded_at": "2026-11-26T14:41:55Z"
+    },
+    {
+      "digest": "64655f4b09be6a565764f0187324f36c0c22efbd980f4281ecab53629eb321ce",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-26T12:56:52Z",
+      "covered": "addendum 12 (A11 follow-up: F13 audit/erasure comment, test timeouts, owner-content alert codes)",
+      "superseded_at": "2026-11-26T14:02:29Z"
+    },
+    {
+      "digest": "c6865d743d3c186160083741f21d2a7e7d3a4a1e42791c3c549a1fd6cc8da369",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T21:48:48Z",
+      "covered": "addendum 11 (A10 follow-up: F13 comment, 'normally', owner-content limits)",
+      "superseded_at": "2026-11-26T13:30:00Z"
+    },
+    {
+      "digest": "c4bd82d7573f2fcf4164a3b3b675a3b1f3be1a86015c05517febb8961ef7bb2c",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T20:59:13Z",
+      "covered": "addendum 10 (STS-084 optional reference)",
+      "superseded_at": "2026-11-25T22:00:00Z"
+    },
+    {
+      "digest": "381d04b0a46c7a69e450ba9a387ec380fdc48ea3d5a9e563ac029cff83da301b",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T16:44:37Z",
+      "covered": "addendum 9 (A8-1 fix)",
+      "superseded_at": "2026-11-25T21:10:00Z"
+    },
+    {
+      "digest": "8c6ca032f9a1963951380f2687d31044c08825e09b30155a1c06c6d0c83d875d",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T16:23:16Z",
+      "covered": "addendum 8 (A7-2 fix, A7-1 doc fallback)",
+      "superseded_at": "2026-11-25T16:55:00Z"
+    },
+    {
+      "digest": "929ecb0670533aa3d60c61a607e2f3724f4d8cd955270d2d39ee3206f313a0a4",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T15:47:08Z",
+      "covered": "addendum 7 (STS-076/077/055/042/043, _redirects, strictness)",
+      "superseded_at": "2026-11-25T16:40:00Z"
+    },
+    {
+      "digest": "2956f855983e70eaaf1309b0bc161029cef8ad2f43439155e3124f03dda5e108",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T13:09:45Z",
+      "covered": "addendum 6 (A5-1 to A5-5 fixes)",
+      "superseded_at": "2026-11-25T16:10:00Z"
+    },
+    {
+      "digest": "5a85da12f898518635adb376191b9edac5d94360fb83cb5e5e5e3cafb59dd52b",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T12:48:38Z",
+      "covered": "addendum 5 (STS-070/071/072/073/074/067, _redirects)",
+      "superseded_at": "2026-11-25T13:20:00Z"
+    },
+    {
+      "digest": "71bbd16374b9587f73246c66e731d51b5679aff80fb5b5d364148105ad23be0a",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T12:12:30Z",
+      "covered": "addendum 4 (STS-050 consent-aware GA4 analytics)",
+      "superseded_at": "2026-11-25T13:05:00Z"
+    },
+    {
+      "digest": "f911348b4206553c598360fb5f761831230c19afbfe51f58dc84f202f27f58d2",
+      "basis": "receipt tree_digest (scripts/verify.sh), created_at 2026-11-25T11:42:34Z",
+      "covered": "addendum 3 (redirects, JSON-LD, phone hrefs, lead source, privacy retention, chat)",
+      "superseded_at": "2026-11-25T12:24:00Z"
+    },
+    {
+      "digest": "654bce689838b75c7e1cefa9c068d4b54a9ea81df71e9d24851e4e7e4c622012",
+      "basis": "reviewer-computed over git diff 71bf12c --binary plus untracked files (see previous_reviewed_tree_digest_text)",
+      "covered": "first pass + STS-041 addendum + addendum 2 (teaser fix)",
+      "superseded_at": "2026-11-25T12:00:02Z"
+    },
+    {
+      "digest": "31848fad0cbfb779b92fa85b5f8e372157eedea617b95c02e55adcb20331c2c2",
+      "covered": "after STS-041, before the teaser fix"
+    },
+    {
+      "digest": "23841efc4942b01a0e3c08a966e58803ad319a85ce1f7ba644ef1dd808c57674",
+      "covered": "first pass, before STS-041"
+    }
+  ],
+  "previous_reviewed_tree_digest_text": "sha256 654bce689838b75c7e1cefa9c068d4b54a9ea81df71e9d24851e4e7e4c622012 (final tree, after STS-041 and the integration teaser fix). It is computed over `git diff 71bf12c --binary`, followed by each untracked file except this verdict file (git ls-files --others --exclude-standard | grep -vx .vantry/reviews/integrate-s3.security.json | sort) as '== <path>' plus its bytes. If this hash no longer matches, the tree changed after the review and this verdict does not cover it. Superseded digests: 23841efc4942b01a0e3c08a966e58803ad319a85ce1f7ba644ef1dd808c57674 (first pass, before STS-041) and 31848fad0cbfb779b92fa85b5f8e372157eedea617b95c02e55adcb20331c2c2 (after STS-041, before the teaser fix).",
+  "receipt_at_review": {
+    "path": ".vantry/receipts/integrate-s3.verify.json",
+    "verdict": "pass",
+    "created_at": "2026-11-26T14:10:55Z",
+    "tree_digest": "b1e6e947823daefae6270b606246b60797a0b1bfe6a5ab7de2037f063c108223",
+    "freshness_before_review": "CURRENT per scripts/verify.sh --status at HEAD 123159f (run by the reviewer, read only)",
+    "verify_run_by_reviewer": false
+  },
+  "addendum_3": {
+    "at": "2026-11-25T12:00:02Z",
+    "verdict": "pass",
+    "scope": "Sensitive changes since addendum 2, on the working tree over HEAD f4e4093 (52 tracked files differ from HEAD; 20 untracked files plus this verdict). Mechanical intersection of that delta with vantry.yml sensitive_paths: public/_redirects, src/pages/Contact.tsx, src/services/chatbot.service.ts (constant link paths only, already reviewed in the first pass) and src/services/chatbot.routes.test.ts. git diff 71bf12c on .github, index.html, package.json, package-lock.json, public/_headers, vite.config.ts and vendor/ is empty. Reviewed in addition, on the orchestrator's instruction (security-relevant though not on a sensitive glob): src/seo/structuredData.ts, src/seo/head.ts, src/components/Seo.tsx, src/entry-server.tsx, tools/prerender.mjs, src/config/business.ts, src/components/Header.tsx, src/content/forms/lead-source.ts, src/components/LeadSourceSelect.tsx, src/lib/contact-submit.ts, src/pages/FreeAudit.tsx, src/content/legal/privacy.ts, src/components/chatbot/AminaChatbot.tsx, plus a sink grep over every other added line and every untracked source file.",
+    "evidence": {
+      "redirects": "public/_redirects now has 20 rules (lines 14-46), all 301. Every target is one of 4 fixed same-origin paths (/services, /services/website-design, /services/app-development, /our-work). No :placeholder, no :splat in a target, no scheme, no host, no query. No target is itself a source, and no rule's source matches any target (no chain or loop). Static rules precede the 4 splats (/solutions/*, /industry/*, /realisation/*, /success-stories/*), and no static rule is shadowed by an earlier splat. No rule matches a live route or a static asset: probed /assets/index.js, /images/ASTA.webp, /_headers, /, /our-work, /services, /services/website-design, /pricing, /free-audit, /contact, /privacy, /terms, /404.html, /sitemap.xml and /robots.txt, all unmatched. Hostile inputs /solutions/https://evil.example, /solutions//evil.example, /success-stories/%2f%2fevil.example, /realisation/..%2f..%2fevil and /industry/x?next=//evil.example all map to a constant. Even if Cloudflare forwards a query string, nothing in src reads location.search, URLSearchParams or useSearchParams, so a forwarded ?next= has no consumer. /auth, /dashboard, /newsroom, /documentation and /support deliberately stay a real 404. tests/redirects.test.mjs 18/18 asserts the target shape (^/[a-z0-9-]*(/[a-z0-9-]+)*$, no [:*?#], no protocol-relative), no shadowing, one hop and no duplicate source.",
+      "json_ld": "serializeJsonLd (structuredData.ts:184-191) escapes <, >, &, U+2028 and U+2029 as \\u sequences after JSON.stringify. Executed probe: '</script><script>alert(1)</script>', '<!--<script>', 'a&b', 'x<U+2028>y<U+2029>z', '</SCRIPT >' and ']]>' each serialize with no raw <, >, &, U+2028 or U+2029 and JSON.parse back to the identical value (0 failures). renderJsonLd (:197-201) only wraps that output. tools/prerender.mjs:32 injects with a function replacement (no $-pattern expansion) and :22 strips any shell ld+json first, so there are no duplicates. The client path, head.ts applyJsonLd, assigns textContent, never markup, and removes only scripts carrying data-seo-jsonld. Inputs: every value comes from build-time constants (BUSINESS, SERVICE_PAGES, STATIC_SEO, SITE_URL). The URL path is only a lookup key. buildBreadcrumb emits a crumb only when normalizePath(path) is an exact BREADCRUMB_LABELS key, and the item is canonicalUrl() of that known key, so no raw path is reflected. Probed '/x\"><script>', '/about/../../etc', '/__proto__', '/constructor', '//evil.example/about' and '/ABOUT' => 0 documents; '/about?<script>' => crumb items https://sarayatechsolutions.com/ and /about only (the query is dropped). No unverified claims: aggregateRating and review are never built; telephone only via verifiedPhoneE164 (null today); email only when hasEmail (null today); address and openingHours only when a verified address exists (null today), and hours must match the schema.org form; sameAs is filtered by httpsOnly (:70, rejects javascript: and any URL containing a quote, < or >, as probed). The dist built by the receipt run has 21 ld+json blocks across the prerendered pages: 0 raw-character violations, and none contains aggregateRating, review, telephone, address, openingHours, priceRange, foundingDate, email, sameAs or award. structuredData.test.ts 16/16, Seo.test.tsx, prerender.test.mjs 8/8 and entry-server.test.tsx pass.",
+      "phone_hrefs": "business.ts:109 E164 = /^\\+[1-9]\\d{6,14}$/ (no m flag, so $ is end of input), tested against the trimmed tel (:113). phoneHref (:118) and smsHref (:126) return null unless it matches, so the href is always tel:+<digits> or sms:+<digits>. Executed probe: 'javascript:alert(1)', '+1555\\n0100199', '+0123456789', 'tel:+15550100199', '+15550100199?x=1' and '+1%0a5550100199' => null/null/false; '+15550100199', ' +15550100199 ' and '+15550100199\\n' (trimmed) => tel:+15550100199 / sms:+15550100199. smsHref also requires acceptsTexts === true. Header.tsx:175, :190, :257 and :264 render only these hrefs; phoneLabel and config.name go in as React text and aria-label attribute values, which are escaped. BUSINESS.phone is null, so dist has 0 tel:/sms: links (receipt observation). business.test.ts 13/13 and Header.test.tsx pass.",
+      "lead_source": "LEAD_SOURCES (lead-source.ts:12) = google, referral, social, ads, other. That equals BE lib/validation.ts:62 SOURCE_OPTIONS, and BE :148 rejects anything else server-side with the same message, so the client check is not the only check. postLead (contact-submit.ts:104-106) refuses a present, non-allow-listed source before fetch, which covers '', null, a tampered option and a stale caller. Contact.test.tsx 'a value injected into the select is refused in the page's alert and never sent' proves no request is made. chosenLeadSource (:48-50) omits source when nothing is chosen. LeadSourceSelect is a native select with constant options and React-text labels. Contact.tsx: the inFlight ref guard (:88-89, reset in finally :103-104), the honeypot (:269-285, aria-hidden, tabIndex -1, off-screen) and the CONTACT_LIMITS maxLengths are unchanged. The only submit change is the spread of chosenLeadSource(source) at :94 and setSource('') on success at :100. Errors still render result.message as React text (at most 200 chars from the server on 400/422, otherwise fixed text). FreeAudit.tsx: the inFlight guard (:73, :83, :106), validate(), normalizeWebsite, the honeypot and the limits are unchanged, and :93 uses chosenLeadSource. The same endpoint ${VITE_API_URL}/api/contact is used; no new origin, third party, storage, cookie or console call was added. The only console calls in src are pre-existing and carry no form content. lead-source.test.ts 22/22, Contact.test.tsx 28/28 and FreeAudit.test.tsx pass.",
+      "privacy_retention": "LEGAL_PAGES_APPROVED is still false (legal.ts:23, asserted by Legal.test.tsx:50). The retention copy was checked against the Next.js backend working tree at E:\\sarayatech-solutions\\wt-be-next (read only; HEAD 8c41005 plus an UNCOMMITTED migration: index.js and src/*.js deleted). privacy.ts:90 (F4): both hashes are TtlSet instances (BE lib/app.ts:101-102) with 10 min and 24 h TTLs (lib/services/contact.ts:17-18). claim() sweeps the expired head first (lib/abuse.ts:96-101, :69-74). There is no timer, everything is in memory, and a restart clears it. The dedupe key is hashKey(JSON.stringify([email.toLowerCase(), leadType, website, message])) (contact.ts:76-78), which matches 'email address, the form you used, your website address and your message'. The auto-reply key is hashKey(email.toLowerCase()) (:92), which matches 'one made from your email address'. Accurate, with the precision note in addendum_3.findings[0]. privacy.ts:128 (F5): one shared MemoryRateLimitStore for contact and chat (lib/app.ts:85). hit() sweeps every expired window when at least 60 s have passed since the last sweep (lib/rate-limit.ts:33, :57-62) and replaces the key's own expired window on its next hit (:64-69); there is no timer. RATE_LIMITS 5/15 min, 20/min and 200/24 h (:22-27) match the copy. The counter key is a SHA-256 of the IP (lib/http/client-ip.ts:102), which is more private than the copy implies, not less. privacy.ts:184: a POST with a foreign Origin gets 403 (lib/app.ts:188-191), and the source enum is validated (validation.ts:148). Accurate for the backend tree read.",
+      "chat": "AminaChatbot.tsx: framer-motion infinite loops replaced by CSS classes (chat-launcher-*); the typing dots get repeat: TYPING_DOT_REPEATS (6) and role=status with an sr-only 'Amina is typing'; plus layout, contrast and ARIA classes. MarkdownRenderer.tsx and the link policy (links.ts / classifyHref) are unchanged (git diff HEAD on them is empty; links.test.ts 45/45). No dangerouslySetInnerHTML was added: the only one in src is still components/ui/chart.tsx:70 (unused). The privacy link keeps target=_blank rel='noopener noreferrer'. Message handling, history and the request path are untouched. chatbot.service.ts changes only constant paths /solutions -> /services and /realisation -> /our-work; chatbot.routes.test.ts 3/3.",
+      "other_delta": "Sink grep over all added lines in src, tools and public, and over every untracked source file (FinalCta.tsx, LeadSourceSelect.tsx, lead-source.ts, trust.ts, contrast.ts, structuredData.ts): no innerHTML, dangerouslySetInnerHTML, eval, new Function, document.write, window.open, postMessage, storage, cookie, new env read or new fetch. The only new external href is the TrustSlot reviews link, which renders only when verifiedGoogleReviews passes (rating 1-5, integer count >= 1, https URL); it is null today, and it carries rel=noopener noreferrer (FinalCta.tsx:97-98). Page CTAs pass bookingHref() / FREE_AUDIT_PATH / WORK_PATH constants. index.css additions have no url(), @import, content: or external origin. routes.tsx, work.ts, home/content.ts and Footer.tsx only centralise WORK_PATH = '/our-work'. tests/smoke/smoke.mjs adds dist assertions only, with no network target. npm audit --omit=dev: react-router x2 moderate and zod high, identical to the set already triaged in develop.security.json (zod is not imported in src; package.json and the lock are unchanged since integrate-s2)."
+    },
+    "findings": [
+      {
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 90,
+        "introduced_by_this_diff": true,
+        "status": "open (non-blocking, gate on C23)",
+        "summary": "The F4 copy is accurate for the backend tree read, but it is backed only by an UNCOMMITTED Next.js migration in wt-be-next (git status shows index.js and src/*.js deleted, not yet committed or deployed). If the frontend ships before that backend is deployed, the published draft describes eviction behaviour the live backend may not have. Precision: the two hash sets are swept independently. The 24 h auto-reply code is swept only when a later submission reaches the auto-reply check (a non-duplicate whose staff email succeeded, lib/services/contact.ts:79-92). A later duplicate, invalid or failed-send submission does not sweep it. The copy ('the next time our server checks a new form submission against these codes') holds only if 'these codes' is read per set. Also, 'one-way scrambled code' is an unsalted SHA-256 of the email (lib/abuse.ts:15-17), so anyone holding memory can confirm a guessed address. That is not false, but it is weaker than the wording suggests.",
+        "fix": "Before C23 flips LEGAL_PAGES_APPROVED: (1) the backend security reviewer re-verifies F1-F10 against the DEPLOYED backend commit, not the working tree, and records it in the backend verdict. (2) Optionally tighten privacy.ts:90 to: 'When that time is up, the code is no longer used, and it is deleted the next time our server performs that same check for a later form submission.' (3) Optionally key the BE hashes with an HMAC secret (hashKey -> createHmac('sha256', config.abuseKeySecret)) so in-memory codes cannot be confirmed by guessing."
+      },
+      {
+        "severity": "info",
+        "file": "src/lib/contact-submit.ts",
+        "line": 104,
+        "introduced_by_this_diff": true,
+        "status": "partially addressed",
+        "summary": "Updates the addendum-1 INFO at contact-submit.ts:85. The source enum is now enforced on both sides: the client at :104-106 before fetch, and the backend at BE lib/validation.ts:148 with a CONTACT_KEYS allow-list (:103). Still open and backend-owned: SSRF safety if the backend ever fetches the submitted website, and HTML escaping in the notification mail. Neither can be settled from this repo.",
+        "fix": "Backend review on the deployed commit: website restricted to http/https with a length cap, never fetched without an SSRF guard (resolve, deny private, link-local and loopback ranges, no redirects), and every field HTML-escaped in lib/mail templates."
+      }
+    ],
+    "tests_executed_by_reviewer": [
+      "bash scripts/verify.sh --status => receipt pass @ 2026-11-25T11:42:34Z, CURRENT, tree_digest f911348b... (before the review; re-checked after writing this file)",
+      "npx vitest run tests/redirects.test.mjs src/seo src/components/Seo.test.tsx src/entry-server.test.tsx tests/prerender.test.mjs src/config src/content/forms src/lib src/pages/Contact.test.tsx src/pages/FreeAudit.test.tsx src/pages/Legal.test.tsx src/components/Header.test.tsx src/components/chatbot src/services tests/headers.test.mjs src/routes.dead-controls.test.tsx src/linkCrawl.test.tsx => 25 files, 398/398 pass",
+      "npx vite-node scratchpad/a3-probe.ts (imports the real structuredData.ts, business.ts and smoke.mjs parseRedirects) => serializer 0 failures on 6 hostile strings; tel/sms hrefs null for 6 malformed values; 0 JSON-LD documents for 6 hostile paths; 20 redirect rules, 5 hostile inputs -> constants, 15 live/asset paths unmatched, no target is a source",
+      "python scan of the dist/**/*.html built by the receipt run => 21 ld+json blocks, 0 raw <>&/U+2028/U+2029, no aggregateRating/review/telephone/address/openingHours/email/sameAs",
+      "npm audit --omit=dev => 3 (react-router x2 moderate, zod high), unchanged and already triaged",
+      "read-only: wt-be-next lib/abuse.ts, lib/rate-limit.ts, lib/app.ts, lib/services/contact.ts, lib/validation.ts, lib/http/client-ip.ts"
+    ],
+    "not_run": "scripts/verify.sh (orchestrator-owned; the receipt was already CURRENT). No server was started. No live-site request was made.",
+    "verdict_rationale": "No critical, high, medium or low finding. _redirects is a closed set of same-origin constants with no placeholder, splat forwarding, chain, loop or shadowing. The JSON-LD serializer is breakout-proof (executed hostile probe plus dist scan), takes no user-controlled value, reflects no raw path, and emits no unverified claim. Phone and SMS hrefs cannot carry any scheme but tel:/sms: plus E.164 digits. The lead-source field is allow-listed on both sides and leaves the honeypot, in-flight guard, limits and error handling intact, with no new third party, storage or logging. The privacy retention copy matches the backend code read, and LEGAL_PAGES_APPROVED stays false. The chat changes are presentational, with the markdown and link policy untouched. Two INFO items are backend-owned and gate C23, not this PR."
+  },
+  "sensitive_paths_hit_addendum_3": [
+    "public/_redirects",
+    "src/pages/Contact.tsx",
+    "src/services/chatbot.service.ts",
+    "src/services/chatbot.routes.test.ts"
+  ],
+  "addendum_4": {
+    "at": "2026-11-25T12:24:00Z",
+    "verdict": "pass",
+    "scope": "STS-050, consent-aware GA4 analytics. 23 files changed since the addendum-3 tree. New: src/config/analytics.ts, src/lib/analytics.ts, src/components/Analytics.tsx, src/components/ConsentBanner.tsx, src/content/legal/consent.ts, docs/ops/analytics.md, plus 7 test files. Modified: App.tsx, vite-env.d.ts, FinalCta.tsx, Header.tsx, home/CtaLink.tsx, home/HeroSection.tsx, pages/Contact.tsx (sensitive), pages/FreeAudit.tsx, content/legal/privacy.ts, tests/smoke/smoke.mjs.",
+    "evidence": {
+      "id_injection": "No injection. validGa4Id (config/analytics.ts) accepts only typeof string, trims it, and needs a full match of ^G-[A-Z0-9]{4,12}$. gtagScriptSrc (lib/analytics.ts:31) also applies encodeURIComponent. Reviewer probe with 15 hostile or edge values ('G-ABC\"><script>', 'G-ABCD&x=1', 'G-ABCD\\nX', 'G-ABCD12/../x', UA-/GTM- ids, an object with toString, null, a number): all were rejected except the trimmed or trailing-newline forms, which normalise to the clean id. 0 validator failures. Precedence: a valid config id wins; an invalid config id falls back to env; both invalid gives null.",
+      "pre_consent": "Nothing before consent. Probe: initAnalytics + trackLead + trackPageView with no stored choice left window.dataLayer undefined, 0 scripts, document.cookie '' and 0 storage keys. A tampered value 'granted ' is read as no choice, so nothing loads and the banner is prompted. After Decline: not loaded, 0 scripts. Accepting twice injects exactly one script[data-sts-analytics] with src https://www.googletagmanager.com/gtag/js?id=G-ABCD12. The dataLayer order is consent default (all 4 signals denied), then update (analytics_storage only), then js, then config {anonymize_ip, allow_google_signals false, allow_ad_personalization_signals false, send_page_view false}. No inline script: the stub is in the bundle.",
+      "pii_to_datalayer": "None in dataLayer. sanitizeParams (:72-81) uses a hasOwnProperty event check (__proto__/toString/constructor give null), keeps only schema keys, and accepts only string values inside each enum (array values are dropped). Probe pushed email/name/message/phone, an email as lead_source, a mailto/tel href, an email in data-cta-location, and an email in data-track-cta. Result: dataLayer regex /victim|SECRET|a@b.c|bob@|+1555|frag/ gave false; the hostile cta and location values were dropped. trackPageView strips the query and hash. Contact.tsx:100 passes the lead-source select state, and FreeAudit.tsx:101 passes payload.source (chosenLeadSource); both are enum-filtered. See the LOW finding: gtag.js's own default page_location.",
+      "consent_storage": "localStorage key sts_analytics_consent. Only exact 'granted' / 'denied' are honoured. Read and write are in try/catch, and blocked storage fails closed (nothing loads). Nothing is written while no id is set. Not a security token, and tampering can only opt the tamperer themself in or out.",
+      "privacy_text": "OFF state (today, id null): cookieBullets(false) is the addendum-3 F7/F10 wording word for word, and is true. Probe and tests: no storage write, no script. ON state: the text matches the code (own storage key only, GA cookies only after Accept, signals and ad personalization off, decline means not loaded, change by clearing site data), except for the URL-query caveat in the LOW finding. It is still marked ownerTodo C17. LEGAL_PAGES_APPROVED = false (legal.ts:23). The recipients list adds Google only when analyticsOn is true.",
+      "submit_logic": "Contact.tsx changes since HEAD are the addendum-3 STS-054/041/046 items plus a single trackLead('contact', source) call at :100, inside the success branch after submitContact resolves without 'message'. The in-flight ref, payload, error branch and honeypot are unchanged. FreeAudit.tsx: a single trackLead('audit', payload.source) call at :101, inside result.ok === true. leadEvents.test.tsx proves that a failed send fires nothing.",
+      "xss_sinks": "None. No dangerouslySetInnerHTML, innerHTML, insertAdjacentHTML, document.write or eval in the 5 new source files. The banner copy is React text, and the script src is validated and encoded.",
+      "prerender_and_csp": "No analytics markers in dist. grep -r over dist/**/*.html for gtag, googletagmanager, google-analytics, data-sts-analytics, data-consent-banner and sts_analytics_consent found 0 files. smoke.mjs ANALYTICS_HTML_MARKERS enforces this in the receipt run. googletagmanager appears only in the JS bundle, as the src template. public/_headers, index.html, vite.config.ts, package.json and package-lock.json are unchanged vs HEAD (git diff --stat is empty), so the CSP is unchanged. The proposed CSP additions are documented only (docs/ops/analytics.md section 5) and need their own sensitive-path review when applied."
+    },
+    "findings": [
+      {
+        "severity": "low",
+        "file": "src/lib/analytics.ts",
+        "line": 122,
+        "introduced_by_this_diff": true,
+        "addendum": 4,
+        "status": "open (dormant: GA4 id is null; only reachable after Accept)",
+        "summary": "gtag('config') at :122-128 sets no page_location, and nothing calls gtag('set', ...) on navigation. Only page_view (trackPageView :168-176) carries an explicit origin+path page_location. gtag.js fills page_location / dl from document.location.href for every other event (generate_lead, cta_click, contact_click) and for GA4 Enhanced Measurement events, which are on by default for a new web stream. So the full URL, including query string and fragment, reaches Google. Attack or leak: an inbound link such as /contact?email=victim@x.com&token=... (an email-campaign merge field, a mistyped mailto, a CRM link), followed by a CTA click or a successful submit, sends that query to GA4. This contradicts the privacy ON-state promise ('we never send it your name, email address...', privacy.ts cookieBullets) and the runbook's 'no query string' claim (docs/ops/analytics.md section 2). The dataLayer itself is clean (reviewer probe: 0 PII hits). The leak is gtag.js's documented default URL collection, inferred from that behaviour and not executed, because no Google host was contacted.",
+        "fix": "In loadGtag, add page_location to the config: gtag('config', id, { ..., send_page_view: false, page_location: `${window.location.origin}${window.location.pathname}` }). In trackPageView, call window.gtag('set', { page_location: `${window.location.origin}${path}`, page_referrer: '' }) before the page_view event, so later custom events on that route inherit the stripped URL. Add a test: with location ?email=x#t, every dataLayer 'config'/'set' entry carries a page_location without '?' or '#'. Add to docs/ops/analytics.md section 1, as an owner step: in GA4 Admin > Data streams > Enhanced measurement, turn off 'Page changes based on browser history events', 'Site search' and 'Form interactions' (or turn Enhanced measurement off). Must be closed before C17 sets an id.",
+        "addendum_5_status": "closed in code by STS-070 (owner GA4 step 6 still required before C17)"
+      },
+      {
+        "severity": "info",
+        "file": "src/components/ConsentBanner.tsx",
+        "line": 1,
+        "introduced_by_this_diff": true,
+        "addendum": 4,
+        "status": "open (dormant; listed in docs/ops/analytics.md section 7)",
+        "summary": "Once a choice is made, nothing on the site lets a visitor withdraw it. setConsent('denied') after a grant (analytics.ts :151) only sends a consent update, and the existing _ga cookies stay. The privacy ON text is truthful: it tells visitors to clear the site's data, which removes both the storage key and the cookies. But GDPR Art. 7(3) requires withdrawal to be as easy as giving consent.",
+        "fix": "Before C17, for EU/UK traffic: add a 'Cookie settings' link (footer and /privacy) that clears CONSENT_STORAGE_KEY and re-shows the banner. On a 'denied' choice after a grant, delete the _ga and _ga_<id> cookies for the registrable domain.",
+        "addendum_5_status": "closed by STS-071 (see addendum_5 A5-1)"
+      },
+      {
+        "severity": "info",
+        "file": "src/lib/analytics.ts",
+        "line": 170,
+        "introduced_by_this_diff": true,
+        "addendum": 4,
+        "status": "accepted (no route carries user data in its path today)",
+        "summary": "page_path is the raw react-router pathname, including an unmatched 404 path. A mistyped URL such as /contact/bob@x.com would be sent. Low impact, because no route puts user data in its path.",
+        "fix": "Optional: on the NotFound route, send page_path '/404' instead of the pathname."
+      }
+    ],
+    "tests_executed_by_reviewer": [
+      "npx vitest run (the 7 STS-050 test files): 104/104 pass",
+      "npx vitest run Contact, FreeAudit, Header, FinalCta, FinalCta.sitewide, Legal, Index: 145/145 pass",
+      "vite-node scratchpad a4-probe.ts (jsdom): id validator 0 failures, pre-consent no-op, tamper fail-closed, single injection, dataLayer PII scan clean, config without page_location confirmed",
+      "grep dist HTML for analytics markers: 0 files"
+    ],
+    "not_run": [
+      "scripts/verify.sh (forbidden by brief; the receipt at 12:12:30Z is CURRENT)",
+      "npm audit (package.json/package-lock.json unchanged since addendum 3)",
+      "a live gtag.js load or any request to a Google host; the LOW finding is inferred from gtag.js's documented default page_location"
+    ],
+    "verdict_rationale": "PASS. The analytics module is off today (id null) and fails closed. The id cannot inject, nothing loads or is stored before Accept, the dataLayer carries only enum values, the submit logic is unchanged apart from success-only tracking, there are no XSS sinks and no prerendered markers, and the CSP is untouched. The one LOW is a pre-activation item, not a merge blocker: gtag.js's default URL collection on custom events. It is not exploitable while the id is null, and it must be closed before C17 sets an id, together with the withdrawal INFO."
+  },
+  "sensitive_paths_hit_addendum_4": [
+    "src/pages/Contact.tsx"
+  ],
+  "addendum_5": {
+    "at": "2026-11-25T13:05:00Z",
+    "verdict": "pass",
+    "scope": "Delta since the addendum-4 tree (71bbd163...): STS-070 (src/lib/analytics.ts cleanLocation, page_location/page_referrer on config, gtag('set') in trackPageView; src/lib/analytics.test.ts; docs/ops/analytics.md owner step 6), STS-071 (src/components/Footer.tsx Cookie settings button, openConsentSettings/CONSENT_SETTINGS_EVENT, src/components/Analytics.tsx reopen listener, ConsentBanner tabIndex -1, deleteGaCookies on Decline, src/content/legal/privacy.ts and consent.ts wording), STS-072 (src/pages/FreeAudit.tsx WEBSITE_MAX 200, websiteTooLong, credential rejection, compared with wt-be-next lib/validation.ts normaliseWebsite), STS-073 (src/data/chatbot/{knowledge-base,intents,services-problems,pricing-details}.json, src/services/chatbot.service.ts generateContractResponse/generatePricingResponse/getSuggestedQuestions, src/data/chatbot/chatbot-content.test.ts), STS-074 (src/content/forms/service-interest.ts SERVICE_INTERESTS, src/pages/Contact.tsx select, compared with BE SERVICE_OPTIONS), STS-067 (src/components/ui/dialog.tsx close button 44 px, Pricing/Contact min-h-11, className only), public/_redirects (unstaged delta). Sensitive paths intersected mechanically with vantry.yml sensitive_paths: src/services/chatbot.service.ts, src/pages/Contact.tsx, public/_redirects. public/_headers, index.html, vite.config.ts, package.json, package-lock.json, .github/workflows/**, vendor/** and the auth globs have no change vs HEAD (git diff HEAD --stat empty, no status entries).",
+    "evidence": {
+      "sts070_query_fragment": "Addendum-4 LOW closed in code. config now carries page_location=cleanLocation(location.href) and page_referrer=cleanLocation(document.referrer) (analytics.ts:136-144); trackPageView pushes gtag('set', {page_location: origin+path, page_referrer: ''}) before page_view (:222), so later custom events on the route inherit the stripped URL. Reviewer jsdom probe (scratchpad a5-probe.ts) with page URL /contact?email=v@x.com#t: 0 '?', '#' or 'v@x' in any config/set/event entry; the only residual hit was the referrer PATH (INFO A5-3). GA4 Enhanced Measurement history page views / site search / form interactions cannot be controlled from the tag; docs/ops/analytics.md:30-36 makes disabling them owner step 6 before C17. Outbound clicks send site-authored link URLs only. Not executed against a Google host.",
+      "sts071_withdrawal": "Footer button rendered only when analyticsId !== null (Footer.tsx:184), dispatches a window Event; Analytics.tsx:40-49 re-shows the banner and focuses the tabIndex=-1 region. openConsentSettings is a no-op with id null (analytics.ts:181). Decline stores 'denied', pushes consent update analytics_storage denied if loaded, and deleteGaCookies expires _ga/_ga_* host-only plus each parent domain excluding the bare TLD (:190-202). Probe: cookie string empty after Decline; Analytics.test.tsx proves an unrelated cookie is kept. Nothing loads pre-consent: probe dataLayer undefined, 0 scripts. Gap: events keep flowing after withdrawal until reload (LOW A5-1).",
+      "privacy_text": "OFF-state wording unchanged and true. ON-state privacy.ts:73 ('we stop Google Analytics from storing anything and delete its cookies') is true; privacy.ts:198 ('receives the pages you visit and the buttons you use ... only if you accept analytics') is untrue for the rest of the page session after a withdrawal (LOW A5-1); docs/ops/analytics.md:70-71 omits the same fact. Still ownerTodo C17; LEGAL_PAGES_APPROVED false.",
+      "sts072_website_parity": "FE normalizeWebsite/websiteTooLong (FreeAudit.tsx:23-55) vs BE normaliseWebsite (wt-be-next lib/validation.ts:77-92), WEBSITE_MAX 200 on both sides; FE checks the scheme-prefixed raw length and the normalised href length, BE checks raw and href. Reviewer probe (scratchpad a5-web.ts, BE function copied verbatim) over 31 cases incl. credentials, mailto:, javascript://, ftp://, dotless/leading/trailing-dot hosts, IDN, IPv6, bad port, 190/191/205-char and percent-encoding expansion: 0 FE-accept/BE-reject except 3 inputs containing a C0 control or DEL (INFO A5-4). Backend stays authoritative.",
+      "sts073_chatbot": "Local fallback only: openai.service.ts sends no knowledge-base context (:127, assembled on the server), so the JSON is never forwarded to the LLM and no prompt/context injection surface is added. No HTML sink (rendering stays MarkdownRenderer + classifyHref, unchanged). Links are internal routes only (/contact, /pricing, /free-audit, /services, /services/<5 live slugs>, /our-work, /about); the 4 external case-study URLs are pre-existing at HEAD and unchanged. No secret/token pattern in the added lines. generateContractResponse (chatbot.service.ts:291-298) now promises only a written proposal; the 'own your accounts', 'keep it running' and 'ad spend is separate' FAQ answers mirror existing site copy (services.ts:183, :248, :272, :313). No $/%/years/guarantee (content test) and no timeline figure (reviewer grep, 0 hits in all 4 files).",
+      "sts074_service_options": "SERVICE_INTERESTS = SERVICE_PAGES navLabels + 'Not sure yet / Something else' = ['Website Design','App Development','Local SEO','Social Media','Paid Ads','Not sure yet / Something else'], identical in order and case to BE SERVICE_OPTIONS (lib/validation.ts:13-20) and pinned by service-interest.test.ts. The Contact default is the unsure option, so a default submit passes the BE allow-list.",
+      "sts067_ui_and_redirects": "dialog.tsx and Pricing/Contact changes are className only. public/_redirects unstaged delta: comment lines plus 5 fixed same-origin 301s (/solutions/cloud-platform and /solutions/data-analytics -> /services; /solutions/enterprise-software -> /services/app-development; /industry -> /services; /success-stories -> /our-work) and the /success-stories/* splat. No placeholder, scheme, host or query; no target is a source; no live route shadowed; tests/redirects.test.mjs 18/18. The brief called this comment-only; it is not, but it is safe."
+    },
+    "findings": [
+      {
+        "id": "A5-1",
+        "severity": "low",
+        "file": "src/lib/analytics.ts",
+        "line": 205,
+        "introduced_by_this_diff": true,
+        "addendum": 5,
+        "status": "open (dormant: GA4 id is null; reachable only after Accept, then Cookie settings > Decline)",
+        "summary": "Withdrawal does not stop collection for the rest of the page session. track() (:205-206) and trackPageView() (:219) gate only on loadedId, which setConsent('denied') (:167-170) never clears. Reviewer probe: after Accept then Decline, the next cta_click, generate_lead(lead_source) and set+page_view for /pricing were all pushed to dataLayer. With gtag.js already loaded and analytics_storage denied, Consent Mode sends these as cookieless pings to Google (documented gtag behaviour, inferred; no Google host contacted). A visitor who withdraws and keeps navigating the SPA is still reported to Google. That contradicts privacy.ts:198 ('only if you accept analytics') and the effect GDPR Art. 7(3) gives withdrawal; docs/ops/analytics.md:70-71 omits it.",
+        "fix": "Add module state `let granted = false;`. Set it true when a grant loads gtag, and false in the denied branch of setConsent. Make track() and trackPageView() return early unless granted. On a re-grant when loadedId !== null (A5-2), push gtag('consent','update',{analytics_storage:'granted'}) and set granted = true instead of returning. Test: grant, setConsent('denied'), then track/trackLead/trackPageView push no entry after the consent update. Close before C17 sets an id.",
+        "addendum_6_status": "closed (residual INFO A6-1)"
+      },
+      {
+        "id": "A5-2",
+        "severity": "info",
+        "file": "src/lib/analytics.ts",
+        "line": 117,
+        "introduced_by_this_diff": true,
+        "addendum": 5,
+        "status": "open (fails safe)",
+        "summary": "Accept after a same-page withdrawal is a no-op: loadGtag returns at :117 because loadedId is set, so no analytics_storage granted update is pushed (probe: 0 new entries) while localStorage says 'granted'. Fails closed (no storage) until reload. Functional, not a leak.",
+        "fix": "Fold into the A5-1 fix: on a grant with loadedId !== null, push the analytics_storage granted update.",
+        "addendum_6_status": "closed"
+      },
+      {
+        "id": "A5-3",
+        "severity": "info",
+        "file": "src/lib/analytics.ts",
+        "line": 143,
+        "introduced_by_this_diff": true,
+        "addendum": 5,
+        "status": "open (minor)",
+        "summary": "page_referrer on config keeps the external referrer's path (cleanLocation strips only ? and #). Probe: referrer https://ref.example/p/bob@x.com was sent as page_referrer https://ref.example/p/bob@x.com. This is third-party path data and unlikely to matter; gtag sends the referrer by default anyway.",
+        "fix": "Send the referrer origin only: page_referrer = document.referrer ? new URL(document.referrer).origin : '' (inside try/catch, as cleanLocation does).",
+        "addendum_6_status": "closed"
+      },
+      {
+        "id": "A5-4",
+        "severity": "info",
+        "file": "src/pages/FreeAudit.tsx",
+        "line": 44,
+        "introduced_by_this_diff": true,
+        "addendum": 5,
+        "status": "open (UX parity; backend authoritative)",
+        "summary": "FE rejects whitespace with /\\s/, but BE WEBSITE_FORBIDDEN is [\\u0000-\\u0020\\u007f]. Probe: 'https://a.co/\\u0001', 'a.co/\\u007f' and 'a.co\\b' (backspace) pass the FE and get the BE 400 'Please enter a valid website address'. No security impact; regression D1 otherwise holds.",
+        "fix": "Replace /\\s/ with /[\\u0000-\\u0020\\u007f]/ in normalizeWebsite, and add a test for one C0 case.",
+        "addendum_6_status": "closed"
+      },
+      {
+        "id": "A5-5",
+        "severity": "info",
+        "file": "src/data/chatbot/chatbot-content.test.ts",
+        "line": 71,
+        "introduced_by_this_diff": true,
+        "addendum": 5,
+        "status": "open (test asserts nothing)",
+        "summary": "`expect(text).not.toMatch(/d+s?(weeks?|months?)/i)` is missing its backslashes, so it matches only a literal 'd' run before 'week'/'month'. Proof: the regex returns false on 'ready in 2 weeks'. The no-timeline guard is vacuous. The content is clean today (reviewer grep, 0 hits), but a future '2 weeks' promise would pass.",
+        "fix": "Use /\\d+\\s?(weeks?|months?|days?)/i and apply it to all four files in the per-file loop.",
+        "addendum_6_status": "closed"
+      }
+    ],
+    "prior_findings_closed": [
+      {
+        "ref": "addendum_4 LOW src/lib/analytics.ts:122 (page_location full URL)",
+        "status": "closed in code by STS-070; the owner step in docs/ops/analytics.md:30-36 must still be done in GA4 before C17",
+        "proof": "analytics.ts:136-144, :222; analytics.test.ts STS-070 block; reviewer probe found 0 query/fragment hits"
+      },
+      {
+        "ref": "addendum_4 INFO src/components/ConsentBanner.tsx (no way to withdraw)",
+        "status": "closed by STS-071; LOW A5-1 covers what withdrawal fails to stop",
+        "proof": "Footer.tsx:184-190, Analytics.tsx:40-49, analytics.ts:159-202; Analytics.test.tsx STS-071 block"
+      }
+    ],
+    "tests_executed_by_reviewer": [
+      "npx vitest run src/lib src/components/Analytics.test.tsx src/components/Footer.test.tsx src/pages/FreeAudit.test.tsx src/pages/Contact.test.tsx src/data src/services src/content: 12 files, 177/177 pass",
+      "npx vitest run tests/redirects.test.mjs: 18/18 pass",
+      "vite-node scratchpad a5-probe.ts (jsdom): pre-consent no-op; no ?/# on config/set/page_view; events still pushed after withdrawal (A5-1); re-grant no-op (A5-2); referrer path kept (A5-3)",
+      "vite-node scratchpad a5-web.ts: FE vs BE website validator parity over 31 cases; 3 control-character mismatches (A5-4)"
+    ],
+    "not_run": [
+      "scripts/verify.sh (the receipt from 2026-11-25T12:48:38Z was CURRENT per --status before this review; not re-run)",
+      "any live gtag.js load or request to a Google host; the cookieless-ping behaviour is inferred from Google's Consent Mode documentation",
+      "npm audit (package.json / package-lock.json unchanged vs HEAD)"
+    ],
+    "verdict_rationale": "PASS. No critical, high or medium finding. Analytics is off today (GA4 id null) and fails closed: no script, no storage, no banner, and the Cookie settings control is not rendered. The addendum-4 LOW is closed in code, and the addendum-4 withdrawal INFO is closed. The one new LOW (A5-1: collection continues after withdrawal until reload) is dormant and pre-activation, like the addendum-4 LOW. It must be fixed, and privacy.ts:198 / docs/ops/analytics.md:70 made true, before C17 sets an id. STS-072 and STS-074 match the backend contract. STS-073 adds no LLM context, HTML sink, new external link, secret or unconfirmed commitment. This pass holds only for tree digest 5a85da12f898518635adb376191b9edac5d94360fb83cb5e5e5e3cafb59dd52b."
+  },
+  "sensitive_paths_hit_addendum_5": [
+    "src/services/chatbot.service.ts",
+    "src/pages/Contact.tsx",
+    "public/_redirects"
+  ],
+  "addendum_6": {
+    "at": "2026-11-25T13:20:00Z",
+    "verdict": "pass",
+    "scope": "Delta since the addendum-5 tree (5a85da12...), the fixes for A5-1 to A5-5. Files modified after the addendum-5 verdict was written (find -newer): src/lib/analytics.ts, src/lib/analytics.test.ts, src/components/Analytics.test.tsx, src/pages/FreeAudit.tsx, src/pages/FreeAudit.test.tsx, src/data/chatbot/chatbot-content.test.ts, docs/ops/analytics.md. That is exactly the 7 files the orchestrator listed. None is on a vantry.yml sensitive path. public/_headers, index.html, vite.config.ts, package*.json, .github/workflows/**, vendor/** and the auth globs have no change vs HEAD; src/services/** and public/_redirects did not change after addendum 5.",
+    "evidence": {
+      "a5_1_withdrawal": "Closed for the site's own events. analytics.ts:75 adds `let consentGranted = false`. It is set true in initAnalytics only when exactly 'granted' is stored (:169-173) and in setConsent('granted') (:186), set false in setConsent('denied') (:192), and reset in resetAnalyticsForTests (:284). track (:231) and trackPageView (:244) return unless consentGranted. Reviewer probes a5-probe.ts and a6-probe.ts: after Accept then Decline, dataLayer gains only the consent update (0 entries from cta_click, generate_lead or page_view). A reload with 'denied' stored loads nothing (dataLayer undefined, 0 scripts). The tampered value 'granted ' loads nothing and the banner is prompted. A reload with 'granted' gives 1 script and sends a page_view. Analytics.test.tsx proves that clicks after a withdrawal add nothing. See INFO A6-1 for gtag.js's own automatic events.",
+      "a5_2_regrant": "Closed. setConsent('granted') with gtag already loaded pushes consent update analytics_storage granted (:188) and appends no second script. Probe: re-grant adds exactly that update, and the next cta_click is sent.",
+      "a5_3_referrer": "Closed. referrerOrigin (:113-120) returns the origin only for http/https, else ''. It is used for the config page_referrer (:159). Probe: javascript:, data:, file:, 'not a url' and '' all give ''; 'https://a.b/p?q#f' gives 'https://a.b'; 'http://u:p@h.example:8080/x' gives 'http://h.example:8080' (credentials dropped). trackPageView still sets page_referrer ''.",
+      "a5_4_website": "Closed. FreeAudit.tsx:44-46 refuses /[\\s\\u0000-\\u001f\\u007f]/, which covers the BE WEBSITE_FORBIDDEN class [\\u0000-\\u0020\\u007f]. Re-run of a5-web.ts: 0 FE-accept/BE-reject mismatches over the 31 cases (previously 3).",
+      "a5_5_timeline_test": "Closed. chatbot-content.test.ts:74 TIMELINE = /\\d+\\s?(weeks?|months?|days?)/i, with a self-test at :75-77 ('ready in 2 weeks', 'about 3months'), applied to all 4 JSON files (:80-81). It passes, so none of the 4 files contains a timeline figure.",
+      "privacy_text": "privacy.ts:198 ('receives the pages you visit and the buttons you use ... only if you accept analytics') is now true for every event the site itself sends. privacy.ts:73 stays true. The one caveat is A6-1 (inferred, not executed). docs/ops/analytics.md section 2 (:66-76) and section 6 step 2 (:124-127) describe the new behaviour. Their claim that the idle script and 'clicking around' send no collect request carries the same A6-1 caveat. The text is still ownerTodo C17 and LEGAL_PAGES_APPROVED is false."
+    },
+    "findings": [
+      {
+        "id": "A6-1",
+        "severity": "info",
+        "file": "src/lib/analytics.ts",
+        "line": 192,
+        "introduced_by_this_diff": false,
+        "addendum": 6,
+        "status": "open (dormant: GA4 id null; inferred from Google documentation, not executed against a Google host)",
+        "summary": "After a same-page withdrawal, gtag.js stays loaded (by design, until reload). consentGranted stops every event the site sends, but gtag.js also generates events on its own: Enhanced Measurement scrolls and outbound clicks, which docs/ops/analytics.md:35-36 says 'can stay on', plus user_engagement. With analytics_storage denied, Consent Mode sends these as cookieless pings. So until the reload, Google may still receive a scroll or outbound-click event without cookies. That makes privacy.ts:198 and analytics.md:126 ('clicking around ... sends no new collect request') slightly overstated. This is narrower than A5-1: there are no page views, leads or CTA clicks, no cookies, and it lasts only until the next page load.",
+        "fix": "In the denied branch of setConsent, also set Google's documented per-property opt-out: (window as any)[`ga-disable-${loadedId}`] = true, which stops gtag.js sending anything for that id. Set it back to false in the re-grant branch (:188). Add a test asserting the flag after Decline. Alternatively, change docs/ops/analytics.md step 6 to turn Enhanced measurement off entirely; the site already sends its own page views. Either way, settle it before C17."
+      }
+    ],
+    "prior_findings_closed": [
+      {
+        "ref": "addendum_5 A5-1 LOW src/lib/analytics.ts:205",
+        "status": "closed (site-sent events); residual INFO A6-1",
+        "proof": "analytics.ts:75, :172, :186, :192, :231, :244; Analytics.test.tsx and analytics.test.ts withdrawal tests; probes"
+      },
+      {
+        "ref": "addendum_5 A5-2 INFO src/lib/analytics.ts:117",
+        "status": "closed",
+        "proof": "analytics.ts:186-189; probe"
+      },
+      {
+        "ref": "addendum_5 A5-3 INFO src/lib/analytics.ts:143",
+        "status": "closed",
+        "proof": "analytics.ts:113-120, :159; probe"
+      },
+      {
+        "ref": "addendum_5 A5-4 INFO src/pages/FreeAudit.tsx:44",
+        "status": "closed",
+        "proof": "FreeAudit.tsx:44-46; a5-web.ts 0 mismatches"
+      },
+      {
+        "ref": "addendum_5 A5-5 INFO src/data/chatbot/chatbot-content.test.ts:71",
+        "status": "closed",
+        "proof": "chatbot-content.test.ts:74-81"
+      }
+    ],
+    "tests_executed_by_reviewer": [
+      "npx vitest run src/lib src/components/Analytics.test.tsx src/components/Footer.test.tsx src/pages/FreeAudit.test.tsx src/pages/Contact.test.tsx src/data src/services src/content tests/redirects.test.mjs: 13 files, 203/203 pass",
+      "vite-node scratchpad a5-probe.ts (re-run): no ?/#/PII in config/set/events; page_referrer origin only; 0 entries after withdrawal besides the consent update; re-grant pushes the granted update",
+      "vite-node scratchpad a6-probe.ts: referrerOrigin edge cases; Accept, Decline, no sends, re-accept, sends resume; reload with denied / granted / tampered value",
+      "vite-node scratchpad a5-web.ts (re-run): 0 FE-accept/BE-reject mismatches"
+    ],
+    "not_run": [
+      "scripts/verify.sh (the receipt from 2026-11-25T13:09:45Z was CURRENT per --status; not re-run)",
+      "any live gtag.js load or request to a Google host (A6-1 is inferred)"
+    ],
+    "verdict_rationale": "PASS. A5-1 to A5-5 are closed, each proved by an executed probe and a test. No critical, high, medium or low finding remains. One INFO (A6-1: gtag.js's own automatic events after a same-page withdrawal, inferred) is dormant while the GA4 id is null and must be settled before C17, together with the open owner step 6. This pass holds only for tree digest 2956f855983e70eaaf1309b0bc161029cef8ad2f43439155e3124f03dda5e108."
+  },
+  "sensitive_paths_hit_addendum_6": [],
+  "addendum_7": {
+    "at": "2026-11-25T16:10:00Z",
+    "verdict": "pass",
+    "reviewer": "security-engineer (independent; did not write this code)",
+    "scope": "Delta since the addendum-6 tree (2956f855..., receipt 2026-11-25T13:09:45Z). Found mechanically: find -newer against 13:09:45Z, then against 13:20:00Z (no file falls between the two), excluding node_modules, .git, dist, dist-ssr, .vantry. 39 source/doc/test files plus vantry.yml: STS-076 (src/lib/analytics.ts, src/lib/analytics.test.ts, docs/ops/analytics.md); STS-077 (src/data/chatbot/intents.json, src/services/chatbot.service.ts, src/services/chatbot.service.test.ts); STS-055/042/043 owner-gated content (src/content/insights/{blog,blog.test,posts,postSources,insights}.ts, src/content/insights/posts/*.ts (5), src/content/local/shared.ts, src/content/industries/industries.ts, src/content/locations/{locations,locations.test}.ts, src/content/ownerGated.test.tsx, src/components/blog/PostBody.tsx, src/pages/{BlogPost,LocalPage,IndustriesHub,IndustryPage,AreaPage,Insights}.tsx, src/routes.tsx, src/seo/seo.ts, src/seo/structuredData.ts, tests/smoke/smoke.mjs, tests/redirects.test.mjs, docs/ops/owner-content.md); public/_redirects; vantry.yml (STS-053). No file was modified after the receipt (find -newer 15:47:08Z: empty). Sensitive-path intersection with vantry.yml sensitive_paths: src/services/chatbot.service.ts, src/services/chatbot.service.test.ts, public/_redirects. public/_headers, index.html, vite.config.ts, package.json, package-lock.json, .github/workflows/**, vendor/** and the auth globs have no change vs HEAD and no status entry; no delta file name matches *auth*/*Auth*.",
+    "evidence": {
+      "sts076_withdrawal": "analytics.ts:203-211. On Decline: consentGranted=false (:205); if gtag was loaded, Consent Mode update analytics_storage denied (:207) then window['ga-disable-<loadedId>']=true (:208, gaDisableKey :74, setGaDisabled :75-77); deleteGaCookies (:210, :231-243) expires _ga/_ga_* host-only and on every parent domain. track (:247) and trackPageView (:260) still return unless consentGranted, so no site-sent event (page_view, cta_click, contact_click, generate_lead) can follow a same-page Decline. Re-accept (:196-202): consentGranted=true, ga-disable cleared to false (:200), consent update granted (:201), no second script. analytics.test.ts:202-229 asserts: after Decline exactly one new dataLayer entry (the denied update), 0 entries from three later sends, the ga-disable flag true, then false after re-accept, one script, and sends resume. Passes.",
+      "sts076_pii_referrer_preconsent": "Unchanged from addendum 6 and re-confirmed in code: allow-list sanitizeParams (:89-98) with enum-only values; page_location via cleanLocation (origin+path, :133-140); page_referrer via referrerOrigin (origin only, http/https only, :124-131) in config and '' in trackPageView (:263). Nothing loads before consent: initAnalytics loads only when exactly 'granted' is stored (:180-186); loadGtag is reached only from there and setConsent('granted'). GA4_ID is null in this build (src/config/analytics.ts:36 resolves BUSINESS.ga4Id / VITE_GA4_ID through GA4_ID_PATTERN), so the whole module is a no-op in the shipped bundle. docs/ops/analytics.md:35-38, :69-76 and step 6.2 (:127-131) describe the behaviour and tell the owner to observe no collect request after a same-page Decline.",
+      "sts077_chatbot": "chatbot.service.ts: new optional Intent.priority; priority intents score exact keyword substrings only (calculateIntentScore :110-141, the return inside forEach skips partial credit for that keyword); sort is priority tier then score (:164-167). contact_channels (WhatsApp/LinkedIn phrasings) maps to generateContactResponse (:479-481) = contactReply(BUSINESS) (chatbot-facts.ts:70), which prints only config-confirmed channels, so no WhatsApp number, LinkedIn URL or other contact detail is invented. Link targets changed /solutions -> /services, /realisation -> /our-work, + /pricing in the pricing reply: all fixed same-origin paths. generateContractResponse no longer promises IP ownership/NDA/revisions. The debug log (:170-177) logs intent id, score and confidence only, never the message. Priority intents' responses (free_audit, technology, integration, site_speed, packages) contain only internal links; packages is never replayed (:458). Scan of all 4 chatbot JSON files: no email, phone, $ amount, timeline figure, javascript:/data:, raw HTML; the only external URLs are the 4 portfolio links in knowledge-base.json, unchanged since addendum 5. Rendering path unchanged: AminaChatbot renders bot text via MarkdownRenderer (react-markdown, no rehype-raw, links through classifyHref, images suppressed); user text as a plain text node. The OpenAI/backend path is untouched: priority only changes local fallback routing. Tests: chatbot.service.test.ts:290-332 (pricing, WhatsApp -> contact_channels -> contactReply, free audit, intent separation) and :180-187 (no contact facts in the JSON) pass.",
+      "owner_gating_bundle": "Each post module exports POST = APPROVED ? POST_SOURCE : null with APPROVED=false (e.g. posts/google-maps-columbus.ts:10, :180); posts.ts imports only POST; postSources.ts (all draft text) is imported by tests only (grep of non-test src: no importer). INDUSTRY_PAGES and SERVICE_AREAS are empty arrays. routes.tsx spreads /insights/:slug, /industries, /industries/:slug and /locations/:slug only when the published list is non-empty. Built dist (receipt run 15:47:08Z, read-only): 17 HTML files, none under /insights/<slug>, /industries or /locations; sitemap.xml has 13 locs, none gated; no post title, body phrase ('Clintonville', 'plumber near me', 'Do Small Businesses Need an App', 'Website Features That Matter'), 'ownerReview', 'POST_SOURCE', 'VERIFY LINK', 'MO-46' or 'OWNER REVIEW' anywhere in dist (grep -r: no match). '[Owner to confirm' occurs in dist only in privacy/terms HTML and the C23 legal template function, plus the publishBlockers/entryBlockers message strings in the main bundle. The five slugs appear only in INSIGHTS_TOPIC_SLUGS (insights.ts), mapping already-public topic labels; no /insights/<slug> href exists in dist/insights/index.html.",
+      "owner_gating_404_seo": "BlogPost.tsx:18-19, IndustryPage.tsx:7-8, AreaPage.tsx:7-8 render NotFound for any slug not in the published list; with no route registered the SPA catch-all renders NotFound and Cloudflare serves dist/404.html. seo.ts gatedSeo reads only published lists, so an unpublished path gets NOT_FOUND_SEO (noindex, no canonical); /insights keeps noindex while PUBLISHED_POSTS is empty. Head values pass through escapeHtml (seo.ts:237-247).",
+      "jsonld": "serializeJsonLd (structuredData.ts:234-241) escapes <, >, & and U+2028/2029 after JSON.stringify. Executed probe: headline '</script><script>alert(1)</script><!--' serialises to \\u003c/script\\u003e... with no literal '<'. buildArticle (:185-203) emits only post fields, only for a published post. smoke.mjs checkJsonLd parses every block and forbids rating/review keys.",
+      "postbody_rendering": "PostBody.tsx has no dangerouslySetInnerHTML; parseInline (blog.ts:141-155) yields text/strong/em/link nodes rendered as React text, so raw HTML is escaped (probe: '<img src=x onerror=...>' renders as &lt;img...). Callout blocks render null (:93-94). LocalPage renders paragraphs as plain text, with links only to servicePath(slug) for slugs checked against SERVICE_SLUGS (shared.ts:75). The only dangerouslySetInnerHTML in src is the pre-existing, unused shadcn src/components/ui/chart.tsx:70 (accepted risk 'dead chart files'); the string in the dist bundles is React's own. Link schemes: see A7-2.",
+      "redirects": "public/_redirects: the change since addendum 6 is comment-only. Non-comment, non-blank lines of the working tree equal the index version plus exactly the six rules addendum 5 recorded (/solutions/cloud-platform, /solutions/data-analytics -> /services; /solutions/enterprise-software -> /services/app-development; /industry -> /services; /success-stories and /success-stories/* -> /our-work). dist/_redirects is byte-identical to public/_redirects (cmp). tests/redirects.test.mjs adds an open-redirect guard (every target matches ^/[a-z0-9-]*(/[a-z0-9-]+)*$, no //, no :*?#, no http(s) source/target), a shadowing check, MUST_404 for /auth, /dashboard, /newsroom, /documentation, /support, and conditional /industries handling.",
+      "csp_origins": "No new external origin in any delta file (only the pre-existing googletagmanager.com, the canonical site URL, schema.org, sitemaps.org namespace). dist bundle origins are the same set as before this delta. dist/_headers is byte-identical to public/_headers.",
+      "vantry_strictness": "vantry.yml:9 strictness relaxed -> standard (git diff: that one line). Not a sensitive path; it tightens the gate (verification blocks push/PR)."
+    },
+    "findings": [
+      {
+        "id": "A7-1",
+        "severity": "info",
+        "file": "src/lib/analytics.ts",
+        "line": 208,
+        "introduced_by_this_diff": true,
+        "addendum": 7,
+        "status": "open (dormant: GA4 id null; to be confirmed by owner step 6.2 before C17)",
+        "summary": "ga-disable-<id> is set on Decline, i.e. after gtag() has already been called. Google's documentation (developers.google.com/tag-platform/security/guides/privacy) says the property 'must be set before any calls to gtag() are made', while also saying the tag checks it before setting a cookie or sending data. So stopping gtag.js's own automatic events (Enhanced-measurement scroll/outbound click, user_engagement) after a same-page withdrawal is expected but not promised by Google, and was not executed against a Google host. The site's own sends are provably stopped (consentGranted), the Consent Mode denied update is sent, cookies are expired, and after a reload nothing loads, so the worst case is the cookieless-ping residual already described in A6-1, until the next page load.",
+        "fix": "No code change required now. Before C17 the owner must run docs/ops/analytics.md step 6.2 and confirm in DevTools that no collect request follows a same-page Decline (scroll included). If one is observed: either turn off 'Scrolls' and 'Outbound clicks' in Enhanced measurement (the site does not need them), or make a Decline that follows an earlier Accept call window.location.reload() after storing 'denied', so gtag.js is gone."
+      },
+      {
+        "id": "A7-2",
+        "severity": "low",
+        "file": "src/components/blog/PostBody.tsx",
+        "line": 22,
+        "introduced_by_this_diff": true,
+        "addendum": 7,
+        "status": "open (dormant: no post is approved; the five drafts link only to internal routes)",
+        "summary": "InlineText renders any href that does not start with '/' as <a href={href}> with no scheme check (:16-25), and anything starting with '/' through <Link> (:17-20), so '//host' becomes an off-site link. publishBlockers (src/content/insights/blog.ts:101-110) does not reject a link scheme, and the only link test (src/content/insights/blog.test.ts:107-108) checks hrefs that start with '/'. Executed probe (vite-node a7-postbody-probe.tsx): '[a](javascript:alert(1))' and '[b](JaVaScRiPt:...)' render <a href=\"javascript:...\" target=\"_blank\">, '[c](data:text/html,...)' renders a data: href, '[d](//evil.example/x)' renders href=\"//evil.example/x\"; and a post containing the javascript: link is isPublishable()=true. React 18.3 only warns on javascript: URLs, and the CSP is Report-Only (public/_headers), so neither is a backstop. The input is repo-authored content behind owner approval and code review, not visitor input, hence LOW: the scenario is a pasted link from a draft or an AI-assisted rewrite that a reviewer misses, producing a script URL or an off-site link on a prerendered page. The site already owns the correct policy for untrusted text (src/components/chatbot/links.ts classifyHref).",
+        "fix": "In PostBody.tsx InlineText, classify every node.href with classifyHref (move src/components/chatbot/links.ts to a shared module, e.g. src/lib/links.ts, and import it from both): 'internal' -> <Link to={target.href}>, 'external' -> keep the new-tab <a> but allow only https: (reject http: and protocol-relative for posts), 'text' -> render node.text as plain text. Add to publishBlockers in blog.ts: for each linkTargets(post) value, push 'link target is not an internal path or an https URL' unless classifyHref gives internal, or external with protocol https:. Add blog.test.ts cases asserting that javascript:, data:, '//host' and 'http://' links make a post unpublishable and render as text in InlineText. Must land before the first post's APPROVED flag is set."
+      }
+    ],
+    "prior_findings_closed": [
+      {
+        "ref": "addendum_6 A6-1 INFO src/lib/analytics.ts:192",
+        "status": "closed in code (STS-076); residual INFO A7-1 pending owner observation",
+        "proof": "analytics.ts:74-77, :200, :208; analytics.test.ts:216-221; docs/ops/analytics.md:35-38, :73-76, :127-131"
+      }
+    ],
+    "tests_executed_by_reviewer": [
+      "npx vitest run (whole suite): 59 files, 1029/1029 pass",
+      "npx tsc --noEmit -p tsconfig.app.json: exit 0",
+      "vite-node scratchpad a7-postbody-probe.tsx: InlineText output for javascript:/data:/'//host'/internal/https/raw-HTML cases; isPublishable with a javascript: link; serializeJsonLd breakout string",
+      "read-only dist inspection: HTML list, sitemap locs, grep for draft phrases and owner markers, cmp dist/_redirects and dist/_headers vs public/, external origins in JS bundles",
+      "_redirects rule comparison: non-comment lines of working tree vs index vs HEAD"
+    ],
+    "not_run": [
+      "scripts/verify.sh (orchestrator-owned; receipt 2026-11-25T15:47:08Z verdict pass, and no file is newer than it)",
+      "any server on port 4173, any request to the live site or to a Google host (A7-1 is inferred from Google's documentation)"
+    ],
+    "verdict_rationale": "PASS. No critical, high or medium finding. STS-076 closes A6-1 in code: no site-sent event can follow a same-page Decline, nothing loads before consent, no PII parameter or query/fragment/referrer path can be sent, and the module is off (GA4 id null). STS-077 adds routing logic and copy only: replies stay on the reviewed rendering path, contact details come from config, no price, timeline or contract promise is invented, and the backend path is untouched. Owner-gated content is absent from the shipped bundle, the prerendered HTML and the sitemap; unknown slugs 404; JSON-LD and head values are escaped; no new origin. The public/_redirects rules are unchanged since addendum 5 (comment-only delta). One LOW (A7-2: PostBody link-scheme allow-list missing; dormant, author-controlled input) and one INFO (A7-1) remain. A7-2 must be fixed before the first post is approved (STS-055 owner step), and A7-1 settled at C17. This pass holds only for tree digest 929ecb0670533aa3d60c61a607e2f3724f4d8cd955270d2d39ee3206f313a0a4."
+  },
+  "sensitive_paths_hit_addendum_7": [
+    "src/services/chatbot.service.ts",
+    "src/services/chatbot.service.test.ts",
+    "public/_redirects"
+  ],
+  "addendum_8": {
+    "at": "2026-11-25T16:40:00Z",
+    "reviewer": "security-engineer (independent; did not author the fix)",
+    "verdict": "pass",
+    "scope": "Delta since addendum 7 (files newer than the addendum-7 verdict write, excluding node_modules/.git/dist/.vantry): src/lib/links.ts (new), src/components/chatbot/links.ts (now a re-export), src/content/insights/blog.ts (postLinkTarget + publishBlockers link rule), src/components/blog/PostBody.tsx (InlineText routed through postLinkTarget), src/components/blog/PostBody.test.tsx (new), src/content/insights/blog.test.ts (A7-2 block), docs/ops/analytics.md (section 6 step 2, A7-1 fallback), docs/ops/owner-content.md (section 1 link rule). dist-ssr/* is build output from the 16:23 verify run.",
+    "evidence": [
+      "Receipt .vantry/receipts/integrate-s3.verify.json: tree_digest 8c6ca032f9a1963951380f2687d31044c08825e09b30155a1c06c6d0c83d875d, created_at 2026-11-25T16:23:16Z, steps 0-3 exit_code 0. No file under src/, docs/ or public/ is newer than the receipt (find -newer, empty).",
+      "src/lib/links.ts: the body after 'export type LinkTarget' is byte-identical (diff) to HEAD's src/components/chatbot/links.ts; src/components/chatbot/links.ts is now only 'export { classifyHref, isInternalHref, type LinkTarget } from \"@/lib/links\"'. Probe: chatbot classifyHref === lib classifyHref is true (same function object), so chatbot link behaviour cannot have changed. links.test.ts 45/45, MarkdownRenderer.test.tsx 10/10, AminaChatbot.test.tsx 9/9 (incl. 'a hostile reply cannot get //evil.tld routed in-app or a javascript: link rendered') pass.",
+      "src/content/insights/blog.ts:112 postLinkTarget: internal from classifyHref, else external only when the RAW href matches /^https:\\/\\//i AND the normalised href starts with https://, else text. src/components/blog/PostBody.tsx:21 calls it for every link node; :24 <Link to={target.href}> for internal, :31 <a href={target.href} target=_blank rel='noopener noreferrer'> for external, label as text otherwise. No dangerouslySetInnerHTML in src/components/blog or src/content/insights.",
+      "Reviewer probe (scratchpad a8-postbody-probe.tsx, vite-node, renderToStaticMarkup inside MemoryRouter) over 48 hrefs: javascript:, JaVaScRiPt:, leading space/tab, java<TAB>script:, java<LF>script:, javascript&colon;, &#106;avascript:, %6Aavascript:, data: (plain and base64, upper case), vbscript:, file:, blob:, mailto:, tel:, //host, \\\\host, /\\host, \\/host, /<TAB>/host, /%2e//host, /.//host, /a/..//host, ///host, http:, HTTP:, https:/host, https:\\\\host, fullwidth slashes, U+00A0/U+3000 in path, U+0000, U+007F, U+2028, #top, ?q=1, relative path, empty. Result: 0 dangerous renders. Every non-internal, non-https href rendered as plain label text; https://, HTTPS://EVIL.example/a and a Cyrillic homograph rendered as new-tab <a> with the host normalised/punycoded (https://xn--vil-qdd.example/); internal /services/local-seo and #fragment rendered as router <Link>.",
+      "Same probe: '/%2f/evil.example', '/%5c/evil.example' and '/／/evil' classify internal and render <a href=\"/%2f/evil.example\"> / \"/%EF%BC%8F/evil\": a same-origin path (the browser does not treat an encoded slash as an authority separator), resolves to NotFound. Pre-existing classifyHref behaviour, identical to the chatbot's, not an off-site link.",
+      "Publish gate: an approved post with '[a](javascript:alert(1))' gives isPublishable false with blocker 'link target is not an internal path or an https URL: javascript:alert(1'; a post with internal + https links stays publishable. blog.test.ts proves 13 rejected targets (incl. list item and table cell) and 4 allowed ones; PostBody.test.tsx proves no <a> for 11 hostile targets, the parenthesis case, router <Link> with client-side navigation for /services, and new-tab rel=noopener noreferrer for https.",
+      "Docs: docs/ops/analytics.md:132-138 adds the A7-1 fallback (if a collect request appears after Decline on the same page, turn off Enhanced measurement Scrolls and Outbound clicks, or request a reload-on-Decline change). docs/ops/owner-content.md:26-29 and :36-37 state the link rule and that a bad target blocks publishing.",
+      "Sensitive-path intersection (mechanical): none of the delta files matches any vantry.yml sensitive_paths glob (vendor/**, **/auth/**, **/*auth*, **/*Auth*, src/services/**, src/pages/Contact.tsx, public/_headers, public/_redirects, index.html, vite.config.ts, package.json, package-lock.json, .github/workflows/**)."
+    ],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static site; no data-layer access control in this delta"
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "pass",
+        "reason": "post links validated twice: at publish (publishBlockers) and at render (postLinkTarget); render-time check is authoritative (see A8-1)"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "delta adds no logging; blocker strings echo only the owner-authored href at build/test time"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage in delta"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook or payment in delta"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "pass",
+        "reason": "chatbot link classifier unchanged (same function object, re-export); hostile-reply tests pass"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers not in delta; no new origin"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no mutation or role in delta"
+      }
+    ],
+    "findings": [
+      {
+        "id": "A8-1",
+        "severity": "info",
+        "file": "src/content/insights/blog.ts",
+        "line": 152,
+        "introduced_by_this_diff": false,
+        "status": "open (no exploit: the render-time check holds)",
+        "summary": "The publish gate extracts link targets with its own regex /\\]\\(([^)\\s]+)\\)/g (linkTargets, :150-154) instead of the renderer's tokenizer (parseInline, :163). They disagree on overlapping brackets: for the text '](/ok[a](javascript:alert)' linkTargets returns ['/ok[a](javascript:alert'], which classifies internal, so publishBlockers is empty and the post publishes, while parseInline renders a link to 'javascript:alert'. The renderer's postLinkTarget turns that into plain text (probe output '](/oka', no <a>), so nothing dangerous reaches the DOM; the effect is that the gate can pass a post whose link silently degrades to text, and the gate is weaker than the docs (owner-content.md:36-37) say.",
+        "fix": "Derive linkTargets from the renderer: visibleText(post).flatMap(t => parseInline(t).filter(n => n.type === 'link').map(n => n.href)). Add '](/ok[a](javascript:alert)' to the rejected list in blog.test.ts so the gate and the renderer are proved to agree."
+      }
+    ],
+    "prior_findings_status": {
+      "A7-2": "CLOSED (fixed, re-verified by the reviewer). PostBody.tsx:21 routes every link through blog.ts:112 postLinkTarget (internal or https only); publishBlockers refuses any other target; 0 dangerous renders over 48 bypass hrefs; tests added in PostBody.test.tsx and blog.test.ts and passing.",
+      "A7-1": "OPEN, INFO, owner-mitigated. Code unchanged (src/lib/analytics.ts:208 still sets ga-disable after gtag() has run). docs/ops/analytics.md:132-138 now gives the owner a concrete fallback before C17. Dormant while the GA4 id is null."
+    },
+    "tests_executed_by_reviewer": [
+      "npx vite-node scratchpad/a8-postbody-probe.tsx: 48 hrefs, 0 dangerous renders; publish gate rejects javascript:; A8-1 divergence reproduced; chatbot classifyHref identity true",
+      "npx vitest run src/components/blog src/content/insights src/components/chatbot src/lib: 8 files, 152/152 pass (PostBody.test.tsx 15, blog.test.ts 35, links.test.ts 45, MarkdownRenderer.test.tsx 10, AminaChatbot.test.tsx 9, AminaChatbot.motion 10, AminaChatbot.palette 7, analytics.test.ts 21)",
+      "npx tsc --noEmit -p tsconfig.app.json: exit 0"
+    ],
+    "not_run": [
+      "scripts/verify.sh (orchestrator's run, receipt 16:23:16Z, read only)",
+      "full vitest suite (agent reported 1062/1062; reviewer ran the 8 affected files)",
+      "real browser; PostBody is unreachable in the build because no post is approved",
+      "no request to the live site"
+    ],
+    "verdict_rationale": "A7-2 is fixed at the render point, where it matters, and proven by executed deny and allow cases; the classifier move is a byte-identical relocation behind a re-export, so chatbot link handling is unchanged; no sensitive path is touched. The one new observation (A8-1) is a gate/renderer tokenizer mismatch with no dangerous output. Pass on 8c6ca032."
+  },
+  "sensitive_paths_hit_addendum_8": [],
+  "addendum_9": {
+    "at": "2026-11-25T16:55:00Z",
+    "reviewer": "security-engineer (independent; did not author the fix)",
+    "verdict": "pass",
+    "scope": "Narrow re-review of the A8-1 fix. Delta since the addendum-8 verdict write (find -newer, excluding node_modules/.git/dist/dist-ssr/.vantry): exactly src/content/insights/blog.ts and src/content/insights/blog.test.ts. No sensitive_paths glob matches either file.",
+    "evidence": [
+      "Receipt .vantry/receipts/integrate-s3.verify.json: tree_digest 381d04b0a46c7a69e450ba9a387ec380fdc48ea3d5a9e563ac029cff83da301b, created_at 2026-11-25T16:44:37Z, steps 0-3 exit_code 0. No file under src/, docs/ or public/ is newer than the receipt.",
+      "src/content/insights/blog.ts:157-159 linkTargets is now visibleText(post).flatMap(t => parseInline(t) link hrefs); the separate regex is gone. visibleText (:84-93) covers title, metaTitle, description, author.name, and every block text (p, h3, callout, ul/ol items, table header and cells) plus section headings, a superset of the four InlineText call sites in src/components/blog/PostBody.tsx (:53 p, :63/:73 list items, :96 table cells).",
+      "Reviewer probe (scratchpad a9-probe.tsx, vite-node): the 48-href bypass table re-run gives 0 dangerous renders. 13 mismatch strings (overlapping brackets, nested links, bold/italic-wrapped links, newline in label, empty label, a good link followed by a bad one, internal+https pair) give 0 gate/renderer disagreements (linkTargets equals the renderer's parseInline hrefs for every string) and 0 cases where the gate passes a post whose rendered link would degrade to text. '](/ok[a](javascript:alert)' is now refused by publishBlockers ('link target is not an internal path or an https URL: javascript:alert'); A8-1 reproduction no longer reproduces.",
+      "Observed, not a defect: '[x](/ok[a](javascript:alert))' parses as one link whose href is the same-origin path '/ok[a](javascript:alert'; it is classified internal by both gate and renderer and rendered as a router <Link> to a NotFound path. No scheme is ever emitted: a single leading '/' fixes the URL as path-relative.",
+      "blog.test.ts adds 7 tests (42 total): 5 overlap strings refused with the exact rendered href, an agreement test (outer-bracket case), and a placement test covering p, ol, table header, h3, section heading and callout."
+    ],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static site; no data-layer access control in this delta"
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "pass",
+        "reason": "publish gate and render-time check now use the same parser and the same postLinkTarget policy"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "no logging added"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage in delta"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook or payment in delta"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "N/A",
+        "reason": "chatbot untouched in this delta (links.test.ts 45/45 still passes)"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers not in delta; no new origin"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no mutation or role in delta"
+      }
+    ],
+    "findings": [],
+    "prior_findings_status": {
+      "A8-1": "CLOSED (fixed, re-verified by the reviewer): blog.ts:157-159 builds linkTargets from parseInline; 0 gate/renderer disagreements over 13 mismatch strings; regression tests in blog.test.ts.",
+      "A7-1": "OPEN, INFO, unchanged (owner fallback at docs/ops/analytics.md:132-138; dormant while the GA4 id is null)."
+    },
+    "tests_executed_by_reviewer": [
+      "npx vite-node scratchpad/a9-probe.tsx: 48 hrefs, 0 dangerous renders; 13 mismatch strings, 0 disagreements, 0 gate-pass-with-degraded-link",
+      "npx vitest run src/content/insights src/components/blog src/components/chatbot/links.test.ts: 3 files, 102/102 pass (blog.test.ts 42, PostBody.test.tsx 15, links.test.ts 45)",
+      "npx tsc --noEmit -p tsconfig.app.json: exit 0"
+    ],
+    "not_run": [
+      "scripts/verify.sh (orchestrator's run, receipt 16:44:37Z, read only)",
+      "full vitest suite (orchestrator reported 1069/1069)",
+      "real browser; PostBody is unreachable in the build because no post is approved",
+      "no request to the live site"
+    ],
+    "verdict_rationale": "A8-1 is fixed: the publish gate now reads links with the renderer's own parser, so the two cannot disagree, and the executed probe and the new tests show it. Only blog.ts and blog.test.ts changed; no sensitive path is touched; no new finding. Pass on 381d04b0."
+  },
+  "sensitive_paths_hit_addendum_9": [],
+  "addendum_10": {
+    "at": "2026-11-25T21:10:00Z",
+    "reviewer": "security-engineer (independent; did not author STS-084)",
+    "verdict": "pass",
+    "scope": "STS-084 (ADR 0003): optional `reference` on the contact 200. Delta since the addendum-9 verdict write (find -newer, excluding node_modules/.git/dist/dist-ssr/.vantry): src/lib/contact-submit.ts, src/lib/contact-submit.test.ts (new), src/pages/Contact.tsx, src/pages/Contact.test.tsx, src/pages/FreeAudit.tsx, src/pages/FreeAudit.test.tsx, src/components/LeadReferenceNote.tsx (new), src/content/forms/lead-reference.ts (new), src/pages/leadEvents.test.tsx, src/content/legal/privacy.ts, src/pages/Legal.test.tsx, docs/ops/owner-content.md. Exactly those 12 files; nothing under public/, index.html, vite.config.ts or package*.json changed in the delta. sensitive_paths hit: src/pages/Contact.tsx. Backend claims checked read-only against E:/sarayatech-solutions/wt-be-next (uncommitted working tree on top of 8c41005).",
+    "evidence": [
+      "Receipt .vantry/receipts/integrate-s3.verify.json: tree_digest c4bd82d7573f2fcf4164a3b3b675a3b1f3be1a86015c05517febb8961ef7bb2c, created_at 2026-11-25T20:59:13Z, head f4e40938, step exit codes [0,0,0,0]; scripts/verify.sh --status reported freshness CURRENT before and after this review. No delta file is newer than the receipt.",
+      "Untrusted text: src/lib/contact-submit.ts:56 LEAD_REFERENCE_PATTERN = /^REF-[0-9A-HJKMNP-TV-Z]{8}$/ (anchored, no m/i/u flags, so $ cannot match before a newline or U+2028); :59-63 leadReference requires a non-null object with a `reference` key, typeof string and the pattern, else undefined. :144 it is read only inside the existing 2xx + JSON content-type + success===true branch, so a reference can never turn a failure into success. It is identical to the backend generator's regex (wt-be-next lib/db/sql.ts:87 REFERENCE_RE).",
+      "Rendering: src/components/LeadReferenceNote.tsx renders {reference} as a React text child; no dangerouslySetInnerHTML or innerHTML anywhere in the delta (the only repo hit is the pre-existing shadcn src/components/ui/chart.tsx:70, static CSS). Contact.tsx:499-502 and FreeAudit.tsx:205 render it only when state is non-null; FreeAudit.tsx:107 resets it on every submit; Contact.tsx:106 overwrites it on every success and the dialog opens only on success.",
+      "Analytics/URL/storage: Contact.tsx:105 trackLead('contact', source) and FreeAudit.tsx:133 trackLead('audit', payload.source) pass no reference; the reference lives in component state only. grep for console./localStorage/sessionStorage/history./navigate(/location in contact-submit.ts, Contact.tsx, FreeAudit.tsx, LeadReferenceNote.tsx: no hit (only an iframe title string). leadEvents.test.tsx:69-80 and :107-119 assert dataLayer carries neither the code nor the word 'reference' with consent granted.",
+      "Backend truth (read-only): lib/services/contact.ts createContactService stores the lead (repo.createLead) BEFORE deliverLeadMail and returns lead.reference; on store failure it falls back to sendDirect, which keeps nothing and returns no reference. lib/jobs/maintenance.ts runMaintenance calls repo.purgeOlderThan(now - retentionDays*DAY_MS, {limit:1000}); lib/config.ts parseRetentionDays defaults to 365, range 1-3650. lib/db/sql.ts:576 purgeOlderThan, :561 eraseLead, :567 eraseByEmail all DELETE FROM leads; lib/db/migrations.ts lead_events and mail_outbox are ON DELETE CASCADE (lib/db/sqlite.ts:58-61 enforces foreign_keys=ON or refuses to open); admin_audit holds only action, opaque lead id and request id. Scheduling: Node loop lib/server.ts startMaintenance (from instrumentation.ts); Workers cron wrangler.jsonc:49 '*/5 * * * *' -> worker.ts scheduled. Admin: lib/admin/auth.ts bearer ADMIN_API_TOKEN (32-512 chars, constant-time SHA-256 compare, failure throttle 10 per 15 min); lib/app.ts answers every admin path 404 when unset; lib/admin/http.ts sends no Access-Control-* header; erasure via app/api/v1/admin/leads/[id] DELETE and app/api/v1/admin/erasure. Chats: lib/services/chat.ts has no repository or DB reference.",
+      "Privacy draft (privacy.ts:131-146) is therefore true for its user-facing claims: stored, mail retried, reference shown, purged after LEAD_RETENTION_DAYS (placeholder C23), staff-only via a secret-protected admin surface, erasure on request, chats not stored. The page is still a draft behind LEGAL_PAGES_APPROVED, so the residual wording notes below are owner-review items, not live misstatements.",
+      "Reviewer probe (scratchpad a10-probe.ts, vite-node): 9 further adversarial values (trailing U+2028, trailing CR, leading BOM, Greek Mu lookalike, fullwidth REF, U+2010 hyphen, trailing NUL, one lower-case char, excluded O) all rejected; a JSON '__proto__' wrapper is rejected; duplicate-key JSON resolves to the last key per JSON.parse and is still pattern-checked."
+    ],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static frontend; no data-layer access control in this delta. Backend admin authorization was read for truthfulness only; it is owned by the backend's own review (wt-be-next .vantry/reviews/feat-s4-nextjs-backend.security.json)."
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "pass",
+        "reason": "the untrusted response field is type-checked and matched against an anchored allow-list regex identical to the generator's; anything else is treated as absent; success still requires 2xx + JSON + success===true"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "no logging added; the reference is a random 40-bit code, not PII, and is never logged, stored, put in a URL or sent to analytics"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage in delta"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook, payment or role in delta"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "N/A",
+        "reason": "chatbot untouched in this delta; the privacy text keeps 'chats are not stored', verified against lib/services/chat.ts"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers, public/_redirects, index.html and vite.config.ts are not in the delta; no new origin or fetch target (same /api/contact)"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no frontend mutation or role; backend erasure writes admin_audit (lib/db/sql.ts auditStatement) without PII"
+      }
+    ],
+    "findings": [
+      {
+        "id": "A10-1",
+        "severity": "low",
+        "file": "src/content/legal/privacy.ts",
+        "line": 62,
+        "summary": "The F13 data-flow comment (privacy.ts:56-68) cites a 'server-rendered /admin console (HMAC-signed HttpOnly session cookie)' that does not exist in wt-be-next (only /api/v1/admin/* with a bearer token; lib/app.ts:105 names the console STS-083 as future work), and :67 still says the lead store 'was not yet on disk'. It is a comment, not rendered copy, but it is the evidence the owner and future reviewers use when approving the policy (LEGAL_PAGES_APPROVED). A citation for a control that is not built is how a privacy claim drifts away from the code.",
+        "fix": "Replace the F13 symbol names with BE file + symbol citations that exist: lib/services/contact.ts createContactService (store before mail; sendDirect fallback stores nothing), lib/db/sql.ts purgeOlderThan / eraseLead / eraseByEmail with lib/db/migrations.ts ON DELETE CASCADE, lib/jobs/maintenance.ts runMaintenance (Node loop lib/server.ts startMaintenance, Workers cron wrangler.jsonc triggers), lib/admin/auth.ts createAdminAuthorizer + lib/admin/http.ts. Drop the /admin console clause until STS-083 lands, and delete the 'not yet on disk' sentence."
+      },
+      {
+        "id": "A10-2",
+        "severity": "info",
+        "file": "docs/ops/owner-content.md",
+        "line": 76,
+        "summary": "'After that, it is deleted automatically' (privacy.ts:135) holds only while the maintenance job runs. MAINTENANCE_INTERVAL_SECONDS=0 disables it on a Node host (wt-be-next lib/server.ts:122-133) and removing the Workers cron (wrangler.jsonc:49) does the same; admin CSV exports (app/api/v1/admin/leads/export.csv) are copies outside the database that neither purge nor erasure reaches. The owner checklist names LEAD_RETENTION_DAYS but neither of these.",
+        "fix": "Add to owner-content.md section 4: keep MAINTENANCE_INTERVAL_SECONDS non-zero (or the Workers cron in place) in production, and delete any exported CSV within the same retention period and on an erasure request."
+      },
+      {
+        "id": "A10-3",
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 131,
+        "summary": "When the lead store is unavailable the backend falls back to sendDirect (wt-be-next lib/services/contact.ts) and keeps nothing, so 'our server saves your details in its database' overstates storage in that edge case. It errs toward disclosing more retention than happens, so no privacy harm, and the reference sentence stays true because no reference is returned then.",
+        "fix": "Optional, at owner review: 'normally saves your details in its database'. No change needed for this verdict."
+      }
+    ],
+    "prior_findings_status": {
+      "A8-1": "CLOSED (unchanged since addendum 9).",
+      "A7-1": "OPEN, INFO, unchanged (owner fallback in docs/ops/analytics.md; dormant while the GA4 id is null)."
+    },
+    "tests_executed_by_reviewer": [
+      "npx vitest run src/lib/contact-submit.test.ts src/pages/Contact.test.tsx src/pages/FreeAudit.test.tsx src/pages/leadEvents.test.tsx src/pages/Legal.test.tsx: 5 files, 115/115 pass. Allow: a well-formed reference renders in the Contact dialog description and in the FreeAudit status region. Deny: 20 malformed/HTML/overlong/non-string values treated as absent (contact-submit.test.ts:665-692); HTML-looking references never rendered on either page; a reference on a 400, a 500, a non-success 200 or a non-JSON body never yields success; dataLayer never carries the code.",
+      "npx vite-node --config vite.config.ts scratchpad/a10-probe.ts: 0 of 9 additional adversarial values accepted; __proto__ wrapper rejected",
+      "npx tsc --noEmit -p tsconfig.app.json: exit 0"
+    ],
+    "not_run": [
+      "scripts/verify.sh (orchestrator's run, receipt 20:59:13Z, read only; --status CURRENT)",
+      "full vitest suite",
+      "real browser against a live backend; the backend was read, not executed",
+      "backend test suite (wt-be-next tests/lead-flow.test.ts, maintenance.test.ts, admin.test.ts) not run by this reviewer"
+    ],
+    "verdict_rationale": "The reference is untrusted server text and is handled as such: one anchored allow-list regex, a type check, read only on an already-proven success, rendered as a React text node, and kept out of analytics, URLs and storage, with executed allow and deny tests on both forms. The privacy draft's user-facing claims match the backend code (store before mail, retention purge, cascaded erasure, token-gated admin API, no chat storage). The only real defect is a stale internal citation (A10-1, LOW) plus two owner-checklist notes; no HIGH or MEDIUM. Pass on c4bd82d7."
+  },
+  "sensitive_paths_hit_addendum_10": [
+    "src/pages/Contact.tsx"
+  ],
+  "addendum_11": {
+    "at": "2026-11-25T22:00:00Z",
+    "reviewer": "security-engineer (independent; did not author the A10 follow-up)",
+    "verdict": "pass",
+    "scope": "Follow-up to addendum 10 (A10-1 LOW, A10-2 INFO, A10-3 INFO). Delta since the addendum-10 verdict write (find -newer on this file, and -newermt 2026-11-25 20:59:00 = the addendum-10 receipt time; excluding node_modules/.git/dist/dist-ssr/.vantry): exactly src/content/legal/privacy.ts (mtime 21:45:55Z) and docs/ops/owner-content.md (mtime 21:10:28Z). No file is newer than the current receipt (21:48:48Z). The line shift is consistent with comment-only growth plus one word: addendum 10 cited the visible bullets at privacy.ts:131-146 and the F13 comment at 56-68; they now sit at 141-156 and 56-78 (+10 lines, all inside the F13 comment), and the only visible-copy change is 'normally' at :141. sensitive_paths hit by the delta: none. Backend claims checked read-only against E:/sarayatech-solutions/wt-be-next (uncommitted working tree on top of 8c41005), which another agent was editing DURING this review.",
+    "evidence": [
+      "Receipt .vantry/receipts/integrate-s3.verify.json (read with jq, not written): verdict pass, created_at 2026-11-25T21:48:48Z, head f4e40938, tree_digest c6865d743d3c186160083741f21d2a7e7d3a4a1e42791c3c549a1fd6cc8da369, steps test/build/ready/smoke all exit 0 (1104/1104 tests, 19 prerendered outputs). Observation: 'dist/assets: 1 JS file contains normally saves your details, 0 contain our server saves your details'. scripts/verify.sh --status: freshness CURRENT, verdict OK.",
+      "F13 'saved before mail' (privacy.ts:58-62): TRUE. wt-be-next lib/services/contact.ts:126-127 repo.createLead(...) with its outbox rows, then :140 deliverLeadMail, :148 returns lead.reference; :134-135 when the store open or insert fails it calls sendDirect, whose doc (:151) and return (:178 { ok: true }) keep nothing and carry no reference. Retry: lib/mail/outbox.ts BACKOFF_MS 1m/5m/30m/2h/12h, 6th failure dead; the mail_outbox table is lib/db/migrations.ts:87 (the comment's 'queued in mail_outbox' is a fair paraphrase: the row is written with the lead and stays pending on failure). Drivers lib/db/sqlite.ts (node:sqlite), lib/db/d1.ts and lib/db/sql.ts SqlLeadRepository all exist.",
+      "F13 retention (privacy.ts:63-66): TRUE. lib/jobs/maintenance.ts runMaintenance calls repo.purgeOlderThan(now - retentionDays*DAY_MS, {limit: PURGE_BATCH=1000}) (line 113 at last read; it moved during the review); lib/db/sql.ts:576 purgeOlderThan deletes FROM leads by created_at; lib/config.ts:64 DEFAULT_LEAD_RETENTION_DAYS = 365. Scheduling: instrumentation.ts:17-19 -> lib/server.ts:125 startMaintenance, which returns null when intervalMs === 0 (:131-133, logs maintenance_disabled) and on Workers; worker.ts:27 scheduled() -> lib/jobs/scheduled.ts runScheduledMaintenance; wrangler.jsonc:49 crons ['*/5 * * * *'].",
+      "F13 cascade (privacy.ts:67-68): TRUE. lib/db/migrations.ts:71 lead_events.lead_id and :89 mail_outbox.lead_id REFERENCES leads(id) ON DELETE CASCADE; lib/db/sqlite.ts:58-61 enables foreign_keys or throws; lib/db/d1.ts:7 notes D1 enforces FKs. Admin notes live in lead_events.note, so they cascade too. admin_audit (migrations.ts:113-119) holds action, lead_id, request_id, created_at only: no PII. Only five tables exist (leads, lead_events, mail_outbox, admin_audit, schema_migrations); the console added no table.",
+      "F13 access (privacy.ts:70-74): TRUE on disk, with two citation imprecisions (A11-1, A11-2). Readers of the store are only lib/admin/http.ts, lib/admin/console/http.ts, lib/admin/service.ts, lib/jobs/maintenance.ts and the contact write path via lib/server.ts (grep of getLeadRepository/listLeads/getLead). lib/admin/auth.ts createAdminAuthorizer + ADMIN_API_TOKEN exist; lib/admin/http.ts strips every access-control-* header. lib/admin/session.ts:96 createSessionCodec: HMAC-SHA256 with derived keys, cookie attributes 'Path=/; HttpOnly; SameSite=Strict' (+ Secure in production) at :103, 8 h max age, stateless. The console login takes the admin token in a type=password field (lib/admin/console/views.ts:185-187), so 'password-protected admin area' (privacy.ts:147) is accurate. lib/app.ts consoleEnabled requires ADMIN_API_TOKEN AND ADMIN_SESSION_SECRET; route() returns the 404 catch-all for admin and console routes when disabled.",
+      "F13 erasure (privacy.ts:73-74): both methods exist (lib/db/sql.ts:561 eraseLead, :567 eraseByEmail, both DELETE FROM leads via countedDelete with an audit statement that never stores the email); reachable as stated except that eraseByEmail is API-only (A11-1).",
+      "Visible copy privacy.ts:141 'our server normally saves your details in its database': ACCURATE and not misleading. The store is the default path; the only exception is the store-down fallback, which stores LESS than stated. The neighbouring ':143 Once your details are saved, the page shows you a reference code' stays true: sendDirect returns no reference. Edge noted, not a finding: a honeypot hit gets a random reference with no storage or mail (contact.ts:79); that is the anti-bot decoy, not reached by a human using the visible form, and it errs toward storing nothing. ':141 our server tries again later' is true on the stored path (bounded at 6 attempts); on the store-down path a failed send returns an error to the visitor, so no false retry promise is made.",
+      "owner-content.md:80-85: ACCURATE. Node timer off at MAINTENANCE_INTERVAL_SECONDS=0 (lib/server.ts:131-133; lib/config.ts parseMaintenanceInterval accepts 0 or 10-86400, default 60); Workers cron at wrangler.jsonc:49; CSV exports exist on both surfaces (app/api/v1/admin/leads/export.csv, app/admin/export.csv) and neither purgeOlderThan nor eraseLead/eraseByEmail touches anything outside the database. One more skip condition is not listed (A11-4).",
+      "Backend in flux: during this review lib/jobs/maintenance.ts (21:56:51Z), lib/db/sql.ts and wrangler.jsonc (21:56:27Z), lib/admin/console/http.ts (21:55:19Z) and lib/app.ts were rewritten; maintenance.ts gained an AUDIT_RETENTION_DAYS purge of admin_audit (default 730, lib/config.ts:66) between two of my reads. Every F13 citation was re-checked after those writes and still holds. The STS-083 console (lib/admin/session.ts, lib/admin/console/*, app/admin/**) was written 21:08-21:55Z, is uncommitted, and postdates the backend's only security verdict (wt-be-next .vantry/reviews/feat-s4-nextjs-backend.security.json, at 16:46Z, which does not cover it). The orchestrator's brief attributes the in-flight work to STS-082; the files themselves say STS-083 (A11-3)."
+    ],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static frontend; the delta is a code comment, one word of draft copy and an ops doc. Backend admin authorization was read for truthfulness only; it is owned by the backend's own review."
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "N/A",
+        "reason": "no code path changed; the privacy.ts change is a comment plus one word in a string literal; Legal.test.tsx 27/27 re-run"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "no logging or error path in the delta; the comment names env var names (ADMIN_API_TOKEN, ADMIN_SESSION_SECRET context, MAINTENANCE_INTERVAL_SECONDS, LEAD_RETENTION_DAYS) but no value"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage in delta"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook, payment or role in delta"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "N/A",
+        "reason": "chatbot untouched; 'chats are not stored' re-verified: lib/services/chat.ts has no repository, SQL or lead reference"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers, public/_redirects, index.html, vite.config.ts and package*.json are not in the delta; no new origin"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no frontend mutation or role. Backend: erasure writes admin_audit without PII; console sessions are revoked by rotating ADMIN_SESSION_SECRET or ADMIN_API_TOKEN (lib/admin/session.ts header), backend scope"
+      }
+    ],
+    "findings": [
+      {
+        "id": "A11-1",
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 73,
+        "summary": "'Erasure: SqlLeadRepository.eraseLead / eraseByEmail, from either surface' reads as both methods on both surfaces. The console offers only per-lead erase (wt-be-next lib/admin/console/http.ts:475 service.eraseLead); erase-by-email is API-only (lib/admin/http.ts:164, app/api/v1/admin/erasure). An owner answering an erasure request from the console alone could believe one action removed every lead for that address. Internal comment, not rendered; the visible promise (:156) is still deliverable.",
+        "fix": "Change to: 'Erasure: SqlLeadRepository.eraseLead (one lead: admin API DELETE /api/v1/admin/leads/[id] or the console erase page) and eraseByEmail (every lead for an address: admin API /api/v1/admin/erasure only).'"
+      },
+      {
+        "id": "A11-2",
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 71,
+        "summary": "'lib/admin/http.ts: 404 when unset' cites the file that documents the behaviour, not the one that enforces it. The 404 catch-all is applied in wt-be-next lib/app.ts route() (isAdminRoute && !authorizer.enabled; isConsoleRoute && !adminConsole), and the console additionally needs ADMIN_SESSION_SECRET (lib/app.ts consoleEnabled). A reviewer re-checking the claim in lib/admin/http.ts finds only a comment.",
+        "fix": "Cite 'lib/app.ts route(): every admin and console route is the 404 catch-all while ADMIN_API_TOKEN is unset; the console also needs ADMIN_SESSION_SECRET', and keep lib/admin/http.ts for 'never CORS-exposed'."
+      },
+      {
+        "id": "A11-3",
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 72,
+        "summary": "F13 now cites the STS-083 server-rendered /admin console (lib/admin/session.ts createSessionCodec, lib/admin/console/http.ts) as an access path. It exists on disk and the cookie claims are true today, and listing an extra access path errs toward disclosure, so this is not a misstatement. But the console is uncommitted, was being edited while this review ran (console/http.ts 21:55Z), and has no backend security verdict (feat-s4-nextjs-backend.security.json is from 16:46Z). If STS-083 is reshaped or dropped, this citation drifts the way the A10-1 one did, in the other direction.",
+        "fix": "Before LEGAL_PAGES_APPROVED is set to true, re-check F13 lines 70-74 against the committed, security-reviewed STS-083 tree and record the backend commit SHA in the 'Checked against' line (privacy.ts:57) instead of the worktree name."
+      },
+      {
+        "id": "A11-4",
+        "severity": "info",
+        "file": "docs/ops/owner-content.md",
+        "line": 80,
+        "summary": "The 'maintenance job must run' limit names only the deliberate off switches. The run, purge included, is also skipped when: on Workers there is no D1 binding (wt-be-next lib/jobs/scheduled.ts:54 maintenance_skipped) or the production config has a problem (:59 config_invalid); on Node the loop fails to start (lib/server.ts:144 maintenance_start_failed, e.g. RESEND_API_KEY missing); or the delete itself fails (lib/jobs/maintenance.ts maintenance_purge_failed). In each case leads outlive the stated retention until someone notices.",
+        "fix": "Add one sentence to that bullet: 'It also stops if the backend logs maintenance_skipped, config_invalid, maintenance_start_failed or maintenance_purge_failed; set an alert on those codes.'"
+      }
+    ],
+    "prior_findings_status": {
+      "A10-1": "CLOSED. The non-existent-console and 'not yet on disk' statements are gone or now true; every cited BE file and symbol exists (24 symbol greps, re-run after the concurrent backend edits). Residual citation precision is A11-1/A11-2 (INFO).",
+      "A10-2": "CLOSED. owner-content.md:78-85 states both limits accurately; A11-4 adds a non-blocking refinement.",
+      "A10-3": "CLOSED. privacy.ts:141 now says 'normally saves'; confirmed in the built bundle by the receipt observation.",
+      "A8-1": "CLOSED (unchanged).",
+      "A7-1": "OPEN, INFO, unchanged (dormant while the GA4 id is null)."
+    },
+    "tests_executed_by_reviewer": [
+      "npx vitest run src/content/legal src/pages/Legal.test.tsx: 1 file, 27/27 pass (src/content/legal has no test file of its own; Legal.test.tsx:128 asserts 'saves your details in its database, then emails them', which matches the new wording)",
+      "Read-only greps in wt-be-next for every F13 symbol (createContactService, sendDirect, SqlLeadRepository, purgeOlderThan, eraseLead, eraseByEmail, runMaintenance, startMaintenance, MAINTENANCE_INTERVAL_SECONDS, scheduled, crons, ON DELETE CASCADE, createAdminAuthorizer, ADMIN_API_TOKEN, createSessionCodec, HttpOnly, HMAC, Access-Control, LEAD_RETENTION_DAYS, node:sqlite, D1): all present, re-checked after the backend changed mid-review",
+      "find -newer / -newermt over the FE tree: the delta is exactly privacy.ts and owner-content.md; nothing newer than the 21:48:48Z receipt",
+      "scripts/verify.sh --status (read only): CURRENT, OK"
+    ],
+    "not_run": [
+      "scripts/verify.sh (orchestrator's run, receipt 21:48:48Z, read only; not re-run, no --observe)",
+      "full vitest suite (receipt shows 1104/1104)",
+      "backend test suite and backend server (read, not executed); the STS-083 console itself was not security-reviewed here, it is backend scope"
+    ],
+    "verdict_rationale": "The delta is one comment block, one word of draft copy and an ops note. Every claim checked against the backend on disk is true: the lead is stored before mail, with a store-down fallback that keeps nothing and returns no reference; a 365-day default purge run by the Node loop or the 5-minute Workers cron; ON DELETE CASCADE on lead_events and mail_outbox with foreign keys enforced; the admin API and the console as the only read paths; per-lead and per-email erasure. 'Normally saves' is accurate and errs toward over-disclosure. The four findings are INFO citation-precision and owner-checklist refinements, plus a note that the console is unreviewed backend work in flux. No critical, high, medium or low finding. Pass on c6865d74."
+  },
+  "sensitive_paths_hit_addendum_11": [],
+  "addendum_12": {
+    "at": "2026-11-26T13:30:00Z",
+    "reviewer": "security-engineer (independent; did not author the A11 follow-up or the timeout changes)",
+    "verdict": "pass",
+    "scope": "Follow-up to addendum 11 (A11-1, A11-2, A11-3 INFO; A11-4 INFO). The delta since the addendum-11 verdict write (2026-11-25T22:01:46Z) is mechanical: find -newer on this verdict file (excluding node_modules/.git/dist/dist-ssr/.vantry) returns exactly 4 files: src/content/legal/privacy.ts (mtime 2026-11-26T11:21:17Z), src/content/ownerGated.test.tsx (12:48:27Z), src/services/chatbot.service.test.ts (12:48:33Z) and docs/ops/owner-content.md (2026-11-25T22:02:53Z, 67 s after the A11 write; NOT named in the orchestrator's brief, reviewed here anyway because it is in the delta: it is the A11-4 fix). Intersection with vantry.yml sensitive_paths: src/services/chatbot.service.test.ts (src/services/**). The other three match no glob. Backend claims checked read-only against E:/sarayatech-solutions/wt-be-next, branch feat/s4-nextjs-backend, HEAD 8c410054c3a9905bf7f9ef36de407e4168a1cc9c plus an UNCOMMITTED working tree (the Next.js rewrite: app/, lib/, tests/ untracked; index.js and src/*.js deleted). Newest BE write 2026-11-26T11:58:02Z (README.md); no cited BE file changed during this review (sha256 prefixes of the 19 cited files recorded at 13:08:11Z and re-checked after writing).",
+    "be_tree_checked": {
+      "path": "E:/sarayatech-solutions/wt-be-next",
+      "branch": "feat/s4-nextjs-backend",
+      "head": "8c410054c3a9905bf7f9ef36de407e4168a1cc9c",
+      "state": "uncommitted working tree on top of head; newest write 2026-11-26T11:58:02Z",
+      "file_sha256_prefix": {
+        "lib/app.ts": "a4232d6dd086e298",
+        "lib/admin/http.ts": "4aea9459f4d7f639",
+        "lib/admin/console/http.ts": "249a0118f695f47a",
+        "lib/admin/service.ts": "e34cf78f93b7fba8",
+        "lib/admin/auth.ts": "ac25e4a2b2f7e687",
+        "lib/admin/session.ts": "e051606866634251",
+        "lib/db/sqlite.ts": "c7b058a1219bf86b",
+        "lib/db/sql.ts": "e233f029f91b0e8d",
+        "lib/db/d1.ts": "1f4753a7356d30af",
+        "lib/db/migrations.ts": "e90c1ea37850ca26",
+        "lib/services/contact.ts": "a288950954a74044",
+        "lib/mail/outbox.ts": "b36fb5d8017665fa",
+        "lib/jobs/maintenance.ts": "af54f2d69403cba5",
+        "lib/jobs/scheduled.ts": "bb24dd750619170b",
+        "lib/server.ts": "4a8144bf24666047",
+        "lib/config.ts": "77970c5f00271a1e",
+        "worker.ts": "ea8e8e6136d05e5a",
+        "wrangler.jsonc": "a39b72f06fcc1ddd",
+        "docs/DEPLOY.md": "421baa2401d6e903"
+      },
+      "note": "This is NOT the committed, security-reviewed BE tree that A11-3 asks for. The S8 fix (setStatus no-op audited as lead.view) exists in this working tree only."
+    },
+    "evidence": [
+      "Receipt (read with jq and scripts/verify.sh --status, not written): .vantry/receipts/integrate-s3.verify.json verdict pass, created_at 2026-11-26T12:56:52Z, head f4e40938, tree_digest 64655f4b09be6a565764f0187324f36c0c22efbd980f4281ecab53629eb321ce; steps test (npm test, 61 files, 1104/1104), build (19 prerendered outputs), ready (localhost:4173 after 15 s), smoke all exit 0. --status: freshness CURRENT, verdict OK. All 4 delta files predate the receipt. The test count equals the A11 receipt's (1104/1104): no test was added or removed.",
+      "F13 access, 404 when off (privacy.ts:70-76): TRUE, and the citation is now the enforcing file. wt-be-next lib/app.ts:180 consoleEnabled = authorizer.enabled && config.admin.token !== undefined && config.admin.sessionSecret !== undefined; route() returns notFound() at :374 for isAdminRoute(name) && !authorizer.enabled and at :375 for isConsoleRoute(name) && !adminConsole. authorizer.enabled is expected !== null (lib/admin/auth.ts:75), and lib/config.ts:255-257 rejects a token outside 32-512 chars, so a weak token is also 404 (the comment under-states, in the safe direction). 'never CORS-exposed' stays attributed to lib/admin/http.ts, which deletes every access-control-* header at :251. HttpOnly cookie: lib/admin/session.ts:103 'Path=/; HttpOnly; SameSite=Strict' (+ Secure); HMAC-SHA256 at :77-81.",
+      "F13 erasure (privacy.ts:77-78): TRUE. eraseLead is reachable from the API (lib/admin/http.ts:141-145, DELETE on adminLead) and from the console (lib/admin/console/http.ts:459-480 consoleLeadErase -> service.eraseLead at :479, after the typed-reference check at :478). eraseByEmail is reachable ONLY from POST /api/v1/admin/erasure (lib/admin/http.ts:159-166; app/api/v1/admin/erasure/route.ts binds adminErasure). grep of lib/admin/console and app/admin for eraseByEmail|erasure: 0 hits. Repository: lib/db/sql.ts:561 eraseLead, :567 eraseByEmail.",
+      "F13 audit claim (privacy.ts:75-76) and S8: setStatus in lib/admin/service.ts (sha256 e34cf78f..., mtime 2026-11-26T11:51:55Z) now writes lead.view on a no-op ('if (!change.changed) await r.appendAudit({ action: AUDIT_ACTIONS.view, leadId: change.lead.id, requestId: ctx.requestId })') before it returns the lead; a real change is covered by its lead.status row in the same transaction. getLead writes lead.view before the PII leaves; listLeads writes lead.search when q is non-blank, else lead.list, without the term; exportCsv writes lead.export before the first byte. BE tests exist for S8 (tests/admin.test.ts:331, :658, :679; tests/admin-console.test.ts:822, :843); read, not executed. Every service call from both surfaces was enumerated (grep over lib/admin/http.ts and lib/admin/console/http.ts): every call that returns lead PII is audited. Unaudited by design: stats (counts), audit/auditWithReferences (action, lead id, request id, reference), listMail (AdminMail has no PII, plus leadReference) and leadReference (the console erase-form compare). So the claim holds for PII, but its wording is broader than the code and it omits lead.export (A12-1).",
+      "F13 SQLite erasure (privacy.ts:79): secure_delete TRUE (lib/db/sqlite.ts:65 PRAGMA secure_delete = ON; :69-70 throws if it is not 1). WAL checkpoint: lib/db/sqlite.ts:121-131 eraseLead/eraseByEmail (and purgeOlderThan) call scrubWal when n > 0, which runs PRAGMA wal_checkpoint(TRUNCATE) with busy_timeout 0 and logs db_checkpoint_incomplete on busy (:94-95) or db_checkpoint_failed. It is best-effort, not guaranteed (A12-1).",
+      "F13 backups (privacy.ts:80-81): TRUE. wt-be-next docs/DEPLOY.md:67-71 'Erasure and backups': the live database only; file backups, D1 Time Travel (7 days Free, 30 days paid) and CSV exports keep copies. DEPLOY.md:70 also says to 'say so in the privacy notice'; the visible copy does not (A12-3).",
+      "F13 other bullets re-checked because their BE files changed after A11: store before mail TRUE (lib/services/contact.ts:133 repo.createLead; :140-141 sendDirect with no reference when the store is down; :154 returns lead.reference); retention TRUE (lib/config.ts:64 DEFAULT_LEAD_RETENTION_DAYS = 365, lib/jobs/maintenance.ts:113 purgeOlderThan, lib/db/sql.ts:576); cascade TRUE (lib/db/migrations.ts:71, :89 ON DELETE CASCADE); scheduling TRUE (lib/server.ts:125/131, wrangler.jsonc:49 '*/5 * * * *', worker.ts -> lib/jobs/scheduled.ts).",
+      "Visible privacy text unchanged: no exact snapshot of the A11 file exists (no other worktree holds it, and privacy.ts is unstaged, so the index equals HEAD). Method used instead: HEAD and the working file were both printed through the TypeScript printer with removeComments (scratchpad strip.cjs, node_modules/typescript) and diffed. Every non-comment hunk belongs to a feature reviewed in an earlier addendum: lead-source wording (A3), the analytics cookieBullets and the Google recipient (A4/A5), the lead-store bullets, reference, admin area, erasure and hosting-database wording (A10), and 'normally' (A11). No hunk is unaccounted for. The four sentences A11 quoted at :141, :143, :147 and :156 are now at :149, :151, :155 and :164 with the same text. The +8 shift equals the growth of the F13 comment (A11: 56-78, now 56-86), and lines 1-87 are a single /** */ block. The receipt observation confirms the 'normally' wording in the built bundle. Conclusion: only comments changed in privacy.ts.",
+      "Timeout scope: vitest 3.2.7. vitest.config.ts sets no pool, isolate or testTimeout, so the defaults apply (pool forks, isolate true, testTimeout 5000). vi.setConfig is called only in src/content/ownerGated.test.tsx:20 (grep over src and tests). In vitest's runner (node_modules/vitest/dist/chunks/runBaseTests.9Ij9_de-.js:111-122), every file is followed by vi.resetConfig(), whatever the isolation setting, and resetConfig restores the snapshot taken by the first setConfig (vi.bdSIJ99Y.js:3986-3992). So the 30 s cannot leak into another file. chatbot.service.test.ts:258 uses the per-test third argument, which applies to that one test only.",
+      "No assertion changed: the only timeout-related tokens in the two files are ownerGated.test.tsx:17-20 (3 comment lines + setConfig) and chatbot.service.test.ts:255-258 (2 comment lines + ', 30_000'). Neither file contains .skip, .only, .todo, retry, expect.soft or it.fails. The receipt's test count is unchanged (1104).",
+      "No hidden hang (executed, with the files run alone): npx vitest run src/content/ownerGated.test.tsx gave 19/19 pass; the FIRST test took 6218 ms (cold transform of @/routes after vi.resetModules in load(), ownerGated.test.tsx:90-91), and every other test took 287-664 ms. npx vitest run on both files gave 72/72 pass; the ownerGated first test took 6391 ms, the chatbot test 'only links to internal routes that exist' took 5011 ms, and every other test took well under 1 s. The time is a one-off cold import, not a wait, and a real hang would still fail at 30 s. Observation, not a finding: the ownerGated comment reads as if every test were slow, but only the first test in the file is, so a per-test timeout on that one test would be tighter. Not security-relevant.",
+      "owner-content.md:80-87 (the A11-4 fix): the alert codes exist (maintenance_skipped in lib/jobs/scheduled.ts; maintenance_failed in lib/jobs/loop.ts and scheduled.ts; maintenance_start_failed and maintenance_disabled in lib/server.ts; maintenance_purge_failed and maintenance_run in lib/jobs/maintenance.ts). Two of its statements are wrong (A12-2).",
+      "chatbot.service.test.ts is on a sensitive path (src/services/**), but its delta is one test timeout: chatbot.service.ts, the intents data and the AI request path have no change since A11 (find -newer)."
+    ],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static frontend; the delta is a code comment, two test timeouts and an ops doc. Backend admin authorization was read only to check the comment is true; it is the backend review's scope."
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "N/A",
+        "reason": "no runtime code changed; privacy.ts changed only inside its header comment (comment-stripped diff)"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "no logging or error path in the delta; the comment and the doc name env vars and log codes, never a value"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage in the delta"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook, payment or role in the delta"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "N/A",
+        "reason": "chatbot runtime untouched; the sensitive-path hit is a 30 s timeout on one existing test, with its assertions unchanged"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers, public/_redirects, index.html, vite.config.ts and package*.json are not in the delta; no new origin"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no frontend mutation or role. Backend: the S8 no-op read is now audited (lib/admin/service.ts setStatus), confirmed by reading"
+      }
+    ],
+    "findings": [
+      {
+        "id": "A12-1",
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 75,
+        "summary": "Two F13 claims are broader than the backend code. (1) ':75-76 Every read of lead data is audited (lead.view, and lead.list / lead.search ...)' omits lead.export, and the code audits only reads that return lead PII: stats, the audit trail, the outbox list (lead ids and references) and the console's leadReference lookup are unaudited by design (wt-be-next lib/admin/service.ts:8-12, :217). (2) ':79 the WAL is checkpointed after an erasure' is best-effort: when a reader holds the WAL, the checkpoint is incomplete, is logged as db_checkpoint_incomplete, and is finished by the next erasure or purge (lib/db/sqlite.ts:94-95, :108-116; DEPLOY.md:68). Impact: someone answering a data-subject or lawyer question from this note could say that every access is logged, or that erased data leaves the WAL at once. This is an internal comment and is not rendered; the visible copy makes neither claim.",
+        "fix": "Replace ':75-76' with 'Every read that returns lead PII is audited before the data leaves: lead.view (one lead, and a same-status update, STS-085 S8), lead.list / lead.search (each list page), lead.export (CSV); stats, the audit trail, the outbox list and the reference lookup carry no PII and are not (BE lib/admin/service.ts).' and ':79' with 'secure_delete is on, and a best-effort WAL checkpoint runs after each erasure (logged db_checkpoint_incomplete when a reader blocks it; the next erasure or purge completes it) (BE lib/db/sqlite.ts)'."
+      },
+      {
+        "id": "A12-2",
+        "severity": "info",
+        "file": "docs/ops/owner-content.md",
+        "line": 85,
+        "summary": "The A11-4 fix adds two wrong statements. (1) ':85-86 Each successful run logs maintenance_run; if that stops appearing, the purge has stopped' is false. lib/jobs/maintenance.ts:126-128 logs maintenance_run only when rows were claimed or leads or audit rows were purged, and BE docs/DEPLOY.md says it is 'logged only when something happened'. On a quiet site it never appears, so a heartbeat alert built from this sentence fires constantly and gets muted, and that hides the real stop it was meant to catch. (2) The alert list omits config_invalid. It is the only code logged when a Workers cron run is skipped for a production config problem (lib/jobs/scheduled.ts:57-59), even though ':83' names 'a config error' as a cause. Leads can then outlive the stated retention without any listed code firing.",
+        "fix": "Replace ':85-86' with 'There is no heartbeat: maintenance_run is logged only when a run sent mail or deleted something, so its absence is normal on a quiet site.' and add `config_invalid` to the alert list on ':84-85'."
+      },
+      {
+        "id": "A12-3",
+        "severity": "low",
+        "file": "src/content/legal/privacy.ts",
+        "line": 164,
+        "summary": "Visible draft copy, unchanged in this delta and found while checking the BE runbook that the comment cites: 'We then erase it from our database and our inbox.' is unconditional. But an erased lead survives in earlier file backups, in D1 Time Travel for 7 days (Free) or 30 days (paid), and in CSV exports (wt-be-next docs/DEPLOY.md:67-71). DEPLOY.md:70 explicitly says to 'say so in the privacy notice'. Once approved, the page would promise a completeness of erasure that the deployment cannot deliver within that window, which is a transparency defect (GDPR Art. 12-13, 17). Dormant: LEGAL_PAGES_APPROVED is false (src/content/legal/legal.ts:23), and the page carries the DRAFT notice, is noindex and is left out of the sitemap. Not a merge blocker; it blocks LEGAL_PAGES_APPROVED.",
+        "fix": "Before LEGAL_PAGES_APPROVED: add a sentence to the :164 bullet such as 'Copies in our backups are deleted when those backups expire, within ${ownerTodo(\"C23\", \"backup window, e.g. 30 days\")}, and are never restored without erasing your details again.' (final wording for the owner and lawyer), and add a Legal.test.tsx assertion that the erasure bullet mentions backups."
+      }
+    ],
+    "prior_findings_status": {
+      "A11-1": "CLOSED. privacy.ts:77-78 now says eraseLead is one lead 'from the console or the API' and eraseByEmail is 'every lead for one email, API only: POST /api/v1/admin/erasure'. That matches lib/admin/console/http.ts:479 (eraseLead only; no eraseByEmail anywhere under lib/admin/console or app/admin) and lib/admin/http.ts:159-166.",
+      "A11-2": "CLOSED. privacy.ts:73-75 now attributes the 404 to 'BE lib/app.ts route()': for admin routes while ADMIN_API_TOKEN is unset, and for console routes 'unless ADMIN_SESSION_SECRET is also set (consoleEnabled)'. That matches lib/app.ts:180 and :374-375. lib/admin/http.ts is kept for 'never CORS-exposed' (:251).",
+      "A11-3": "OPEN, INFO, deferred by design. The BE is still an uncommitted working tree on 8c41005, and no security verdict covers the STS-083/085 admin work, so there is no committed tree to check against yet. privacy.ts:81-82 now carries the obligation in the code ('commit SHA in place of the worktree name above ... before LEGAL_PAGES_APPROVED (A11-3)'). It closes when F13 is re-checked against the committed, reviewed BE commit and that SHA replaces 'wt-be-next' at :57.",
+      "A11-4": "CLOSED, with residual A12-2 (INFO). owner-content.md:83-86 now lists the stop causes and log codes; two statements in that addition are wrong.",
+      "A8-1": "CLOSED (unchanged).",
+      "A7-1": "OPEN, INFO, unchanged (dormant while the GA4 id is null)."
+    },
+    "tests_executed_by_reviewer": [
+      "npx vitest run src/content/ownerGated.test.tsx src/services/chatbot.service.test.ts --reporter=verbose (twice): 2 files, 72/72 pass, about 25 s; the slowest were the ownerGated first test (6391 ms) and the chatbot test 'only links to internal routes that exist' (5011 ms); all others under 1 s",
+      "npx vitest run src/content/ownerGated.test.tsx --reporter=verbose: 19/19 pass; first test 6218 ms, the other 18 took 287-664 ms",
+      "TypeScript-printer comment-stripped diff of privacy.ts, HEAD vs working tree (scratchpad strip.cjs): every non-comment hunk maps to an earlier addendum",
+      "Read-only greps and reads in wt-be-next for every F13 citation (route, consoleEnabled, authorizer.enabled, eraseLead, eraseByEmail, adminErasure, consoleLeadErase, AUDIT_ACTIONS, setStatus, appendAudit, secure_delete, wal_checkpoint, scrubWal, the DEPLOY.md 'Erasure and backups' section, createLead, sendDirect, DEFAULT_LEAD_RETENTION_DAYS, purgeOlderThan, ON DELETE CASCADE, crons, HttpOnly, the maintenance log codes)",
+      "vitest internals read: runBaseTests calls resetConfig after every file; the vi.setConfig/resetConfig implementation",
+      "find -newer over the FE tree against this verdict file: exactly 4 files",
+      "scripts/verify.sh --status (read only): CURRENT, OK, before and after writing this addendum"
+    ],
+    "not_run": [
+      "scripts/verify.sh (the orchestrator's run, receipt 2026-11-26T12:56:52Z, read only; not re-run, no --observe; port 4173 not bound)",
+      "full vitest suite (the receipt shows 1104/1104)",
+      "backend tests and server (read, not executed; the BE tree was not edited)"
+    ],
+    "verdict_rationale": "A11-1 and A11-2 are closed: the F13 comment now matches the backend on disk, both for the erasure surfaces and for where the 404-when-off is enforced, and the S8 fix (a same-status update audited as lead.view) is present in lib/admin/service.ts. privacy.ts changed only inside its comment; the visible text did not change. Neither test timeout changes an assertion. Both are scoped (a per-test argument, and a per-file setConfig that vitest resets after every file), and both cover a measured one-off cold import of about 5-6.4 s, not a hang. New findings: A12-1 (INFO, two F13 claims broader than the code), A12-2 (INFO, the owner doc's heartbeat claim is false and config_invalid is missing) and A12-3 (LOW, dormant until LEGAL_PAGES_APPROVED: the visible erasure sentence does not mention backups or D1 Time Travel). A11-3 stays open by design until the BE is committed and reviewed. Nothing above LOW is open. Pass on 64655f4b."
+  },
+  "sensitive_paths_hit_addendum_12": [
+    "src/services/chatbot.service.test.ts"
+  ],
+  "addendum_13": {
+    "at": "2026-11-26T14:02:29Z",
+    "reviewer": "security-engineer (independent; did not author the A12 follow-up)",
+    "verdict": "pass",
+    "scope": "Follow-up to addendum 12 (A12-1 INFO, A12-2 INFO, A12-3 LOW). The delta since the addendum-12 verdict write (this file's mtime before this addendum: 2026-11-26T13:27:38Z) is mechanical: find -newer on this verdict file (excluding node_modules/.git/dist/dist-ssr/.vantry; no .env* file opened) returns exactly 3 files: docs/ops/owner-content.md (13:30:40Z), src/content/legal/privacy.ts (13:39:58Z) and src/pages/Legal.test.tsx (13:40:03Z). That matches the orchestrator's brief. No FE file is newer than the receipt (13:44:31Z). Intersection with vantry.yml sensitive_paths: none of the 3 matches a glob. Backend claims checked read-only against E:/sarayatech-solutions/wt-be-next, branch feat/s4-nextjs-backend, HEAD 8c410054c3a9905bf7f9ef36de407e4168a1cc9c plus an UNCOMMITTED working tree. That tree changed DURING this review (the parallel S11 instanceof fix and S12 DEPLOY.md wording; writes 13:53:35Z-13:56:14Z to lib/admin/service.ts, lib/admin/http.ts, lib/admin/console/http.ts, lib/db/sqlite.ts, lib/db/types.ts, docs/DEPLOY.md, tests/error-identity.test.ts). Every cited claim was checked on the pre-change files (sha256 prefixes equal to addendum 12's, read about 13:47Z) and re-checked on the post-change files (13:56Z-13:59Z). Both hash sets are recorded in be_tree_checked. Line numbers below are post-change unless marked 'pre'.",
+    "be_tree_checked": {
+      "path": "E:/sarayatech-solutions/wt-be-next",
+      "branch": "feat/s4-nextjs-backend",
+      "head": "8c410054c3a9905bf7f9ef36de407e4168a1cc9c",
+      "state": "uncommitted working tree on top of head, changing during the review (S11, S12); last observed write 2026-11-26T13:56:14Z (docs/DEPLOY.md)",
+      "file_sha256_prefix_pre_change": {
+        "lib/admin/service.ts": "e34cf78f93b7fba8",
+        "lib/db/sqlite.ts": "c7b058a1219bf86b",
+        "lib/jobs/maintenance.ts": "af54f2d69403cba5",
+        "lib/jobs/scheduled.ts": "bb24dd750619170b",
+        "lib/server.ts": "4a8144bf24666047",
+        "docs/DEPLOY.md": "421baa2401d6e903",
+        "lib/jobs/loop.ts": "fba6fba116875ebc",
+        "lib/admin/http.ts": "4aea9459f4d7f639",
+        "lib/admin/console/http.ts": "249a0118f695f47a",
+        "lib/db/sql.ts": "e233f029f91b0e8d"
+      },
+      "file_sha256_prefix_post_change": {
+        "lib/admin/service.ts": "77eb5769de87de11",
+        "lib/db/sqlite.ts": "29bc157d90dd2f8b",
+        "lib/jobs/maintenance.ts": "af54f2d69403cba5",
+        "lib/jobs/scheduled.ts": "bb24dd750619170b",
+        "lib/server.ts": "4a8144bf24666047",
+        "docs/DEPLOY.md": "c09dcf1b8e7bda8d",
+        "lib/jobs/loop.ts": "fba6fba116875ebc",
+        "lib/admin/http.ts": "117f4ff3229282a3",
+        "lib/admin/console/http.ts": "550fec7d739f323a",
+        "lib/db/sql.ts": "e233f029f91b0e8d",
+        "lib/db/types.ts": "8b91171d85f59fa0",
+        "lib/config.ts": "77970c5f00271a1e"
+      },
+      "note": "Neither set is the committed, security-reviewed BE tree that A11-3 asks for. The post-change set is the one current at the end of this review; if S11/S12 write again, re-check privacy.ts F13 against the new bytes."
+    },
+    "evidence": [
+      "Receipt (read with jq and scripts/verify.sh --status, not written): .vantry/receipts/integrate-s3.verify.json verdict pass, created_at 2026-11-26T13:44:31Z, head f4e40938, tree_digest b566d2c4bab5570109e1f933dff1b9b6a50062a1e12b5a59595e637b6ae9f877; steps test (61 files, 1104/1104), build (19 prerendered outputs), ready (localhost:4173 after 7 s), smoke all exit 0. --status: freshness CURRENT, verdict OK. All 3 delta files predate the receipt. The test count equals A12's (1104): the delta adds one expect inside an existing test, no test.",
+      "A12-1 part 1, audit claim (privacy.ts:75-79): TRUE on both BE versions. 'Every admin read that returns personal data is audited before it is returned' matches lib/admin/service.ts, whose own header (:8-12) says the same in the same terms. listLeads writes lead.search when q is non-blank, else lead.list, with leadId null and never the term (:255-260; pre :247-250); getLead writes lead.view before returning (:269; pre :259); setStatus writes lead.view when the change is a no-op (:281; pre :271); exportCsv writes lead.export after countLeads and before the ReadableStream is built, so before the first byte (:296-298; pre :286-288). lead.export is now named. The unaudited reads listed (stats, the audit trail, the outbox list) are the ones the BE header lists. The console's leadReference lookup is not named (A13-2, INFO).",
+      "A12-1 part 2, WAL claim (privacy.ts:82-84): TRUE on both versions. lib/db/sqlite.ts scrubWal (:127-139; pre :87-104) sets busy_timeout 0, runs PRAGMA wal_checkpoint(TRUNCATE), logs db_checkpoint_incomplete when busy, logs db_checkpoint_failed on throw, and restores busy_timeout. eraseLead, eraseByEmail and purgeOlderThan call it only when n > 0 (:163, :169, :175; pre :121-131). secure_delete is set at :105 and verified at :109-110 (throws if not 1). 'Best-effort' is now stated. S12 rewrote BE DEPLOY.md:68 to say that, in WAL mode, the old page images stay in leads.db (not in the WAL) until a checkpoint copies the zeroed pages over them. The FE comment names only the checkpoint and its incompleteness, not where the residue sits, so it stays true. Imprecision: 'completes on a later erasure or purge' should be 'a purge that deletes a lead' (n > 0), and db_checkpoint_failed is not named (A13-2, INFO).",
+      "A12-2 (owner-content.md:84-90): CLOSED. Every listed code exists: maintenance_skipped (lib/jobs/scheduled.ts:54, NO_D1_BINDING), maintenance_failed (scheduled.ts:66, lib/jobs/loop.ts:49), maintenance_start_failed (lib/server.ts:144), maintenance_disabled (server.ts:132, not under NODE_ENV=test), maintenance_purge_failed (lib/jobs/maintenance.ts:115), maintenance_audit_purge_failed (:122), maintenance_claim_failed (:72), config_invalid (scheduled.ts:59, only when config.isProduction && problems.length > 0, then returns null without running). The parenthesis 'on Workers, the only code a cron run logs when it is skipped for a configuration problem' is true: the only other skip is maintenance_skipped for a missing binding. maintenance_run (maintenance.ts:126-128) is logged only when claimed.length > 0 || purged > 0 || auditPurged > 0, so 'quiet on a quiet site: do not alert on it going silent' is correct. 'Retried an email' is slightly loose: a claimed row can be released unsent (:86-94) or skipped when its lead was erased (:98). That only makes maintenance_run appear more often, never less, so the advice holds. maintenance_started is logged at server.ts:147 after the loop starts, so the Node liveness hint is right. The Cloudflare cron run history is a dashboard feature and was not checkable here. BE DEPLOY.md:89 still lists a shorter set of codes; that is a BE doc and outside this FE review.",
+      "A12-3, visible sentence (privacy.ts:171-175). It renders: '... We then erase it from our database and our inbox. Copies in our backups and in our hosting provider's short-term database history are removed when those expire, [Owner to confirm: within 30 days (C23)].' Database erasure is TRUE: eraseLead (lib/admin/http.ts:143, lib/admin/console/http.ts:479) and eraseByEmail (lib/admin/http.ts:165, API only; 0 hits for eraseByEmail|erasure under lib/admin/console and app/admin). DEPLOY.md:67 scopes this to 'the live database only'. Inbox deletion is a manual staff act; the wording has been unchanged since A10. 'Hosting provider's short-term database history' is D1 Time Travel, which DEPLOY.md:74 (pre :70) puts at 7 days on Free and 30 days on paid, after which the prior states expire. So 'within 30 days' covers the paid maximum, and the clause is vacuous on a Node/SQLite host. File backups: the BE neither takes nor expires them. They expire only if the operator rotates them, and BE DEPLOY.md:64 ('on the same retention as the live data') and :73 (pre :69: 'Rotate or expire backups within the retention window (LEAD_RETENTION_DAYS)') set that bound at LEAD_RETENTION_DAYS, default 365 (lib/config.ts:64, DEPLOY.md:65). The suggested '30 days' is therefore not what the documented runbook produces (A13-1). CSV exports and wrangler d1 export files are not named in the visible copy. The sentence makes no claim about them, and owner-content.md:91-93 tells the owner to delete the person from every export kept, so the copy understates rather than over-promises. SQLite page residue until a checkpoint is not mentioned visibly; 'erase it from our database' is true at the row level, and the residue is documented in the comment and in DEPLOY.md.",
+      "Draft gating holds: LEGAL_PAGES_APPROVED = false (src/content/legal/legal.ts:23), asserted at Legal.test.tsx:50. While it is false, LegalDocument.tsx:36 renders the DRAFT notice, seo.ts:131-134 adds '(Draft)' and noindex, and the page is left out of sitemapPaths (Legal.test 'is left out of the sitemap'). The new placeholder is ownerTodo('C23', 'within 30 days'): C23 is in OWNER_INPUT_IDS (legal.ts:53), the text matches OWNER_TODO_PATTERN (legal.ts:60; 'what' contains no ']'), and Legal.test.tsx:96-106 requires every '[Owner to confirm' in the article to match the pattern with a known id. The receipt's observation shows the marker prerendered in the built privacy page. The owner-marker rules are unchanged: tests/smoke/smoke.mjs:323 OWNER_MARKERS applies to owner-gated content pages (:339), not to the legal drafts, which carry visible placeholders by design until approval (legal.ts:11-17).",
+      "Visible privacy text delta: HEAD and the working privacy.ts were both printed through the TypeScript printer with removeComments (scratchpad strip.cjs, the repo's node_modules/typescript). That gives 44 changed lines, and every hunk maps to an earlier addendum (analytics switch A4-A6, contact-form lead source A3, hash/counter wording A10-A11, lead store STS-079..084 A10) except the one new sentence above. The comment-only edits are :75-79 and :82-84 (A12-1) and :169-170, which add a second '// F13' marker line under the existing one. That is cosmetic.",
+      "Test delta (Legal.test.tsx:156-157): one comment and one expect(article).toMatch(/We then erase it from our database and our inbox\\. Copies in our backups and in our hosting provider's short-term database history are removed when those expire/) inside the existing 'states the lead store truthfully' test. Against HEAD, the diff also removes two lines (/emails your details to our team's inbox/, /don't keep form submissions in a database/). Those assert the pre-STS-079 copy and could not have passed on the A12-reviewed tree, whose visible text already said 'normally saves your details in its database', so they are not part of this delta. No .skip, .only, .todo, .fails, retry or expect.soft in the file. The new regex is the literal sentence, so removing the caveat fails it, and no existing assertion was loosened. It stops at 'expire' and so does not pin the window as an owner placeholder; replacing the marker with a hard-coded number would still pass (folded into the A13-1 fix)."
+    ],
+    "findings": [
+      {
+        "id": "A13-1",
+        "severity": "low",
+        "file": "src/content/legal/privacy.ts",
+        "line": 174,
+        "summary": "Dormant until LEGAL_PAGES_APPROVED. The caveat's suggested window, ownerTodo('C23', 'within 30 days'), is a value the documented backend runbook does not produce. D1 Time Travel is bounded at 7 or 30 days, but file backups and wrangler d1 export files expire only when the operator rotates them, and wt-be-next docs/DEPLOY.md:64 and :73 tell the operator to keep backups 'on the same retention as the live data' / 'within the retention window (LEAD_RETENTION_DAYS)', which defaults to 365 days (lib/config.ts:64). docs/ops/owner-content.md §4, the owner's approval checklist for this page, says nothing about a backup window. The placeholder already reads as a finished phrase. An owner who strips the bracket and follows the BE runbook would publish a 30-day promise that backups break by up to 335 days, a transparency defect (GDPR Art. 12-13, 17(1)) of the same class as A12-3. The new test (Legal.test.tsx:157) ends at 'expire', so a hard-coded number would pass. Not a merge blocker: the page is a noindex DRAFT outside the sitemap, and C23 is open.",
+        "fix": "Before LEGAL_PAGES_APPROVED: (1) in docs/ops/owner-content.md §4 add a bullet: '**Erasure window (the \"within 30 days\" placeholder in privacy.ts).** It must be at least the longest of: your backup rotation, any wrangler d1 export or database copy you keep, and D1 Time Travel (7 days Free, 30 days paid). The backend runbook (docs/DEPLOY.md \"Backups\") lets backups live as long as LEAD_RETENTION_DAYS (365 by default); either rotate backups within the number you publish, or publish that number.' (2) Make the placeholder neutral: ownerTodo(\"C23\", \"how long backups and database history keep a copy, at least 30 days on paid D1\"). (3) Extend the Legal.test.tsx:157 regex to require the marker: /... are removed when those expire, \\[Owner to confirm: [^\\]]+ \\(C23\\)\\]\\./ while LEGAL_PAGES_APPROVED is false. Optionally (BE, S12 owner): align DEPLOY.md:73 with the published window."
+      },
+      {
+        "id": "A13-2",
+        "severity": "info",
+        "file": "src/content/legal/privacy.ts",
+        "line": 78,
+        "summary": "Two residual imprecisions in the internal F13 comment (not rendered). (1) ':78-79 Stats, the audit trail and the outbox list carry no personal data' uses the GDPR term. The audit trail and the outbox list carry lead ids and references, which are pseudonymous identifiers and still personal data under Recital 26. The BE header says 'no lead PII', which is the accurate phrase. The console's leadReference lookup, also unaudited (lib/admin/console/http.ts erase form), is not listed. (2) ':83 it completes on a later erasure or purge': the checkpoint runs only after a purge that deleted at least one lead (lib/db/sqlite.ts:175, n > 0), and a thrown checkpoint logs db_checkpoint_failed, not db_checkpoint_incomplete (:137). On a quiet site the next qualifying purge can be days away. Impact: someone answering a data-subject or regulator question from this note could understate how long page residue can remain, or call the audit trail anonymous.",
+        "fix": "Replace ':78-79' with 'Stats, the audit trail, the outbox list and the console's reference lookup carry no lead PII (only lead ids and references) and are not audited.' and ':83' with 'it completes on a later erasure or a purge that deletes a lead, and db_checkpoint_incomplete (busy) or db_checkpoint_failed is logged'."
+      }
+    ],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static frontend; the delta is a code comment, one visible sentence, one test assertion and an ops doc. Backend admin authorization and audit were read only to check the comment and the sentence are true; they are the backend review's scope."
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "N/A",
+        "reason": "no runtime code path changed; privacy.ts changed only in its comment and in one static string of the erasure bullet (comment-stripped diff)"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "no logging or error path in the delta; the comment and the doc name env vars and log codes, never a value"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage in the delta"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook, payment or role in the delta"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "N/A",
+        "reason": "chatbot runtime untouched; no src/services/** file in the delta"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers, public/_redirects, index.html, vite.config.ts and package*.json are not in the delta; no new origin"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no frontend mutation or role. Backend: every PII-returning admin read is audited (lib/admin/service.ts :260, :269, :281, :298), confirmed by reading both BE versions"
+      }
+    ],
+    "not_run": [
+      "scripts/verify.sh (the orchestrator's run, receipt 2026-11-26T13:44:31Z, read only; not re-run, no --observe; port 4173 not bound)",
+      "full vitest suite (the receipt shows 1104/1104)",
+      "backend tests and server (read, not executed; the BE tree was not edited)",
+      "a mutation probe of the new assertion (it would need a source edit, which this review may not make); its deny behaviour follows from the regex being the literal sentence"
+    ],
+    "prior_findings_status": {
+      "A12-1": "CLOSED, with residual A13-2 (INFO). privacy.ts:75-79 now names lead.export and limits the claim to reads that return personal data; :82-84 calls the checkpoint best-effort and names db_checkpoint_incomplete. Both match lib/admin/service.ts and lib/db/sqlite.ts, before and after S11/S12.",
+      "A12-2": "CLOSED. owner-content.md:84-90 drops the false heartbeat, says maintenance_run is quiet on a quiet site, and adds config_invalid, maintenance_audit_purge_failed and maintenance_claim_failed. Every code and condition is verified at file:line (evidence).",
+      "A12-3": "CLOSED as filed (the promise is no longer unconditional; backups and D1 Time Travel are named, behind a C23 placeholder, with a Legal.test assertion). Residual A13-1 (LOW, dormant): the suggested 30-day window conflicts with the BE runbook's backup bound.",
+      "A11-3": "OPEN, INFO, deferred by design. The BE is still an uncommitted working tree on 8c41005, and it changed during this review (S11, S12). privacy.ts:86-87 still carries the obligation to re-check against a committed, reviewed BE SHA before LEGAL_PAGES_APPROVED.",
+      "A7-1": "OPEN, INFO, unchanged (dormant while the GA4 id is null)."
+    },
+    "tests_executed_by_reviewer": [
+      "npx vitest run src/pages/Legal.test.tsx: 1 file, 27/27 pass, 7.5 s",
+      "TypeScript-printer comment-stripped diff of privacy.ts, HEAD vs working tree (scratchpad strip.cjs): 44 changed lines, every hunk maps to an earlier addendum except the new caveat sentence",
+      "find -newer over the FE tree against this verdict file: exactly 3 files; against the receipt: 0 files",
+      "Read-only greps and reads in wt-be-next, before and after the S11/S12 writes: appendAudit call sites and the service header; scrubWal, secure_delete and the n > 0 guards; every maintenance/config log code in lib/jobs and lib/server.ts; the maintenance_run condition; eraseLead/eraseByEmail call sites in both admin surfaces; DEPLOY.md 'Backups', 'Retention' and 'Erasure and backups'; DEFAULT_LEAD_RETENTION_DAYS",
+      "sha256 of the cited BE files, recorded twice (pre and post change)",
+      "jq round-trip check: jq . on this file reproduced it byte for byte before the addendum was written, so the write changes only the fields named in the addendum convention",
+      "scripts/verify.sh --status (read only): CURRENT, OK, before and after writing this addendum"
+    ],
+    "verdict_rationale": "A12-1 and A12-2 are closed: the F13 comment and the owner alert advice now match the backend code at file:line, on both BE versions seen during the review. A12-3 is closed as filed: the visible erasure sentence names backups and the host's short-term database history and puts the window behind a C23 placeholder; the legal page stays a noindex DRAFT (LEGAL_PAGES_APPROVED false), and the new assertion only adds coverage. New: A13-1 (LOW, dormant until approval): the suggested '30 days' contradicts the BE runbook's 365-day backup bound, and nothing in the owner checklist connects the two. A13-2 (INFO): two residual comment imprecisions. A11-3 and A7-1 stay open INFO. Nothing above LOW is open. Pass on b566d2c4."
+  },
+  "sensitive_paths_hit_addendum_13": [],
+  "addendum_14": {
+    "at": "2026-11-26T14:41:55Z",
+    "reviewer": "security-engineer (independent; did not author the commits or the A13-1 fix)",
+    "verdict": "pass",
+    "scope": "Bind the verdict to a commit and re-review the A13-1 fix. HEAD 123159f433edcfa27dfe151e1bb3fdd4eeb7de28 on integrate/s3: 7 commits 2b93c20..123159f on f4e40938. Working tree == HEAD (git diff HEAD --quiet), and only this verdict file is untracked. The sensitive intersection is mechanical: git diff --name-only f4e4093 HEAD checked against every vantry.yml sensitive_paths glob, plus a case-insensitive 'auth' grep over the names.",
+    "evidence": [
+      "Sensitive files in f4e4093..HEAD: public/_redirects (in 2ba50f5), src/pages/Contact.tsx (2d9083c), src/services/chatbot.service.ts, chatbot.service.test.ts and chatbot.routes.test.ts (all d359785). That is exactly the union of sensitive_paths_hit_addendum_3..13. vendor/**, the auth globs, public/_headers, index.html, vite.config.ts, package.json, package-lock.json and .github/workflows/** have no change. Commits 2b93c20, 67bb5cb, 03b5512 and 123159f touch no sensitive path.",
+      "Unchanged since addendum 13: this verdict file's sha256 (d1ae9f3c...) equals the A13 output (scratchpad verdict.new.json), so its mtime 14:02:30Z marks the end of A13. find -newer on it (excluding node_modules/.git/dist/dist-ssr/.vantry) returns exactly 3 files, all at 14:07:07Z: docs/ops/owner-content.md, src/content/legal/privacy.ts and src/pages/Legal.test.tsx. None is sensitive. The 5 sensitive files have mtimes from 2026-11-25T09:46Z to 2026-11-26T12:48:33Z, all before A13. HEAD blob ids: _redirects d27beae4, Contact.tsx 59d9113c, chatbot.routes.test.ts e9968c9c, chatbot.service.test.ts 66d85a1e, chatbot.service.ts 0c786d56. The A13 tree's blobs were never written to the object store, so this is an mtime and digest chain, not a blob-for-blob comparison. The receipt b1e6e947 (14:10:55Z, after the fix) is CURRENT at 123159f.",
+      "Non-sensitive config: vantry.yml changes strictness from relaxed to standard only. That raises the gate, leaves sensitive_paths unchanged, and was already noted in addendum 7. .gitleaks.toml, .githooks, scripts and .claude have no change in the range.",
+      "A13-1 fix, privacy.ts:169-178: the comment now says the window must cover the longest of the backup rotation (up to LEAD_RETENTION_DAYS per BE DEPLOY.md), any kept wrangler d1 export copy and D1 Time Travel, and it points to owner-content.md section 4. The visible text is now '... are removed when those expire, within [Owner to confirm: the longest time any backup or database history copy is kept (C23)].' No number is suggested. The placeholder text has no ']', so it matches OWNER_TODO_PATTERN, and C23 is in OWNER_INPUT_IDS (legal.ts:53). LEGAL_PAGES_APPROVED is still false (legal.ts:23).",
+      "A13-1 fix, Legal.test.tsx:157: the regex now ends 'expire, within \\[Owner to confirm: [^\\]]+ \\(C23\\)\\]\\.'. A node probe of that exact regex: the committed sentence passes (allow). The same sentence with a hard-coded 'within 30 days.' fails, the old unmarked phrasing fails, and a marker with the wrong id (C17) fails (deny).",
+      "A13-1 fix, owner-content.md:91-95, in section 4 'Lead retention in the draft Privacy Policy': a new bullet says the published number must be at least the longest of the backup rotation (365 days by default via LEAD_RETENTION_DAYS), any wrangler d1 export copy and D1 Time Travel (7 days Free, 30 Paid). It tells the owner to shorten the rotation first to promise less. That is the A13-1 fix text in substance.",
+      "Secrets (public repo): gitleaks 8.30.1 'git --log-opts=f4e4093..HEAD' scanned 7 commits (~497 KB) and found no leaks. The repo .gitleaks.toml allowlists docs/, so every added line (docs included) was also grepped for sk-/sk-proj, AKIA, ghp_/github_pat_, xox*, AIza, PEM private keys, JWTs and key/secret/password/token assignments. The only hits are GA4 placeholders (G-TEST1234 in tests, G-XXXXXXXXXX in docs): public ids, not credentials. No .env*, key, wrangler or credential file was added. The only new env read is import.meta.env.VITE_GA4_ID (src/config/analytics.ts:30), checked against /^G-[A-Z0-9]{4,12}$/ and null by default."
+    ],
+    "findings": [],
+    "checklist": [
+      {
+        "item": "Access policy / ownership predicate",
+        "status": "N/A",
+        "reason": "static frontend; the post-A13 delta is one comment, one static string, one test regex and one doc bullet"
+      },
+      {
+        "item": "Validation at boundaries; server-side re-check",
+        "status": "N/A",
+        "reason": "no runtime path changed after A13; the sensitive submit and chat files have not changed since their earlier reviews"
+      },
+      {
+        "item": "No secret/PII/token in logs or error responses",
+        "status": "pass",
+        "reason": "gitleaks found no leak in the 7 commits, and the manual grep (docs included) found only placeholder GA4 ids"
+      },
+      {
+        "item": "Private buckets + signed URLs",
+        "status": "N/A",
+        "reason": "no storage"
+      },
+      {
+        "item": "Webhooks signed + idempotent; no client-trusted amounts/roles",
+        "status": "N/A",
+        "reason": "no webhook, payment or role"
+      },
+      {
+        "item": "AI context scoped; injection-delimited",
+        "status": "N/A",
+        "reason": "chatbot files unchanged since addenda 7 and 12"
+      },
+      {
+        "item": "Security headers/CSP intact; new origins deliberate",
+        "status": "pass",
+        "reason": "public/_headers, index.html and vite.config.ts are not in the range; _redirects unchanged since addendum 7"
+      },
+      {
+        "item": "Sensitive mutation audit-logged; role change revokes sessions",
+        "status": "N/A",
+        "reason": "no frontend mutation or role"
+      }
+    ],
+    "prior_findings_status": {
+      "A13-1": "CLOSED. The neutral placeholder, the comment, the marker-pinning test (deny probe executed) and the owner-content section 4 bullet are all present at 123159f.",
+      "A13-2": "OPEN, INFO, unchanged (privacy.ts:79 'carry no personal data', :83 'completes on a later erasure or purge'). Internal comment only.",
+      "A11-3": "OPEN, INFO, deferred until a committed BE SHA exists (privacy.ts:87).",
+      "A7-1": "OPEN, INFO, unchanged (dormant while the GA4 id is null)."
+    },
+    "tests_executed_by_reviewer": [
+      "scripts/verify.sh --status (read only): CURRENT, OK, receipt 2026-11-26T14:10:55Z, before and after writing",
+      "npx vitest run src/pages/Legal.test.tsx: 1 file, 27/27 pass",
+      "node probe of the Legal.test.tsx:157 regex: 1 allow case and 3 deny cases behave as expected",
+      "gitleaks git --redact --log-opts=f4e4093..HEAD: 7 commits, no leaks",
+      "git diff --name-status f4e4093 HEAD intersected with sensitive_paths; per-commit diff-tree; git diff HEAD --quiet",
+      "find -newer on this verdict file; sha256 of this file compared with the A13 output",
+      "jq empty on the written file; CRLF round-trip checked before writing"
+    ],
+    "not_run": [
+      "scripts/verify.sh (not re-run; no --observe; no port bound)",
+      "full vitest suite and build (the receipt shows them passing for this tree)",
+      "backend (out of scope for this delta)"
+    ],
+    "verdict_rationale": "After A13, the commits add only the A13-1 fix to the reviewed tree. The sensitive files are the set already reviewed, and none was written after A13. A13-1 is closed, with an executed deny probe. No secret was added. Nothing above LOW is open. Pass, bound to 123159f433edcfa27dfe151e1bb3fdd4eeb7de28 / tree b1e6e947."
+  },
+  "sensitive_paths_hit_addendum_14": []
+}
