@@ -36,7 +36,7 @@
  *     (FE openai.service.ts conversationHistory); nothing is written to cookies or web storage (no
  *     localStorage/sessionStorage/document.cookie in live code, except the analytics consent key of F12,
  *     which is written only when a GA4 id is set).
- *  F8 Chat bodies are never logged: the server logs request id, model, token counts and timing
+ *  F8 Chat bodies never reach the server's logs: it records request id, model, usage counts and timing
  *     (BE lib/services/chat.ts chat_completed / chat_upstream_failed); the browser logs only a
  *     failure class (FE src/services/chatbot.service.ts, "AI backend unavailable").
  *  F9 Access log lines: request id, method, route pattern, status, ms. No IP, name, email, message
@@ -113,7 +113,12 @@ const cookieBullets = (analyticsOn: boolean): Inline[][] =>
         // F7
         ["Our website's code does not set cookies and does not save anything in your browser's storage."],
         // F10
-        [`We don't use Google Analytics or any other analytics, advertising or tracking service today. If we add one, we will update this policy first. ${ownerTodo("C17", "analytics choice, if any")}`],
+        [
+          [
+            "We don't use Google Analytics or any other analytics, advertising or tracking service today. If we add one, we will update this policy first.",
+            ownerTodo("C17", "analytics choice, if any"),
+          ].join(" "),
+        ],
       ];
 
 /** Built from the analytics switch; `PRIVACY_POLICY` below is what the site renders. */
