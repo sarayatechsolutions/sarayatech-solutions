@@ -153,7 +153,8 @@ describe("free audit form behaviour", () => {
     await user.click(screen.getByRole("button", { name: AUDIT_FORM.submit }));
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe("/api/contact");
+    // The base is whatever the build was given (CI sets VITE_API_URL for the STS-049 build check).
+    expect(url).toBe(`${import.meta.env.VITE_API_URL || ""}/api/contact`);
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body)).toEqual({
       leadType: "audit",
