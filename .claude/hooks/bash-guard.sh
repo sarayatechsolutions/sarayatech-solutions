@@ -247,7 +247,8 @@ _cpwrite() {     # $1 = the command, lower-cased   $2… = its words → 0 when 
     cp|mv)   ac="St"     la="--suffix --no-preserve --sparse" ;;
     ln)      ac="St"     la="--suffix" ;;
     install) ac="Stmog"  la="--suffix --mode --owner --group --strip-program" ;;
-    rsync)   ac="efBTM@" la="--exclude --include --filter --rsh --rsync-path --temp-dir --compare-dest --copy-dest --link-dest --partial-dir --backup-dir --suffix --log-file --log-file-format --password-file --chmod --chown --usermap --groupmap --files-from --exclude-from --include-from --timeout --contimeout --port --bwlimit --max-size --min-size --block-size --modify-window --compress-level --compress-choice --skip-compress --out-format --iconv --checksum-choice --max-delete --max-alloc --sockopts --address --protocol --outbuf --remote-option --info --debug --stop-after --stop-at --write-batch --only-write-batch --read-batch --early-input" ;;
+    rsync)   ac="efBTM@" la="--exclude --include --filter --rsh --rsync-path --temp-dir --compare-dest --copy-dest --link-dest --partial-dir --backup-dir --suffix --log-file --log-file-format"
+             la="$la --password-file --chmod --chown --usermap --groupmap --files-from --exclude-from --include-from --timeout --contimeout --port --bwlimit --max-size --min-size --block-size --modify-window --compress-level --compress-choice --skip-compress --out-format --iconv --checksum-choice --max-delete --max-alloc --sockopts --address --protocol --outbuf --remote-option --info --debug --stop-after --stop-at --write-batch --only-write-batch --read-batch --early-input" ;;
     *)       ps=1 ;;    # Copy-Item, Move-Item and their aliases: PowerShell parameters
   esac
   for w in "$@"; do
