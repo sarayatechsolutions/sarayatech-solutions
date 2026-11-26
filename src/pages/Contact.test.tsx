@@ -2,14 +2,17 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Contact, { type ContactConfig } from "./Contact";
-import { CONTACT_MESSAGES, submitContact, type ContactPayload } from "@/lib/contact-submit";
+import { CONTACT_MESSAGES, submitAudit, submitContact, type ContactPayload } from "@/lib/contact-submit";
+import { LEAD_SOURCE_INVALID, LEAD_SOURCES, type LeadSource } from "@/content/forms/lead-source";
+import { render as renderStatic } from "@/entry-server";
+import { SERVICE_INTERESTS, SERVICE_INTEREST_UNSURE } from "@/content/forms/service-interest";
 
 const PAYLOAD: ContactPayload = {
   name: "Ada",
   email: "ada@example.com",
   phone: "",
   company: "",
-  service: "General Inquiry",
+  service: SERVICE_INTEREST_UNSURE,
   message: "Hello",
   nickname: "",
 };
@@ -91,6 +94,28 @@ describe("submitContact", () => {
     });
   });
 
+  it("posts `source` when one of the five values is given (STS-054)", async () => {
+    for (const source of LEAD_SOURCES) {
+      const fetchImpl = vi.fn().mockResolvedValue(json(200, { success: true }));
+      await expect(submitContact({ ...PAYLOAD, source }, { fetchImpl })).resolves.toEqual({ ok: true });
+      expect(JSON.parse(fetchImpl.mock.calls[0][1].body).source).toBe(source);
+    }
+  });
+
+  it("refuses a source outside the list before any request, with the backend's wording (STS-054)", async () => {
+    for (const bad of ["Google", "facebook", ""]) {
+      const fetchImpl = vi.fn();
+      const contact = await submitContact({ ...PAYLOAD, source: bad as LeadSource }, { fetchImpl });
+      expect(contact, bad).toEqual({ ok: false, kind: "validation", message: LEAD_SOURCE_INVALID });
+      const audit = await submitAudit(
+        { leadType: "audit", name: "Ada", email: "ada@example.com", company: "Ada", website: "https://a.example", nickname: "", source: bad as LeadSource },
+        { fetchImpl },
+      );
+      expect(audit, bad).toEqual({ ok: false, kind: "validation", message: LEAD_SOURCE_INVALID });
+      expect(fetchImpl).not.toHaveBeenCalled();
+    }
+  });
+
   it("maps a network error to a connection message", async () => {
     const fetchImpl = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
     const result = await submitContact(PAYLOAD, { fetchImpl });
@@ -105,6 +130,18 @@ describe("Contact page", () => {
     await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
     await user.click(screen.getByRole("button", { name: /send message/i }));
   }
+
+  it("the Service Interest select offers exactly the shared constant, required, defaulting to the not-sure option", () => {
+    const { container } = render(<Contact />);
+    const native = container.querySelector('select[aria-hidden="true"], select[name="service"]') as HTMLSelectElement | null;
+    expect(native).not.toBeNull();
+    const values = Array.from(native!.options).map((o) => o.value).filter((v) => v !== "");
+    expect(values).toEqual([...SERVICE_INTERESTS]);
+    expect(native!.value).toBe(SERVICE_INTEREST_UNSURE);
+    expect(native).toBeRequired();
+    expect(values).not.toContain("General Inquiry");
+    expect(values).not.toContain("Web & Mobile Development");
+  });
 
   it("labels every visible field and caps its length", () => {
     render(<Contact />);
@@ -304,5 +341,133 @@ describe("Contact page content (STS-044, GAP-03)", () => {
     const dialog = await screen.findByRole("dialog");
     expect(dialog).toHaveTextContent(/message sent successfully/i);
     expect(dialog.textContent).not.toMatch(/24|48|hours|business day/i);
+  });
+});
+
+describe("Contact page lead source (STS-054, GAP-09)", () => {
+  const sourceSelect = () => screen.getByLabelText(/How did you hear about us/i) as HTMLSelectElement;
+
+  async function fill(user: ReturnType<typeof userEvent.setup>) {
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
+    await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
+  }
+
+  it("is a labelled, optional native select with a hint, 44 px tall, on the input border token", () => {
+    render(<Contact />);
+    const select = sourceSelect();
+    expect(select.tagName).toBe("SELECT");
+    expect(select).toHaveAttribute("name", "source");
+    expect(select).not.toBeRequired();
+    expect(select).toHaveValue("");
+    expect(select).toHaveAccessibleDescription("This helps us learn how people find us.");
+    expect(select.className.split(/\s+/)).toEqual(expect.arrayContaining(["h-11", "border", "border-input"]));
+    expect(select.options[0]).toHaveTextContent("Choose one (optional)");
+  });
+
+  it("offers only the empty default and the five agreed values, in the prerendered HTML too", () => {
+    render(<Contact />);
+    expect([...sourceSelect().options].map((o) => o.value)).toEqual(["", ...LEAD_SOURCES]);
+
+    const doc = new DOMParser().parseFromString(renderStatic("/contact"), "text/html");
+    const options = [...doc.querySelectorAll("main #contact-source option")].map((o) => o.getAttribute("value"));
+    expect(options).toEqual(["", ...LEAD_SOURCES]);
+    expect(doc.querySelector('main label[for="contact-source"]')?.textContent).toMatch(/How did you hear about us/);
+  });
+
+  it("omits `source` from the payload when nothing is chosen", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json(200, { success: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<Contact />);
+    await fill(user);
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(Object.keys(body).sort()).toEqual(["company", "email", "message", "name", "nickname", "phone", "service"]);
+  });
+
+  it("includes `source` when chosen, and clears the choice after a successful send", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json(200, { success: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<Contact />);
+    await fill(user);
+    await user.selectOptions(sourceSelect(), "social");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      phone: "",
+      company: "",
+      service: SERVICE_INTEREST_UNSURE,
+      message: "We need a new website.",
+      source: "social",
+      nickname: "",
+    });
+    expect(await screen.findByText(/message sent successfully/i)).toBeInTheDocument();
+    expect(sourceSelect()).toHaveValue("");
+  });
+
+  it("a value injected into the select is refused in the page's alert and never sent", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<Contact />);
+    await fill(user);
+    const injected = document.createElement("option");
+    injected.value = "facebook";
+    injected.textContent = "Facebook";
+    sourceSelect().appendChild(injected);
+    await user.selectOptions(sourceSelect(), "facebook");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(LEAD_SOURCE_INVALID);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("Contact page lead reference (STS-084, ADR 0003)", () => {
+  const SUCCESS_TEXT = "Thank you for contacting us! We've received your message. We'll reply as soon as we can.";
+
+  async function submitWith(body: unknown) {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, body)));
+    const user = userEvent.setup();
+    render(<Contact />);
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
+    await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    return screen.findByRole("dialog");
+  }
+
+  it("shows the reference in the dialog's description, in monospace, announced with the message", async () => {
+    const dialog = await submitWith({ success: true, message: "ok", reference: "REF-7K3QX9PM" });
+    // The dialog's accessible description is what a screen reader reads when it opens.
+    // (jsdom's name computation pads the inline code span with a space; browsers do not, hence \s?.)
+    expect(dialog).toHaveAccessibleDescription(
+      /^Thank you for contacting us! We've received your message\. We'll reply as soon as we can\. Your reference: REF-7K3QX9PM\s?\. Mention it if you contact us about this request\.$/,
+    );
+    const code = dialog.querySelector("[data-lead-reference]") as HTMLElement;
+    expect(code).toHaveTextContent(/^REF-7K3QX9PM$/);
+    expect(code.className.split(/\s+/)).toContain("font-mono");
+    // Text, not colour, carries the meaning: the label sits right next to the code.
+    expect(code.closest("[data-lead-reference-note]")).toHaveTextContent(/^Your reference: REF-7K3QX9PM\./);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("without a reference the dialog is exactly as before", async () => {
+    const dialog = await submitWith({ success: true, message: "ok" });
+    expect(dialog).toHaveAccessibleDescription(SUCCESS_TEXT);
+    expect(dialog.querySelector("[data-lead-reference-note]")).toBeNull();
+    expect(dialog.textContent).not.toMatch(/reference/i);
+  });
+
+  it("an invalid or HTML-looking reference is never rendered", async () => {
+    const dialog = await submitWith({ success: true, reference: '<img src=x onerror="alert(1)">REF-7K3QX9PM' });
+    expect(dialog).toHaveAccessibleDescription(SUCCESS_TEXT);
+    expect(dialog.querySelector("[data-lead-reference-note]")).toBeNull();
+    expect(dialog.querySelector("img")).toBeNull();
+    expect(dialog.textContent).not.toMatch(/onerror|REF-/);
   });
 });

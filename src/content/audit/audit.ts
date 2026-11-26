@@ -46,16 +46,9 @@ export const AUDIT_FORM = {
       placeholder: "yourbusiness.com",
     },
     phone: { label: "Phone (optional)", autoComplete: "tel" },
-    source: { label: "How did you hear about us? (optional)", placeholder: "Choose one" },
     message: { label: "Anything you'd like us to look at? (optional)" },
   },
-  sourceOptions: [
-    { value: "google", label: "Google search" },
-    { value: "referral", label: "A referral" },
-    { value: "social", label: "Social media" },
-    { value: "ads", label: "An ad" },
-    { value: "other", label: "Other" },
-  ],
+  // The "How did you hear about us?" select is shared with /contact: src/content/forms/lead-source.ts (STS-054).
   submit: "Get My Free Audit",
   sending: "Sending...",
   errors: {
@@ -65,6 +58,7 @@ export const AUDIT_FORM = {
     emailInvalid: "Enter a valid email address, like name@example.com.",
     websiteRequired: "Enter your website address.",
     websiteInvalid: "Enter a valid website address, like yourbusiness.com.",
+    websiteTooLong: "That website address is too long. Enter your homepage, like yourbusiness.com.",
     summary: "Please fix the highlighted fields and try again.",
   },
   // C16 open: no response time. OWNER REVIEW once terms are confirmed.

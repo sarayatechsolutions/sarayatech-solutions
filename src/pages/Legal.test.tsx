@@ -124,11 +124,41 @@ describe("Privacy Policy data-flow facts (REQ-046, C23)", () => {
   });
 
   it("states what the forms and the chat actually do with data", () => {
-    expect(article).toMatch(/emails your details to our team's inbox/);
-    expect(article).toMatch(/don't keep form submissions in a database/);
+    // STS-084 (ADR 0003): leads are now stored in the backend's database before the email is sent.
+    expect(article).toMatch(/saves your details in its database, then emails them to our team's inbox/);
+    expect(article).not.toMatch(/don't keep form submissions in a database/);
     expect(article).toMatch(/up to the last 10 messages/);
     expect(article).toMatch(/does not save chat messages and does not write them to its logs/);
     expect(article).toMatch(/counts requests from each IP address in its memory/);
+  });
+
+  it("states retention as the backend does it: windows, then deletion on a later request (STS-054 review)", () => {
+    // BE lib/abuse.ts TtlSet evicts an expired hash at the next claim; lib/rate-limit.ts sweeps
+    // ended counters on access, at most every 60 s. No timer deletes anything at the instant it expires.
+    expect(article).toMatch(/used for up to 10 minutes to spot a duplicate/);
+    expect(article).toMatch(/used for up to 24 hours to limit confirmation emails/);
+    expect(article).toMatch(/deleted the next time our server checks a new form submission against these codes/);
+    expect(article).toMatch(/deleted during a later form or chat request \(our server clears ended counters at most once a minute\)/);
+    expect(article).not.toMatch(/erased when their time window ends/);
+    // The contact form now asks how the visitor heard about us, like the audit form (F1, F2).
+    expect(article).toMatch(/Contact form: [^.]*how you heard about us/);
+    expect(article).toMatch(/Free audit request form: [^.]*how you heard about us/);
+  });
+
+  it("states the lead store truthfully: retention, automatic deletion, purpose, staff-only access, erasure (STS-084)", () => {
+    expect(article).toContain(
+      "We keep each form submission in our server's database for [Owner to confirm: 365 days (C23)]. After that, it is deleted automatically.",
+    );
+    expect(article).toMatch(/We use the details you send only to answer your inquiry or to prepare your audit\./);
+    expect(article).toContain(`Only ${BUSINESS.name} staff can see stored form submissions, through a password-protected admin area`);
+    expect(article).toContain("You can ask us to delete your form submission at any time through our contact form.");
+    expect(article).toMatch(/delete it from our database and our inbox, through our contact form/);
+    // A12-3: the erasure promise names what it does not reach immediately.
+    expect(article).toMatch(/We then erase it from our database and our inbox\. Copies in our backups and in our hosting provider's short-term database history are removed when those expire, within \[Owner to confirm: [^\]]+ \(C23\)\]\./);
+    expect(article).toMatch(/shows you a reference code for your request/);
+    // Chats stay unstored: the lead store is for form submissions only (ADR 0003).
+    expect(article).toMatch(/Our server does not save chat messages/);
+    expect(article).not.toMatch(/chat[^.]*stored in (its|our) database/i);
   });
 
   it("says no analytics run today, matching the null GA4 id (C17), and invents no cookie", () => {

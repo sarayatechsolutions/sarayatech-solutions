@@ -17,12 +17,18 @@ import {
 } from "@/components/ui/dialog";
 import { useRef, useState } from "react";
 import FormPrivacyNote from "@/components/FormPrivacyNote";
+import LeadSourceSelect from "@/components/LeadSourceSelect";
+import LeadReferenceNote from "@/components/LeadReferenceNote";
+import { TrustSlot } from "@/components/FinalCta";
 import { MapPin, Phone, Mail, Clock, CheckCircle2, CalendarDays } from "lucide-react";
 import {
   CONTACT_LIMITS,
   submitContact,
   type ContactPayload,
 } from "@/lib/contact-submit";
+import { chosenLeadSource } from "@/content/forms/lead-source";
+import { trackLead } from "@/lib/analytics";
+import { SERVICE_INTERESTS, SERVICE_INTEREST_UNSURE } from "@/content/forms/service-interest";
 import {
   BUSINESS,
   bookingHref,
@@ -55,7 +61,7 @@ const EMPTY_FORM: ContactPayload = {
   email: "",
   phone: "",
   company: "",
-  service: "General Inquiry", // Set default value to avoid uncontrolled warning
+  service: SERVICE_INTEREST_UNSURE, // Set default value to avoid uncontrolled warning
   message: "",
   nickname: "",
 };
@@ -72,9 +78,13 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
   // A map is pinned to the street address, so it needs a confirmed address too (C4).
   const mapSrc = address?.mapEmbedUrl || null;
   const [formData, setFormData] = useState<ContactPayload>(EMPTY_FORM);
+  // STS-054: the optional lead source; "" means not chosen, and then no `source` is sent.
+  const [source, setSource] = useState("");
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  // STS-084: the backend's lead reference, already checked by contact-submit; null when absent.
+  const [reference, setReference] = useState<string | null>(null);
   // A ref, not state: it blocks a second submit even before React re-renders.
   const inFlight = useRef(false);
 
@@ -86,12 +96,17 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
     setErrorMessage("");
 
     try {
-      const result = await submitContact(formData);
+      const result = await submitContact({ ...formData, ...chosenLeadSource(source) });
       if ("message" in result) {
         setErrorMessage(result.message);
       } else {
+        // STS-050: success only; form id and the fixed lead-source value, never a field the visitor typed.
+        // The reference is shown to the visitor only; it is never sent to analytics.
+        trackLead("contact", source);
+        setReference(result.reference ?? null);
         setModalOpen(true);
         setFormData(EMPTY_FORM);
+        setSource("");
       }
     } finally {
       inFlight.current = false;
@@ -247,9 +262,18 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
               {/* Contact Form */}
               <div className="lg:col-span-2">
                 <div className="bg-card rounded-2xl p-8 shadow-elegant border border-border">
-                  <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
+                  <h2 id="contact-form-heading" className="text-2xl font-bold mb-2">Send us a Message</h2>
+                  {/* STS-041: the asterisk is explained in text; it is hidden from screen readers, which get
+                      "required" from the field itself. */}
+                  <p id="contact-required-note" className="text-sm text-secondary mb-6">Fields marked with * are required.</p>
 
-                  <form onSubmit={handleSubmit} className="space-y-6" aria-busy={loading}>
+                  <form
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                    aria-busy={loading}
+                    aria-labelledby="contact-form-heading"
+                    aria-describedby="contact-required-note"
+                  >
                     {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
                     <div
                       aria-hidden="true"
@@ -272,7 +296,7 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
                         <label htmlFor="contact-name" className="block text-sm font-medium mb-2">
-                          Full Name *
+                          Full Name <span aria-hidden="true">*</span>
                         </label>
                         <Input
                           id="contact-name"
@@ -288,7 +312,7 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                       </div>
                       <div>
                         <label htmlFor="contact-email" className="block text-sm font-medium mb-2">
-                          Email *
+                          Email <span aria-hidden="true">*</span>
                         </label>
                         <Input
                           id="contact-email"
@@ -346,7 +370,7 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
 
                     <div>
                       <label htmlFor="contact-service" className="block text-sm font-medium mb-2">
-                        Service Interest *
+                        Service Interest <span aria-hidden="true">*</span>
                       </label>
                       <Select
                         required
@@ -359,34 +383,20 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                           <SelectValue placeholder="Select a service" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Web & Mobile Development">
-                            Web & Mobile Development
-                          </SelectItem>
-                          <SelectItem value="Data & Business Intelligence">
-                            Data & Business Intelligence
-                          </SelectItem>
-                          <SelectItem value="Custom Business Software">
-                            Custom Business Software
-                          </SelectItem>
-                          <SelectItem value="Cloud & Infrastructure">
-                            Cloud & Infrastructure
-                          </SelectItem>
-                          <SelectItem value="Digital Strategy & Consulting">
-                            Digital Strategy & Consulting
-                          </SelectItem>
-                          <SelectItem value="Security & Compliance">
-                            Security & Compliance
-                          </SelectItem>
-                          <SelectItem value="General Inquiry">
-                            General Inquiry
-                          </SelectItem>
+                          {SERVICE_INTERESTS.map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
+                    <LeadSourceSelect id="contact-source" value={source} onChange={(e) => setSource(e.target.value)} />
+
                     <div>
                       <label htmlFor="contact-message" className="block text-sm font-medium mb-2">
-                        Message *
+                        Message <span aria-hidden="true">*</span>
                       </label>
                       <Textarea
                         id="contact-message"
@@ -406,6 +416,7 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                     <div aria-live="assertive" aria-atomic="true">
                       {errorMessage && (
                         <div
+                          id="contact-form-error"
                           role="alert"
                           className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
                         >
@@ -467,6 +478,10 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
       </div>
 
       {/* Success Modal (errors are shown inline, next to the form) */}
+      {/* STS-046: this page is the conversion step, so the closing block is the trust slot only.
+          The service area is already listed in the contact details above, so it is not repeated. */}
+      <TrustSlot id="contact" standalone omit={["service-area"]} />
+
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -480,12 +495,19 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
             </DialogTitle>
             <DialogDescription className="text-center text-base pt-2">
               Thank you for contacting us! We've received your message. {REPLY_COPY}
+              {/* STS-084: inside the description, so the dialog announces it on open. */}
+              {reference && (
+                <>
+                  {" "}
+                  <LeadReferenceNote as="span" reference={reference} className="mt-2 block" />
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-4">
             <Button
               onClick={() => setModalOpen(false)}
-              className="w-full sm:w-auto bg-accent hover:bg-accent-light"
+              className="min-h-11 h-auto w-full sm:w-auto bg-accent hover:bg-accent-light"
             >
               Great, Thanks!
             </Button>

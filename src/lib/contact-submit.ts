@@ -4,7 +4,14 @@
  * Success only when the server answers 2xx, with a JSON body, and `success: true`.
  * Anything else (an HTML error page from a proxy, a 5xx, a dropped connection) is a
  * failure with a friendly message; a raw parser or network error is never shown.
+ *
+ * STS-084 (ADR 0003): a stored lead's 200 also carries `reference`, e.g. "REF-7K3QX9PM". It is
+ * additive and optional (an older backend omits it), and it is shown to the visitor, so it is
+ * accepted only when it matches LEAD_REFERENCE_PATTERN exactly. Anything else is treated as
+ * absent: arbitrary server text is never rendered.
  */
+
+import { isLeadSource, LEAD_SOURCE_INVALID, type LeadSource } from "@/content/forms/lead-source";
 
 export interface ContactPayload {
   name: string;
@@ -13,6 +20,8 @@ export interface ContactPayload {
   company: string;
   service: string;
   message: string;
+  /** STS-054: sent only when the visitor chose one; checked against LEAD_SOURCES before sending. */
+  source?: LeadSource;
   /** Honeypot: humans never see or fill it. */
   nickname: string;
 }
@@ -20,7 +29,7 @@ export interface ContactPayload {
 export type ContactFailureKind = "validation" | "rate_limited" | "server" | "network";
 
 export type ContactResult =
-  | { ok: true }
+  | { ok: true; reference?: string }
   | { ok: false; kind: ContactFailureKind; message: string };
 
 export const CONTACT_LIMITS = {
@@ -39,6 +48,19 @@ export const CONTACT_MESSAGES = {
 } as const;
 
 const MAX_SERVER_MESSAGE = 200;
+
+/**
+ * The backend's lead reference: "REF-" and exactly 8 Crockford base32 characters
+ * (0-9 and A-Z without I, L, O and U). Anchored, no flags: nothing before or after, no lower case.
+ */
+export const LEAD_REFERENCE_PATTERN = /^REF-[0-9A-HJKMNP-TV-Z]{8}$/;
+
+/** The body's `reference` when it is a well-formed lead reference, otherwise undefined. */
+export function leadReference(body: unknown): string | undefined {
+  if (!body || typeof body !== "object" || !("reference" in body)) return undefined;
+  const ref = (body as { reference: unknown }).reference;
+  return typeof ref === "string" && LEAD_REFERENCE_PATTERN.test(ref) ? ref : undefined;
+}
 
 function isJson(response: Response): boolean {
   return (response.headers.get("content-type") || "").toLowerCase().includes("application/json");
@@ -70,7 +92,7 @@ export interface AuditPayload {
   website: string;
   phone?: string;
   message?: string;
-  source?: "google" | "referral" | "social" | "ads" | "other";
+  source?: LeadSource;
   /** Honeypot: humans never see or fill it. */
   nickname: string;
 }
@@ -95,6 +117,12 @@ async function postLead(
 ): Promise<ContactResult> {
   const { apiUrl = import.meta.env.VITE_API_URL || "", fetchImpl = fetch } = options;
 
+  // STS-054: a source outside the agreed list (a tampered select, a stale caller) is refused
+  // here with the backend's own wording, so it never costs a request against the rate limit.
+  if ("source" in payload && payload.source !== undefined && !isLeadSource(payload.source)) {
+    return { ok: false, kind: "validation", message: LEAD_SOURCE_INVALID };
+  }
+
   let response: Response;
   try {
     response = await fetchImpl(`${apiUrl}/api/contact`, {
@@ -113,7 +141,8 @@ async function postLead(
   const body = await readJson(response);
 
   if (response.ok && body && typeof body === "object" && (body as { success?: unknown }).success === true) {
-    return { ok: true };
+    const reference = leadReference(body);
+    return reference ? { ok: true, reference } : { ok: true };
   }
 
   if (response.status === 400 || response.status === 422) {
