@@ -1,7 +1,14 @@
 # Cloudflare Pages path redirects. Format: <source> <target> <status>. The first match wins, and a
 # redirect fires even when a file exists at the source, so a path that is routed again must leave
 # this file in the same change (tests/redirects.test.mjs enforces it). Static rules come before the
-# splat rules. Host-level redirects (www, .dev) are a Cloudflare rule, not this file (REQ-017).
+# splat rules. Host-level redirects (www, .dev) are a Cloudflare rule, not this file (REQ-017,
+# docs/ops/canonical-host.md). Every target is a fixed path on this site: no placeholder, no
+# external host, no query string (no open redirect; tests/redirects.test.mjs enforces it).
+#
+# Deliberately NOT redirected (they return the real 404): /auth and /dashboard (unrouted app pages
+# with no public equivalent, STS-016; robots.txt does not list them, since a Disallow line would
+# only advertise them) and the never-built footer links of the original template (/newsroom,
+# /documentation, /support).
 
 # STS-039: enterprise-oriented solution pages, retired. Each goes to the closest live service page;
 # a page with no equivalent service goes to the /services hub (07-ANALYTICS-AND-SEO.md 3.4).
@@ -14,11 +21,30 @@
 /solutions/digital-strategy-consulting   /services                   301
 /solutions/security-compliance           /services                   301
 
-# STS-039: the six enterprise industry verticals, retired (C18 open). STS-042 will add
-# /industries/<slug> pages for the owner's 2-3 industries; it must drop the /industries lines then.
+# STS-025: the first versions of the site routed three hard-coded solution pages (removed before
+# STS-039; see git history of src/App.tsx). Same rule: the closest live service, else the hub.
+/solutions/cloud-platform                /services                   301
+/solutions/data-analytics                /services                   301
+/solutions/enterprise-software           /services/app-development   301
+
+# STS-039: the six enterprise industry verticals, retired (C18 open). STS-042 built the
+# /industries hub and /industries/<slug> pages, but they exist only once the owner lists an
+# industry (src/content/industries/industries.ts). DELETE the two /industries lines below in the
+# same change as the first entry (tests/redirects.test.mjs fails until you do, and fails if they
+# are deleted while the list is empty). KEEP /industry and /industry/*: they are the old URLs.
 /industries                              /services                   301
 /industries/                             /services                   301
+/industry                                /services                   301
+
+# STS-057: the Our Work page moved from the French slug to /our-work (I-9).
+/realisation                             /our-work                   301
+
+# STS-025: the first versions of the site had the project showcase at /success-stories, before
+# /realisation replaced it. It goes straight to /our-work (one hop, no chain through /realisation).
+/success-stories                         /our-work                   301
 
 # Any other old URL under the retired prefixes (a trailing slash, an unknown slug).
 /solutions/*                             /services                   301
 /industry/*                              /services                   301
+/realisation/*                           /our-work                   301
+/success-stories/*                       /our-work                   301
