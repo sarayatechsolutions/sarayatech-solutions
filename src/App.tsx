@@ -24,12 +24,8 @@ export const AppProviders = ({ children }: { children: ReactNode }) => (
 
 const App = () => (
   <AppProviders>
-    <BrowserRouter
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
+    {/* startTransition and relative splat paths, opted into via future flags on v6, are the v7 defaults. */}
+    <BrowserRouter>
       <ScrollToTop />
       <AppRoutes />
       {/* STS-050: browser only, off until a GA4 id is configured; never in the prerendered HTML. */}
