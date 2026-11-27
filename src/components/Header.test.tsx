@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, afterEach } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import Header, { MAIN_CONTENT_ID } from "./Header";
@@ -243,5 +243,103 @@ describe("Header click-to-call and click-to-text from config (STS-045)", () => {
     expect(within(desktop).getByRole("link", { name: "Pricing" })).toHaveAttribute("aria-current", "page");
     const menu = await openMobileMenu();
     expect(within(menu).getByRole("link", { name: "Pricing" })).toHaveAttribute("aria-current", "page");
+  });
+});
+
+describe("Header mobile menu scrim and scroll lock (FD-30, FF-16)", () => {
+  const scrim = () => document.querySelector<HTMLElement>("[data-menu-scrim]");
+  const setScrollbar = (width: number) => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 390 + width });
+    Object.defineProperty(document.documentElement, "clientWidth", { configurable: true, value: 390 });
+  };
+  afterEach(() => {
+    setScrollbar(0);
+    document.body.removeAttribute("style");
+  });
+
+  it("puts a decorative scrim under the header while the menu is open, and none while closed", async () => {
+    renderAt("/");
+    expect(scrim()).toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Open menu" }));
+    expect(scrim()).not.toBeNull();
+    expect(scrim()).toHaveAttribute("aria-hidden", "true");
+    expect(scrim()).toHaveClass("fixed", "inset-0", "z-40", "lg:hidden");
+    // The header (z-50) and its Contact Us CTA stay above the scrim.
+    expect(document.querySelector("header")).toHaveClass("z-50");
+    expect(screen.getByRole("link", { name: "Contact Us" })).toBeVisible();
+  });
+
+  it("a press on the scrim closes the menu and returns focus to the toggle", async () => {
+    const user = userEvent.setup();
+    renderAt("/");
+    const toggle = screen.getByRole("button", { name: "Open menu" });
+    await user.click(toggle);
+    within(document.getElementById("mobile-menu") as HTMLElement).getByRole("link", { name: "Pricing" }).focus();
+    fireEvent.pointerDown(scrim() as HTMLElement);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
+    await waitFor(() => expect(scrim()).toBeNull());
+    await waitFor(() => expect(document.getElementById("mobile-menu")).toBeNull());
+  });
+
+  it("locks body scroll while open and restores it on close", async () => {
+    const user = userEvent.setup();
+    document.body.style.overflow = "auto";
+    renderAt("/");
+    const toggle = screen.getByRole("button", { name: "Open menu" });
+    await user.click(toggle);
+    expect(document.body.style.overflow).toBe("hidden");
+    await user.keyboard("{Escape}");
+    expect(document.body.style.overflow).toBe("auto");
+    await user.click(toggle);
+    expect(document.body.style.overflow).toBe("hidden");
+    fireEvent.pointerDown(scrim() as HTMLElement);
+    expect(document.body.style.overflow).toBe("auto");
+  });
+
+  it("restores body scroll when the header unmounts with the menu open", async () => {
+    const { unmount } = renderAt("/");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Open menu" }));
+    expect(document.body.style.overflow).toBe("hidden");
+    unmount();
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("gives a desktop scrollbar's width back as padding on the body and header, so nothing shifts", async () => {
+    setScrollbar(15);
+    renderAt("/");
+    const header = document.querySelector("header") as HTMLElement;
+    const toggle = screen.getByRole("button", { name: "Open menu" });
+    await userEvent.setup().click(toggle);
+    expect(document.body.style.paddingRight).toBe("15px");
+    expect(header.style.paddingRight).toBe("15px");
+    fireEvent.pointerDown(scrim() as HTMLElement);
+    expect(document.body.style.paddingRight).toBe("");
+    expect(header.style.paddingRight).toBe("");
+  });
+
+  it("adds no padding where scrollbars take no space (phones)", async () => {
+    setScrollbar(0);
+    renderAt("/");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Open menu" }));
+    expect(document.body.style.overflow).toBe("hidden");
+    expect(document.body.style.paddingRight).toBe("");
+  });
+
+  it("closes on navigation and unlocks scroll (a menu link)", async () => {
+    const user = userEvent.setup();
+    renderAt("/");
+    await user.click(screen.getByRole("button", { name: "Open menu" }));
+    await user.click(within(document.getElementById("mobile-menu") as HTMLElement).getByRole("link", { name: "Pricing" }));
+    expect(screen.getByRole("button", { name: "Open menu" })).toHaveAttribute("aria-expanded", "false");
+    expect(document.body.style.overflow).toBe("");
+  });
+
+  it("keeps 44 px rows in the menu", async () => {
+    renderAt("/");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Open menu" }));
+    for (const a of within(document.getElementById("mobile-menu") as HTMLElement).getAllByRole("link")) {
+      expect(a).toHaveClass("min-h-11");
+    }
   });
 });

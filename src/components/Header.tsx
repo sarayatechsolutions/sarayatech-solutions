@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, useReducedMotion } from "framer-motion";
 import { motion } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { Menu, MessageSquare, Phone, X } from "lucide-react";
 import { BUSINESS, bookingHref, contactHref, hasVerifiedBooking, phoneHref, smsHref } from "@/config/business";
 import { WORK_PATH } from "@/content/work/work";
+import { ENTER_BASE, EXIT_FAST } from "@/design/motion";
 
 /**
  * Site header (STS-038).
@@ -55,9 +56,36 @@ const normalizePath = (path: string) => (path.length > 1 ? path.replace(/\/+$/, 
 
 const CONTACT_ITEM: NavItem = { name: "Contact", path: contactHref() };
 
+/**
+ * FD-30 / FF-16: while the mobile menu is open the page behind it does not scroll. The scrollbar
+ * width (0 on phones, about 15 px on a narrow desktop window) is given back as padding on the body
+ * and on the fixed header, so nothing shifts sideways. Every style is restored on close and unmount.
+ */
+function useScrollLock(locked: boolean, headerRef: RefObject<HTMLElement>) {
+  useEffect(() => {
+    if (!locked) return;
+    const { body, documentElement } = document;
+    const header = headerRef.current;
+    const scrollbar = Math.max(0, window.innerWidth - documentElement.clientWidth);
+    const before = { overflow: body.style.overflow, bodyPad: body.style.paddingRight, headerPad: header?.style.paddingRight ?? "" };
+    body.style.overflow = "hidden";
+    if (scrollbar > 0) {
+      body.style.paddingRight = `${scrollbar}px`;
+      if (header) header.style.paddingRight = `${scrollbar}px`;
+    }
+    return () => {
+      body.style.overflow = before.overflow;
+      body.style.paddingRight = before.bodyPad;
+      if (header) header.style.paddingRight = before.headerPad;
+    };
+  }, [locked, headerRef]);
+}
+
 const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const reduceMotion = useReducedMotion();
   const { pathname } = useLocation();
 
   const verifiedBooking = hasVerifiedBooking(config);
@@ -109,6 +137,28 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [isMenuOpen]);
 
+  useScrollLock(isMenuOpen, headerRef);
+
+  // The menu, its scrim and the scroll lock are below `lg` only: widening the window past it closes
+  // the menu, so a hidden menu can never keep the page locked.
+  useEffect(() => {
+    if (!isMenuOpen || typeof window.matchMedia !== "function") return;
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => desktop.matches && setIsMenuOpen(false);
+    onChange();
+    desktop.addEventListener?.("change", onChange);
+    return () => desktop.removeEventListener?.("change", onChange);
+  }, [isMenuOpen]);
+
+  // A tap or click outside the menu (on the scrim) closes it. Focus goes back to the toggle when it
+  // was in the menu, which is about to unmount, so it is never lost to <body>.
+  const closeFromScrim = () => {
+    const menu = document.getElementById(MOBILE_MENU_ID);
+    const active = document.activeElement;
+    setIsMenuOpen(false);
+    if (!active || active === document.body || menu?.contains(active)) toggleRef.current?.focus({ preventScroll: true });
+  };
+
   const ctaLabel = (
     <span>
       {cta.lead}
@@ -122,167 +172,189 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
   const ctaClass = `px-3 sm:px-5 whitespace-nowrap ${focusRing}`;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
-      <a
-        href={`#${MAIN_CONTENT_ID}`}
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded-md focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-primary focus:shadow-card focus:outline-none focus:ring-2 focus:ring-ring"
-      >
-        Skip to main content
-      </a>
+    <>
+      <header ref={headerRef} className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
+        <a
+          href={`#${MAIN_CONTENT_ID}`}
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:rounded-md focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-primary focus:shadow-card focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          Skip to main content
+        </a>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 h-20">
-          <Link to="/" className={`shrink-0 rounded-md transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
-            {/* Design audit B2 (FD-02): the only colour logo is public/logo.png, a JPEG whose light
-                grey (#F7F7F7) backdrop is baked into the pixels; no box styling is added on top. A
-                transparent logo.svg is an OWNER INPUT: swap it in here when supplied (same alt, real
-                width/height). Sized to at least 120 px wide at 390 px (127 px), intrinsic
-                width/height kept so the box is reserved before the image loads (no CLS). */}
-            <img
-              src="/logo.png"
-              alt={`${config.name} home`}
-              width={989}
-              height={373}
-              className="h-11 w-auto min-[380px]:h-12 sm:h-14 xl:h-16"
-            />
-          </Link>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-2 h-20">
+            <Link to="/" className={`shrink-0 rounded-md transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
+              {/* Design audit B2 (FD-02): the only colour logo is public/logo.png, a JPEG whose light
+                  grey (#F7F7F7) backdrop is baked into the pixels; no box styling is added on top. A
+                  transparent logo.svg is an OWNER INPUT: swap it in here when supplied (same alt, real
+                  width/height). Sized to at least 120 px wide at 390 px (127 px), intrinsic
+                  width/height kept so the box is reserved before the image loads (no CLS). */}
+              <img
+                src="/logo.png"
+                alt={`${config.name} home`}
+                width={989}
+                height={373}
+                className="h-11 w-auto min-[380px]:h-12 sm:h-14 xl:h-16"
+              />
+            </Link>
 
-          {/* Desktop navigation */}
-          <nav aria-label="Main" className="hidden lg:block">
-            <ul className="flex items-center gap-6 xl:gap-8">
-              {navigation.map((item) => {
-                const active = isInSection(item);
-                return (
-                  <li key={item.path}>
-                    <Link
-                      to={item.path}
-                      aria-current={ariaCurrent(item)}
-                      className={`relative group rounded-sm text-sm font-medium transition-colors duration-fast ease-standard ${focusRing} ${
-                        active ? "text-primary" : "text-secondary hover:text-primary"
-                      }`}
-                    >
-                      {item.name}
-                      <span
-                        aria-hidden="true"
-                        className={`absolute -bottom-2 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-base ease-standard ${
-                          active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+            {/* Desktop navigation */}
+            <nav aria-label="Main" className="hidden lg:block">
+              <ul className="flex items-center gap-6 xl:gap-8">
+                {navigation.map((item) => {
+                  const active = isInSection(item);
+                  return (
+                    <li key={item.path}>
+                      <Link
+                        to={item.path}
+                        aria-current={ariaCurrent(item)}
+                        className={`relative group rounded-sm text-sm font-medium transition-colors duration-fast ease-standard ${focusRing} ${
+                          active ? "text-primary" : "text-secondary hover:text-primary"
                         }`}
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {/* Contact actions: always in the bar, so they stay visible while scrolling */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
-            {tel && phoneLabel && (
-              <a
-                href={tel}
-                aria-label={callName}
-                data-cta="phone_click"
-                data-cta-location="header"
-                className={`inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-primary transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
-              >
-                <Phone aria-hidden="true" className="h-5 w-5" />
-                <span className="hidden xl:inline text-sm font-semibold">{phoneLabel}</span>
-              </a>
-            )}
-
-            {/* Text action in the bar from `sm` to `lg` only: below sm it would not fit beside the
-                CTA at 320 px, so it lives in the menu; desktops rarely send texts. */}
-            {sms && phoneLabel && (
-              <a
-                href={sms}
-                aria-label={textName}
-                data-cta="text_click"
-                data-cta-location="header"
-                className={`hidden sm:inline-flex lg:hidden h-11 w-11 items-center justify-center rounded-md text-primary transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
-              >
-                <MessageSquare aria-hidden="true" className="h-5 w-5" />
-              </a>
-            )}
-
-            <Button asChild variant="secondary" className={ctaClass}>
-              {cta.external ? (
-                <a href={cta.href} target="_blank" rel="noopener noreferrer" data-track-cta="header_cta">
-                  {ctaLabel}
-                </a>
-              ) : (
-                <Link to={cta.href} data-track-cta="header_cta">
-                  {ctaLabel}
-                </Link>
-              )}
-            </Button>
-
-            <button
-              ref={toggleRef}
-              type="button"
-              onClick={() => setIsMenuOpen((open) => !open)}
-              aria-expanded={isMenuOpen}
-              aria-controls={MOBILE_MENU_ID}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-              className={`lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
-            >
-              {isMenuOpen ? <X aria-hidden="true" size={24} /> : <Menu aria-hidden="true" size={24} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu: opacity + transform only; MotionConfig reducedMotion="user" drops the slide. */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.nav
-              id={MOBILE_MENU_ID}
-              aria-label="Main"
-              className="lg:hidden max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-border py-4"
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0, transition: { duration: 0.2, ease: [0, 0, 0.2, 1] } }}
-              exit={{ opacity: 0, y: -8, transition: { duration: 0.15, ease: [0.4, 0, 1, 1] } }}
-            >
-              <ul className="space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.path}>
-                    <Link
-                      to={item.path}
-                      onClick={() => setIsMenuOpen(false)}
-                      aria-current={ariaCurrent(item)}
-                      className={`flex min-h-11 items-center rounded-md border-l-4 px-4 font-medium transition-colors duration-fast ease-standard ${focusRing} ${
-                        // Not colour alone: the active row also carries a left bar (WCAG 1.4.1).
-                        isInSection(item)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-transparent text-secondary hover:bg-muted hover:text-primary"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
+                      >
+                        {item.name}
+                        <span
+                          aria-hidden="true"
+                          className={`absolute -bottom-2 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-base ease-standard ${
+                            active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                          }`}
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
+            </nav>
+
+            {/* Contact actions: always in the bar, so they stay visible while scrolling */}
+            <div className="flex items-center gap-1.5 sm:gap-3">
               {tel && phoneLabel && (
-                <div className="mt-4 flex flex-col gap-2 border-t border-border px-4 pt-4">
-                  <Button asChild variant="outline" className={`h-11 w-full ${focusRing}`}>
-                    <a href={tel} data-cta="phone_click" data-cta-location="menu">
-                      <Phone aria-hidden="true" />
-                      Call {config.name}
-                    </a>
-                  </Button>
-                  {sms && (
+                <a
+                  href={tel}
+                  aria-label={callName}
+                  data-cta="phone_click"
+                  data-cta-location="header"
+                  className={`inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-primary transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
+                >
+                  <Phone aria-hidden="true" className="h-5 w-5" />
+                  <span className="hidden xl:inline text-sm font-semibold">{phoneLabel}</span>
+                </a>
+              )}
+
+              {/* Text action in the bar from `sm` to `lg` only: below sm it would not fit beside the
+                  CTA at 320 px, so it lives in the menu; desktops rarely send texts. */}
+              {sms && phoneLabel && (
+                <a
+                  href={sms}
+                  aria-label={textName}
+                  data-cta="text_click"
+                  data-cta-location="header"
+                  className={`hidden sm:inline-flex lg:hidden h-11 w-11 items-center justify-center rounded-md text-primary transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
+                >
+                  <MessageSquare aria-hidden="true" className="h-5 w-5" />
+                </a>
+              )}
+
+              <Button asChild variant="secondary" className={ctaClass}>
+                {cta.external ? (
+                  <a href={cta.href} target="_blank" rel="noopener noreferrer" data-track-cta="header_cta">
+                    {ctaLabel}
+                  </a>
+                ) : (
+                  <Link to={cta.href} data-track-cta="header_cta">
+                    {ctaLabel}
+                  </Link>
+                )}
+              </Button>
+
+              <button
+                ref={toggleRef}
+                type="button"
+                onClick={() => setIsMenuOpen((open) => !open)}
+                aria-expanded={isMenuOpen}
+                aria-controls={MOBILE_MENU_ID}
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                className={`lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
+              >
+                {isMenuOpen ? <X aria-hidden="true" size={24} /> : <Menu aria-hidden="true" size={24} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile menu: opacity + transform only; MotionConfig reducedMotion="user" drops the slide.
+              Enter base / exit fast, from the shared motion tokens (src/design/motion.ts). */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.nav
+                id={MOBILE_MENU_ID}
+                aria-label="Main"
+                className="lg:hidden max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain border-t border-border py-4"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0, transition: ENTER_BASE }}
+                exit={{ opacity: 0, y: -8, transition: EXIT_FAST }}
+              >
+                <ul className="space-y-1">
+                  {navigation.map((item) => (
+                    <li key={item.path}>
+                      <Link
+                        to={item.path}
+                        onClick={() => setIsMenuOpen(false)}
+                        aria-current={ariaCurrent(item)}
+                        className={`flex min-h-11 items-center rounded-md border-l-4 px-4 font-medium transition-colors duration-fast ease-standard ${focusRing} ${
+                          // Not colour alone: the active row also carries a left bar (WCAG 1.4.1).
+                          isInSection(item)
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-transparent text-secondary hover:bg-muted hover:text-primary"
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                {tel && phoneLabel && (
+                  <div className="mt-4 flex flex-col gap-2 border-t border-border px-4 pt-4">
                     <Button asChild variant="outline" className={`h-11 w-full ${focusRing}`}>
-                      <a href={sms} data-cta="text_click" data-cta-location="menu">
-                        <MessageSquare aria-hidden="true" />
-                        Text {config.name}
+                      <a href={tel} data-cta="phone_click" data-cta-location="menu">
+                        <Phone aria-hidden="true" />
+                        Call {config.name}
                       </a>
                     </Button>
-                  )}
-                </div>
-              )}
-            </motion.nav>
-          )}
-        </AnimatePresence>
-      </div>
-    </header>
+                    {sms && (
+                      <Button asChild variant="outline" className={`h-11 w-full ${focusRing}`}>
+                        <a href={sms} data-cta="text_click" data-cta-location="menu">
+                          <MessageSquare aria-hidden="true" />
+                          Text {config.name}
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </motion.nav>
+            )}
+          </AnimatePresence>
+        </div>
+      </header>
+
+      {/* FD-30 / FF-16: the scrim behind the open menu. Below the header (z-40 under z-50), so the bar,
+          its Contact Us CTA and the menu panel stay on top; a press anywhere on it closes the menu.
+          Decorative for assistive tech: Escape and the toggle are the keyboard way out. Under reduced
+          motion it appears and disappears without a fade. */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            key="menu-scrim"
+            aria-hidden="true"
+            data-menu-scrim=""
+            onPointerDown={closeFromScrim}
+            className="fixed inset-0 z-40 bg-foreground/40 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: reduceMotion ? { duration: 0 } : ENTER_BASE }}
+            exit={{ opacity: 0, transition: reduceMotion ? { duration: 0 } : EXIT_FAST }}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
