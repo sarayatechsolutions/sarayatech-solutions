@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import Steps from "@/components/Steps";
 import CtaLink from "@/components/home/CtaLink";
 import FinalCta from "@/components/FinalCta";
 import PageHero from "@/components/PageHero";
@@ -27,40 +29,42 @@ export const PriceCard = ({
   card,
   kind,
   href,
+  emphasis = false,
 }: {
   card: PackageDef | CustomDef;
   kind: "package" | "custom";
   href: string;
+  /** The last package's button is filled navy (FD-25). No badge: "Most chosen" waits for the owner. */
+  emphasis?: boolean;
 }) => {
   const price = formatPrice(card.priceKind, card.price);
   const fallback = kind === "custom" ? PRICING_LABELS.customQuoteWording : PRICING_LABELS.quoteWording;
   const note = "priceNote" in card ? card.priceNote : undefined;
   return (
-    <li
-      data-package-card={kind}
-      data-price-state={price ? "set" : "quote"}
-      className="bg-card rounded-2xl p-6 shadow-card border border-border flex flex-col gap-4"
-    >
-      <h3 className="text-xl font-bold text-foreground">{card.name}</h3>
-      <p className="text-foreground/80">
-        <span className="font-semibold text-foreground">{PRICING_PACKAGES.forLabel}</span> {card.for}
-      </p>
-      <div>
-        <p className="font-semibold text-foreground mb-2">{PRICING_PACKAGES.includesLabel}</p>
-        <ul className="list-disc pl-5 space-y-1 text-foreground/80">
-          {card.inclusions.map((i) => (
-            <li key={i}>{i}</li>
-          ))}
-        </ul>
-      </div>
-      <p data-price className="text-lg font-bold text-primary mt-auto">
-        {price ?? fallback}
-      </p>
-      {note && <p className="text-sm text-foreground/70 -mt-3">{note}</p>}
-      <Button asChild variant="secondary" size="lg">
-        <CtaLink href={href}>{kind === "custom" ? PRICING_LABELS.customCta : PRICING_LABELS.packageCta}</CtaLink>
-      </Button>
-    </li>
+    <Card asChild className="h-full gap-4">
+      <li data-package-card={kind} data-price-state={price ? "set" : "quote"}>
+        <h3 className="text-h4 text-foreground">{card.name}</h3>
+        <p className="text-foreground/80">
+          <span className="font-semibold text-foreground">{PRICING_PACKAGES.forLabel}</span> {card.for}
+        </p>
+        <div>
+          <p className="font-semibold text-foreground mb-2">{PRICING_PACKAGES.includesLabel}</p>
+          <ul className="list-disc pl-5 space-y-1 text-foreground/80">
+            {card.inclusions.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+        <p data-price className="text-lg font-bold text-primary mt-auto pt-2">
+          {price ?? fallback}
+        </p>
+        {note && <p className="text-sm text-foreground/70 -mt-3">{note}</p>}
+        {/* One CTA, outline, 44 px and 16 px (FD-25); the label names the package. */}
+        <Button asChild variant={emphasis ? "secondary" : "outline"} size="lg" className="w-full whitespace-normal text-center">
+          <CtaLink href={href}>{kind === "custom" ? PRICING_LABELS.customCta : PRICING_LABELS.packageCta(card.name)}</CtaLink>
+        </Button>
+      </li>
+    </Card>
   );
 };
 
@@ -85,9 +89,9 @@ const Pricing = () => {
       <section data-pricing-section="packages" aria-labelledby="pricing-packages-heading" className="section bg-background">
         <div className={container}>
           <SectionHeader id="pricing-packages-heading" title={PRICING_PACKAGES.heading} />
-          <ul className="grid gap-6 md:grid-cols-3">
-            {PRICING_PACKAGES.packages.map((p) => (
-              <PriceCard key={p.id} card={p} kind="package" href={booking} />
+          <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {PRICING_PACKAGES.packages.map((p, i, all) => (
+              <PriceCard key={p.id} card={p} kind="package" href={booking} emphasis={i === all.length - 1} />
             ))}
           </ul>
         </div>
@@ -105,11 +109,7 @@ const Pricing = () => {
       <section data-pricing-section="how" aria-labelledby="pricing-how-heading" className="section bg-background">
         <div className={container}>
           <SectionHeader id="pricing-how-heading" title={PRICING_HOW.heading} />
-          <ol className="list-decimal pl-6 space-y-2 text-body-lg text-foreground/80 max-w-measure">
-            {PRICING_HOW.steps.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
+          <Steps items={PRICING_HOW.steps.map((copy) => ({ copy }))} />
         </div>
       </section>
 

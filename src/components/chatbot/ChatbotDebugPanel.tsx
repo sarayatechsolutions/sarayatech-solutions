@@ -41,7 +41,7 @@ const ChatbotDebugPanel = () => {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
+    <Card padding="none" className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Chatbot Debug Panel</span>

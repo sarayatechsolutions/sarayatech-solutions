@@ -5,6 +5,8 @@ import { HERO, PROOF_PATH } from "@/components/home/content";
 import FinalCta from "@/components/FinalCta";
 import PageHero from "@/components/PageHero";
 import SectionHeader from "@/components/SectionHeader";
+import Steps from "@/components/Steps";
+import { Card } from "@/components/ui/card";
 import {
   SERVICE_PAGES,
   SERVICE_PAGE_LABELS as L,
@@ -17,6 +19,27 @@ import {
 const container = "container mx-auto px-4 sm:px-6 lg:px-8";
 const textLink =
   "inline-flex items-center gap-1 font-semibold text-primary underline-offset-4 hover:underline focus-visible:underline";
+const chip =
+  "inline-flex min-h-11 items-center gap-1 rounded-full border border-border bg-card px-4 font-semibold text-primary transition-colors duration-fast ease-standard hover:border-border-strong hover:bg-surface-subtle";
+
+/**
+ * Sections shown as cards in one band, side by side from md (design audit B5, FD-22): the price
+ * element and, where a page has one, the timeline. Each keeps its own h2 and data-service-section.
+ */
+const BAND_IDS = new Set(["price", "timeline", "management-fee"]);
+type TextSection = Extract<ServiceSection, { kind: "text" }>;
+type Block = { kind: "section"; section: ServiceSection } | { kind: "band"; sections: TextSection[] };
+
+/** Groups consecutive price/timeline text sections into one band; everything else stays a section. */
+const toBlocks = (sections: ServiceSection[]): Block[] =>
+  sections.reduce<Block[]>((blocks, section) => {
+    const last = blocks[blocks.length - 1];
+    if (section.kind === "text" && BAND_IDS.has(section.id)) {
+      if (last?.kind === "band") last.sections.push(section);
+      else blocks.push({ kind: "band", sections: [section] });
+    } else blocks.push({ kind: "section", section });
+    return blocks;
+  }, []);
 
 const SectionBody = ({ section }: { section: ServiceSection }) => {
   switch (section.kind) {
@@ -41,17 +64,7 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
       return (
         <>
           {section.intro && <p className="text-body-lg text-foreground/80 max-w-measure mb-6">{section.intro}</p>}
-          <ol className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {section.items.map((item, i) => (
-              <li key={item.title} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-2">
-                <span aria-hidden="true" className="block text-sm font-bold text-primary">
-                  {i + 1}
-                </span>
-                <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-                <p className="text-foreground/80 leading-relaxed max-w-measure">{item.copy}</p>
-              </li>
-            ))}
-          </ol>
+          <Steps items={section.items} />
         </>
       );
     case "text":
@@ -72,21 +85,23 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
           {projects.length > 0 && (
             <ul className="grid gap-6 md:grid-cols-2">
               {projects.map((project) => (
-                <li key={project.company} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-2">
-                  <p className="text-sm font-semibold text-primary">{project.industry}</p>
-                  <h3 className="text-xl font-bold text-foreground">{project.company}</h3>
-                  <p className="text-foreground/80 leading-relaxed max-w-measure">{project.summary}</p>
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${L.visitLabel(project.company)} ${L.opensInNewTab}`}
-                    className={textLink}
-                  >
-                    {L.visitLabel(project.company)}
-                    <ExternalLink aria-hidden="true" className="w-4 h-4" />
-                  </a>
-                </li>
+                <Card asChild padding="compact" key={project.company} className="gap-2">
+                  <li>
+                    <p className="text-sm font-semibold text-primary">{project.industry}</p>
+                    <h3 className="text-h4 text-foreground">{project.company}</h3>
+                    <p className="text-foreground/80 leading-relaxed max-w-measure">{project.summary}</p>
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${L.visitLabel(project.company)} ${L.opensInNewTab}`}
+                      className={`${textLink} mt-auto min-h-11 pt-2`}
+                    >
+                      {L.visitLabel(project.company)}
+                      <ExternalLink aria-hidden="true" className="w-4 h-4" />
+                    </a>
+                  </li>
+                </Card>
               ))}
             </ul>
           )}
@@ -137,19 +152,45 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
         sectionAttrs={{ "data-service-section": "hero" }}
       />
 
-      {page.sections.map((section, i) => (
-        <section
-          key={section.id}
-          data-service-section={section.id}
-          aria-labelledby={`service-${page.slug}-${section.id}`}
-          className={`section ${i % 2 === 0 ? "bg-background" : "bg-surface-subtle"}`}
-        >
-          <div className={container}>
-            <SectionHeader id={`service-${page.slug}-${section.id}`} title={section.heading} />
-            <SectionBody section={section} />
-          </div>
-        </section>
-      ))}
+      {toBlocks(page.sections).map((block, i) => {
+        const band = i % 2 === 0 ? "bg-background" : "bg-surface-subtle";
+        if (block.kind === "band") {
+          return (
+            <div key={block.sections[0].id} data-service-band="price-and-timeline" className={`section ${band}`}>
+              <div className={`${container} grid gap-6 ${block.sections.length > 1 ? "md:grid-cols-2" : "max-w-3xl"}`}>
+                {block.sections.map((section) => (
+                  <Card asChild key={section.id} className="gap-3">
+                    <section data-service-section={section.id} aria-labelledby={`service-${page.slug}-${section.id}`}>
+                      <h2 id={`service-${page.slug}-${section.id}`} className="text-h3 text-foreground">
+                        {section.heading}
+                      </h2>
+                      {section.paragraphs.map((p) => (
+                        <p key={p} className="text-body-lg text-foreground/80 max-w-measure">
+                          {p}
+                        </p>
+                      ))}
+                    </section>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        const { section } = block;
+        return (
+          <section
+            key={section.id}
+            data-service-section={section.id}
+            aria-labelledby={`service-${page.slug}-${section.id}`}
+            className={`section ${band}`}
+          >
+            <div className={container}>
+              <SectionHeader id={`service-${page.slug}-${section.id}`} title={section.heading} />
+              <SectionBody section={section} />
+            </div>
+          </section>
+        );
+      })}
 
       <nav
         data-service-section="other-services"
@@ -160,10 +201,10 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
           <h2 id={`service-${page.slug}-others`} className="text-h3 text-foreground mb-6">
             {L.otherServicesHeading}
           </h2>
-          <ul className="flex flex-wrap gap-x-8 gap-y-3">
+          <ul className="flex flex-wrap gap-3">
             {others.map((p) => (
               <li key={p.slug}>
-                <Link to={servicePath(p.slug)} className={`${textLink} min-h-11`}>
+                <Link to={servicePath(p.slug)} className={chip}>
                   {p.navLabel}
                   <ArrowRight aria-hidden="true" className="w-4 h-4" />
                 </Link>

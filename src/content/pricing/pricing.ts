@@ -117,7 +117,11 @@ export const PRICING_LABELS = {
   quoteWording: "Get a fixed quote",
   /** Shown on the custom card while its price is null (REQ-069). */
   customQuoteWording: "Custom quote",
-  packageCta: "Get a fixed quote",
+  /**
+   * One CTA per card (design audit B5, FD-25): the price slot already reads "Get a fixed quote",
+   * so the button names the package instead of repeating it. OWNER REVIEW (design audit section 5).
+   */
+  packageCta: (name: string) => `Get a quote for ${name}`,
   customCta: "Request a custom quote",
   auditCta: "Get My Free Audit",
 } as const;

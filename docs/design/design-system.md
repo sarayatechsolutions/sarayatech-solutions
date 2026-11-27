@@ -285,6 +285,43 @@ Spacing: page gutter `container mx-auto px-4 sm:px-6 lg:px-8` (the container cen
   `fetchpriority="high"` (spread `HIGH_FETCH_PRIORITY` from `src/lib/responsiveImage.ts`: React 18
   warns on the camel-case prop). Every other image stays `loading="lazy"` with `width`/`height`.
 
+## 5b. Cards, steps and the service grid (design audit B5)
+
+- **One card: [`Card`](../../src/components/ui/card.tsx)**, variants in
+  [`card-variants.ts`](../../src/components/ui/card-variants.ts). `rounded-lg`, `border`, `bg-card`,
+  `shadow-xs`, a flex column (so `mt-auto` pins a footer link or price to the bottom and siblings
+  in a grid row share one height with `h-full`). Props: `padding` (`default` `p-6 lg:p-8`, `compact`
+  `p-6`, `none` for media cards), `interactive`, `highlighted` (2 px navy border), `asChild` (render
+  as the `li`, `article` or `section` the content needs, never a wrapping `div`).
+  `CardMedia` (16:9, `overflow-hidden`, top radius) and `CardBody` (`p-6`, flex column) build a media card.
+- **Whole-card link.** `interactive` adds the hover (border-strong, `shadow-md`, 2 px lift behind
+  `motion-safe:`) and a focus ring on the card through `has-[:focus-visible]`. The card's one real
+  link takes `STRETCHED_LINK` (an `::after` covering the card), so the whole card is clickable while
+  the link's visible text stays its only accessible name. No `aria-label` on the card, no second
+  link inside it.
+- **Icon tile.** 44 px, `rounded-md bg-primary`, 22 px lucide icon, `aria-hidden`. Replaces the
+  `gradient-primary` tiles (Contact still has five; they move in B6 with the form).
+- **Service grid (FD-19).** A 6-column bento at lg: Websites and Apps span 3 each (large: icon,
+  pillar `h3`, offering `h4`); Marketing's heading leads row 2 and its three offerings span 2 each.
+  One column on mobile, 2 at md. `/services` renders the same component with `variant="index"`:
+  each card adds three "what's included" points (`SERVICE_HIGHLIGHTS`, from each service page).
+- **[`Steps`](../../src/components/Steps.tsx).** An `<ol>`; each step a 40 px navy circle with a white
+  numeral (`aria-hidden`, the list order is the semantics), an `h3` title in `text-h4` and copy at the
+  measure. A dashed connector runs down the left on mobile and along the circles' midline at lg.
+  Used by How it works, the service-page process and Pricing "How a quote works" (title-less steps).
+- **Proof cards (FD-20).** Media cards, 1 / 2 (md) / 3 (lg) columns, lazy screenshot on top.
+  Deliberate deviation: the media box is 16:9 (`aspect-video`), not 16:10, so the ASTA crop stays
+  above the portrait lower on that page. MIMAP shows a navy tile with its industry and domain
+  (`aria-hidden`; the same words are in the card) because its screenshot holds a stock person (REQ-015).
+- **Service pages (FD-22).** Price, Timeline and Management fee sit in one band of side-by-side cards
+  (`data-service-band="price-and-timeline"`, stacked on mobile); each card is still a
+  `[data-service-section]` with its own `h2`. Other services are 44 px chips.
+- **Pricing (FD-25).** Package cards 1 / 2 / 3 columns, one `lg` button each, labelled
+  "Get a quote for {Package}" (owner review); outline, except the last package, which is filled navy.
+  No "Most chosen" badge until the owner names one.
+- **About (FD-24).** Team cards are start-aligned: a 96 px portrait or initials beside the name and
+  role, the bio below at the measure. 1 / 2 (md) / 3 (lg) columns.
+
 ## 6. Buttons and touch targets
 
 One button system (design audit B3): [`src/components/ui/button.tsx`](../../src/components/ui/button.tsx),

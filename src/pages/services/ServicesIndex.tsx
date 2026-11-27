@@ -23,7 +23,7 @@ const ServicesIndex = () => (
       meta={BUSINESS.serviceAreaText}
       sectionAttrs={{ "data-service-section": "hero" }}
     />
-    <ServicePillars />
+    <ServicePillars variant="index" />
     <FinalCta id="services-index" sectionAttrs={{ "data-service-section": "final-cta" }} />
   </>
 );
