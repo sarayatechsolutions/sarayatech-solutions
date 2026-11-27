@@ -19,6 +19,13 @@ export default {
       },
     },
     extend: {
+      /*
+       * The reading measure (design audit B4). Poppins runs wide: 65ch measured 81 characters per
+       * line, so the cap is 58ch, about 72 characters, under the audit's 75-character check.
+       */
+      maxWidth: {
+        measure: "58ch",
+      },
       fontFamily: {
         heading: ["Poppins", "sans-serif"],
         body: ["Poppins", "sans-serif"],
@@ -132,6 +139,11 @@ export default {
           from: { opacity: "0", transform: "translateY(12px)" },
           to: { opacity: "1", transform: "none" },
         },
+        // Design audit B4 (A9): the home hero's project frames, 16 px rise and fade.
+        "frame-rise": {
+          from: { opacity: "0", transform: "translateY(16px)" },
+          to: { opacity: "1", transform: "none" },
+        },
         "panel-in": {
           from: { opacity: "0", transform: "translateY(-8px)" },
           to: { opacity: "1", transform: "none" },
@@ -146,6 +158,8 @@ export default {
         "accordion-up": "accordion-up 0.3s ease-out",
         reveal: "reveal 320ms cubic-bezier(0,0,0.2,1) both",
         "panel-in": "panel-in 200ms cubic-bezier(0,0,0.2,1) both",
+        // `backwards`, not `both`: once it ends, the hover lift's transform applies again.
+        "frame-rise": "frame-rise 450ms cubic-bezier(0,0,0.2,1) backwards",
       },
     },
   },

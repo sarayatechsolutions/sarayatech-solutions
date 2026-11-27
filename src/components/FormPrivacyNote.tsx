@@ -5,7 +5,7 @@ import { FORM_PRIVACY_NOTE, PRIVACY_PATH } from "@/content/legal/legal";
  * /privacy; the link opens a new tab so a half-filled form is not lost.
  */
 const FormPrivacyNote = ({ className = "" }: { className?: string }) => (
-  <p data-form-privacy-note className={`text-sm text-secondary ${className}`}>
+  <p data-form-privacy-note className={`text-sm text-secondary max-w-measure ${className}`}>
     {FORM_PRIVACY_NOTE.text}{" "}
     <a
       href={PRIVACY_PATH}

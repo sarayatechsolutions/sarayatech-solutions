@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import SectionHeader from "@/components/SectionHeader";
 import { PACKAGES, PRICING_PATH } from "./content";
 
 /**
@@ -10,14 +11,9 @@ import { PACKAGES, PRICING_PATH } from "./content";
 const PackagesTeaser = () => {
   const cards = [...PACKAGES.packages, PACKAGES.custom];
   return (
-    <section data-home-section="packages" aria-labelledby="home-packages-heading" className="py-20 bg-background">
+    <section data-home-section="packages" aria-labelledby="home-packages-heading" className="section bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-          <h2 id="home-packages-heading" className="text-3xl md:text-4xl font-bold">
-            {PACKAGES.heading}
-          </h2>
-          <p className="text-lg text-foreground/80">{PACKAGES.intro}</p>
-        </div>
+        <SectionHeader id="home-packages-heading" title={PACKAGES.heading} lead={PACKAGES.intro} />
 
         <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
@@ -38,7 +34,7 @@ const PackagesTeaser = () => {
           ))}
         </ul>
 
-        <div className="text-center mt-12">
+        <div className="mt-10">
           <Button asChild variant="secondary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
             <Link to={PRICING_PATH}>{PACKAGES.cta}</Link>
           </Button>

@@ -1,11 +1,7 @@
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { TrustSlot } from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
 import { BUSINESS } from "@/config/business";
 import { CAREERS, CAREERS_CONTACT_PATH } from "@/content/careers/careers";
-
-const container = "container mx-auto px-4 sm:px-6 lg:px-8";
 
 /**
  * Careers (FD-01, design audit batch B0): the owner's fallback while no role is confirmed
@@ -16,27 +12,15 @@ const container = "container mx-auto px-4 sm:px-6 lg:px-8";
  */
 const Careers = () => (
   <>
-    <section
-      data-careers-section="hero"
-      aria-labelledby="careers-heading"
-      className="bg-gradient-to-br from-primary via-primary-light to-primary text-white"
-    >
-      <div className={`${container} pt-28 pb-16 md:pt-36 md:pb-20`}>
-        <div className="max-w-3xl space-y-6">
-          <p className="text-sm font-semibold uppercase tracking-wider text-white/90">{BUSINESS.serviceAreaText}</p>
-          <h1 id="careers-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-            {CAREERS.headline}
-          </h1>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-[65ch]">{CAREERS.body}</p>
-          <div className="pt-2">
-            {/* One link styled as a button, never a <button> nested inside an <a> (STS-056). */}
-            <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
-              <Link to={CAREERS_CONTACT_PATH}>{CAREERS.cta}</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    </section>
+    {/* One link styled as a button, never a <button> nested inside an <a> (STS-056). */}
+    <PageHero
+      id="careers-heading"
+      eyebrow={BUSINESS.serviceAreaText}
+      title={CAREERS.headline}
+      intro={CAREERS.body}
+      primaryCta={{ label: CAREERS.cta, href: CAREERS_CONTACT_PATH }}
+      sectionAttrs={{ "data-careers-section": "hero" }}
+    />
     {/* STS-046: sitewide trust slot; the contact link above stays the page's only call to action. */}
     <TrustSlot id="careers" standalone />
   </>

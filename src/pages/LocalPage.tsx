@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import PageHero from "@/components/PageHero";
 import FinalCta from "@/components/FinalCta";
 import { FREE_AUDIT_PATH } from "@/components/home/content";
 import { SERVICE_PAGES, servicePath } from "@/content/services/services";
@@ -32,8 +32,13 @@ const LocalPage = ({ entry, kind, hub }: LocalPageProps) => {
 
   return (
     <>
-      <section data-local-section="hero" className="pt-28 pb-14 gradient-primary text-primary-foreground">
-        <div className={`${container} max-w-3xl space-y-6`}>
+      <PageHero
+        id={`${prefix}-heading`}
+        title={entry.h1}
+        intro={entry.intro}
+        primaryCta={{ label: L.primaryCta, href: FREE_AUDIT_PATH }}
+        sectionAttrs={{ "data-local-section": "hero" }}
+        breadcrumb={
           <nav aria-label={L.breadcrumbAria}>
             <ol className="flex flex-wrap items-center gap-2 text-sm text-white/90">
               <li>
@@ -53,27 +58,22 @@ const LocalPage = ({ entry, kind, hub }: LocalPageProps) => {
               )}
             </ol>
           </nav>
-          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight">{entry.h1}</h1>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed">{entry.intro}</p>
-          <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
-            <Link to={FREE_AUDIT_PATH}>{L.primaryCta}</Link>
-          </Button>
-        </div>
-      </section>
+        }
+      />
 
       {entry.sections.map((s, i) => (
         <section
           key={s.heading}
           data-local-section="content"
           aria-labelledby={`${prefix}-s${i}`}
-          className={`py-14 ${i % 2 === 0 ? "bg-background" : "bg-muted/30"}`}
+          className={`section ${i % 2 === 0 ? "bg-background" : "bg-surface-subtle"}`}
         >
-          <div className={`${container} max-w-3xl space-y-4`}>
-            <h2 id={`${prefix}-s${i}`} className="text-2xl md:text-3xl font-bold">
+          <div className={`${container} space-y-4`}>
+            <h2 id={`${prefix}-s${i}`} className="text-h2 text-foreground">
               {s.heading}
             </h2>
             {s.paragraphs.map((p) => (
-              <p key={p} className="text-lg text-foreground/80 leading-relaxed">
+              <p key={p} className="text-body-lg text-foreground/80 max-w-measure">
                 {p}
               </p>
             ))}
@@ -81,12 +81,12 @@ const LocalPage = ({ entry, kind, hub }: LocalPageProps) => {
         </section>
       ))}
 
-      <nav data-local-section="services" aria-labelledby={`${prefix}-services`} className="py-14 border-t border-border">
-        <div className={`${container} max-w-3xl space-y-4`}>
-          <h2 id={`${prefix}-services`} className="text-2xl md:text-3xl font-bold">
+      <nav data-local-section="services" aria-labelledby={`${prefix}-services`} className="section-tight border-t border-border">
+        <div className={`${container} space-y-4`}>
+          <h2 id={`${prefix}-services`} className="text-h3 text-foreground">
             {L.servicesHeading}
           </h2>
-          <p className="text-lg text-foreground/80">{L.servicesIntro}</p>
+          <p className="text-body-lg text-foreground/80 max-w-measure">{L.servicesIntro}</p>
           <ul className="flex flex-wrap gap-x-8 gap-y-2">
             {services.map((p) => (
               <li key={p.slug}>

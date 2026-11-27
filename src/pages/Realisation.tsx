@@ -1,8 +1,9 @@
 import { ExternalLink } from "lucide-react";
 import FinalCta from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
 import { FREE_AUDIT_ACTION } from "@/content/trust/trust";
 import { bookingHref } from "@/config/business";
-import { responsiveImage } from "@/lib/responsiveImage";
+import { HIGH_FETCH_PRIORITY, responsiveImage } from "@/lib/responsiveImage";
 import { PROJECT_COPY, WORK_CTA, WORK_HERO, WORK_LABELS } from "@/content/work/work";
 import realisationsData from "../../data/realisations.json";
 
@@ -34,21 +35,17 @@ const Realisation = () => {
 
   return (
     <>
-      <section data-work-section="hero" aria-labelledby="work-heading" className="gradient-primary text-primary-foreground">
-        <div className={`${container} pt-28 pb-16 md:pt-36 md:pb-20`}>
-          <div className="max-w-3xl space-y-6">
-            <h1 id="work-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-              {WORK_HERO.headline}
-            </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/90 leading-relaxed">{WORK_HERO.intro}</p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        id="work-heading"
+        title={WORK_HERO.headline}
+        intro={WORK_HERO.intro}
+        sectionAttrs={{ "data-work-section": "hero" }}
+      />
 
-      <section data-work-section="projects" aria-label={WORK_HERO.headline} className="py-20 bg-muted/30">
+      <section data-work-section="projects" aria-label={WORK_HERO.headline} className="section bg-surface-subtle">
         <div className={container}>
           <ul className="space-y-10">
-            {projects.map((p) => (
+            {projects.map((p, i) => (
               <li
                 key={p.company}
                 data-work-project={p.company}
@@ -58,8 +55,10 @@ const Realisation = () => {
                   <img
                     {...responsiveImage(p.image, "(min-width: 1024px) 400px, 100vw")}
                     alt={WORK_LABELS.alt(p.company, p.copy.altLanguage ?? "")}
-                    loading="lazy"
-                    decoding="async"
+                    // FF-12: the first screenshot is the page's LCP element, so it is fetched early
+                    // and at high priority; the rest stay lazy.
+                    {...(i === 0 ? HIGH_FETCH_PRIORITY : { decoding: "async" as const })}
+                    loading={i === 0 ? "eager" : "lazy"}
                     className="w-full h-auto rounded-xl border border-border lg:col-span-1"
                   />
                   <div className="lg:col-span-2 space-y-4">
@@ -69,11 +68,11 @@ const Realisation = () => {
                     <h2 className="text-2xl md:text-3xl font-bold text-foreground">{p.company}</h2>
                     <div>
                       <h3 className="text-sm font-semibold text-primary mb-1">{WORK_LABELS.whatItIs}</h3>
-                      <p className="text-foreground/80 leading-relaxed">{p.copy.whatItIs}</p>
+                      <p className="text-foreground/80 leading-relaxed max-w-measure">{p.copy.whatItIs}</p>
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-primary mb-1">{WORK_LABELS.whatWeBuilt}</h3>
-                      <p className="text-foreground/80 leading-relaxed">{p.copy.whatWeBuilt}</p>
+                      <p className="text-foreground/80 leading-relaxed max-w-measure">{p.copy.whatWeBuilt}</p>
                     </div>
                     {p.link ? (
                       <a

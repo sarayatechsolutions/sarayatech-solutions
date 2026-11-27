@@ -109,3 +109,17 @@ describe("Our Work has no banned copy or unverified claims (REQ-011, REQ-012, RE
     expect(mainText).not.toMatch(/\[[^\]]*\]|lorem|TODO|placeholder/i);
   });
 });
+
+describe("Our Work LCP image (FF-12)", () => {
+  it("fetches the first screenshot eagerly at high priority and keeps the rest lazy", () => {
+    const imgs = projects.map((p) => p.querySelector("img") as HTMLImageElement);
+    expect(imgs.length).toBeGreaterThan(1);
+    const [first, ...rest] = imgs;
+    expect(first.getAttribute("loading")).toBe("eager");
+    expect(first.getAttribute("fetchpriority")).toBe("high");
+    for (const img of rest) {
+      expect(img.getAttribute("loading")).toBe("lazy");
+      expect(img.getAttribute("fetchpriority")).toBeNull();
+    }
+  });
+});

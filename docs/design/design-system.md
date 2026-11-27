@@ -234,30 +234,56 @@ Chat panel pairs, enforced by
 ## 5. Type and spacing
 
 Font: Poppins for headings and body (`font-heading`, `font-body`), self-hosted woff2, weights 400 to 800
-(the 900 file was dropped in B1; no live page uses `font-black`). Running text is capped at `max-w-[65ch]`.
+(the 900 file was dropped in B1; no live page uses `font-black`). Running text is capped at `max-w-measure` (58ch: Poppins runs wide, and 65ch measured 81 characters a line).
 
 Type scale tokens (design audit B1, Tailwind `text-*`): `display` clamp(40-64 px) 800, `h1` clamp(36-52 px)
 800, `h2` clamp(28-40 px) 700, `h3` 22 px 700, `h4` 18 px 600, `body-lg` 18 px, `body` 16 px, `small`
-14 px, `eyebrow` 13 px 600 tracked 0.08em. Pages adopt them from B4 on. Do not put these keys inside a
+14 px, `eyebrow` 13 px 600 tracked 0.08em. Pages use them from B4 on. Do not put these keys inside a
 `cn()` / `cva` string next to a text colour: tailwind-merge cannot tell `text-small` from a colour and
 drops one of them.
 
-Sizes the pages use today (Tailwind's default scale):
+| Role | Class |
+| --- | --- |
+| Home `h1` | `text-display` (PageHero `size="display"`) |
+| Inner page `h1` | `text-h1` (PageHero default) |
+| Section `h2` | `text-h2` (SectionHeader) |
+| Card `h3` / sub-heading | `text-h3` / `text-h4` |
+| Lead and running text | `text-body-lg`, capped at `max-w-measure` |
+| Meta, captions | `text-small` |
+| Eyebrow | `text-eyebrow uppercase` |
 
-| Role | Classes | Size (px) |
-| --- | --- | --- |
-| Page title `h1` | `text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight` | 36, 48, 60 |
-| Section `h2` | `text-3xl md:text-4xl font-bold` (larger bands: `text-4xl md:text-5xl`) | 30, 36 |
-| Card `h3` | `text-xl font-bold` or `text-lg font-semibold` | 20 / 18 |
-| Lead paragraph | `text-lg` (CTA labels `text-lg sm:text-xl`) | 18 |
-| Card body, meta, buttons | `text-sm` (the most used size) | 14 |
-| Fine print, timestamps, chips | `text-xs` | 12 |
+Spacing: page gutter `container mx-auto px-4 sm:px-6 lg:px-8` (the container centres and caps at
+1400 px at `2xl`). Card padding `p-6` or `p-8`. Stacks use `space-y-4`, `space-y-6` and `gap-4` to
+`gap-8`. One heading per level, no skipped levels (enforced by [`src/a11y.test.tsx`](../../src/a11y.test.tsx)).
 
-Spacing: page gutter `container mx-auto px-4` (the container centres and caps at 1400 px at `2xl`).
-Section rhythm today `py-20` or `py-24` (`py-16` for small bands); the target is `.section` /
-`.section-tight` (section 1), adopted from B4. Prose width `max-w-3xl`. Card padding
-`p-6` or `p-8`. Stacks use `space-y-4`, `space-y-6` and `gap-4` to `gap-8`. One heading per level,
-no skipped levels (enforced by [`src/a11y.test.tsx`](../../src/a11y.test.tsx)).
+## 5a. Page layout (design audit B4)
+
+- **One hero: [`PageHero`](../../src/components/PageHero.tsx).** Every page (home, services, each
+  service, Our Work, About, Pricing, Contact, Free Audit, Insights, Careers) uses it. Start-aligned,
+  `gradient-hero`, `pt-32 pb-20 lg:pt-36 lg:pb-24`, copy in `max-w-3xl` with the intro at the measure, and
+  at most one `xl` CTA pair (primary, then `on-dark`). Props: `id` (the h1's), `title`, `eyebrow?`,
+  `intro?`, `primaryCta?`, `secondaryCta?`, `meta?` (the service-area line), `aside?`, `size`.
+  No entrance animation on the copy: the h1 is in the prerendered first paint.
+- **Home hero aside ([`HeroFrames`](../../src/components/home/HeroFrames.tsx)).** At lg and up a 7/5
+  split: the ASTA site in a browser frame, the BMV app screens overlapping it. Both link to Our Work
+  and their alt text is the link's only name. Below lg the column is `hidden` and the screenshots
+  sit in a `<source media="(min-width: 1024px)">`, so a phone downloads none of them. Never MIMAP (a
+  stock person and an editor toolbar in its screenshot) or iSaraya (C11). Motion: `animate-frame-rise`
+  (16 px, 450 ms, enter easing, `backwards` fill), second frame `[animation-delay:80ms]`, both behind
+  `motion-safe:`.
+- **Two section paddings.** `.section` (`py-16 lg:py-24`) and `.section-tight` (`py-12 lg:py-16`,
+  small bands: other services, the standalone trust slot). No other `py-*` on a page section. Bands
+  alternate `bg-background` and `bg-surface-subtle`.
+- **[`SectionHeader`](../../src/components/SectionHeader.tsx).** Eyebrow (optional), the h2, a lead at
+  the measure; 32 px (40 px at lg) to the content. Start-aligned everywhere.
+- **Centring (FD-24).** Only statement sections centre, and only a one-line heading and a lead of at
+  most 3 lines: the home Problem heading and the FinalCta. Running text is never centred.
+- **Width.** Running text `max-w-measure` (about 72 characters; the audit check is 75 or fewer at 1440). A narrow column sits *inside* the container (`<div
+  class="max-w-3xl">` in `container`), never as `container max-w-3xl`, which would centre the column
+  and break the shared left edge.
+- **LCP images (FF-12).** A page's first large image is `loading="eager"` with
+  `fetchpriority="high"` (spread `HIGH_FETCH_PRIORITY` from `src/lib/responsiveImage.ts`: React 18
+  warns on the camel-case prop). Every other image stays `loading="lazy"` with `width`/`height`.
 
 ## 6. Buttons and touch targets
 

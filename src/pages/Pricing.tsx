@@ -1,8 +1,9 @@
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CtaLink from "@/components/home/CtaLink";
 import FinalCta from "@/components/FinalCta";
-import { FREE_AUDIT_PATH } from "@/components/home/content";
+import PageHero from "@/components/PageHero";
+import SectionHeader from "@/components/SectionHeader";
+import { FREE_AUDIT_PATH, HERO, PROOF_PATH } from "@/components/home/content";
 import { BUSINESS, bookingHref } from "@/config/business";
 import {
   PRICING_CTA,
@@ -71,32 +72,19 @@ const Pricing = () => {
   const booking = bookingHref();
   return (
     <>
-      <section
-        data-pricing-section="hero"
-        aria-labelledby="pricing-heading"
-        className="bg-gradient-to-br from-primary via-primary-light to-primary text-white"
-      >
-        <div className={`${container} pt-28 pb-16 md:pt-36 md:pb-20`}>
-          <div className="max-w-3xl space-y-6">
-            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">{BUSINESS.serviceAreaText}</p>
-            <h1 id="pricing-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-              {PRICING_HERO.headline}
-            </h1>
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed">{PRICING_HERO.intro}</p>
-            <div className="pt-2">
-              <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
-                <CtaLink href={booking}>{PRICING_HERO.cta}</CtaLink>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        id="pricing-heading"
+        eyebrow={BUSINESS.serviceAreaText}
+        title={PRICING_HERO.headline}
+        intro={PRICING_HERO.intro}
+        primaryCta={{ label: PRICING_HERO.cta, href: booking }}
+        secondaryCta={{ label: HERO.secondaryCta, href: PROOF_PATH }}
+        sectionAttrs={{ "data-pricing-section": "hero" }}
+      />
 
-      <section data-pricing-section="packages" aria-labelledby="pricing-packages-heading" className="py-20 bg-background">
+      <section data-pricing-section="packages" aria-labelledby="pricing-packages-heading" className="section bg-background">
         <div className={container}>
-          <h2 id="pricing-packages-heading" className="text-3xl md:text-4xl font-bold mb-10">
-            {PRICING_PACKAGES.heading}
-          </h2>
+          <SectionHeader id="pricing-packages-heading" title={PRICING_PACKAGES.heading} />
           <ul className="grid gap-6 md:grid-cols-3">
             {PRICING_PACKAGES.packages.map((p) => (
               <PriceCard key={p.id} card={p} kind="package" href={booking} />
@@ -105,23 +93,19 @@ const Pricing = () => {
         </div>
       </section>
 
-      <section data-pricing-section="custom" aria-labelledby="pricing-custom-heading" className="py-20 bg-muted/30">
-        <div className={`${container} max-w-3xl`}>
-          <h2 id="pricing-custom-heading" className="text-3xl md:text-4xl font-bold mb-10">
-            {PRICING_CUSTOM.heading}
-          </h2>
-          <ul>
+      <section data-pricing-section="custom" aria-labelledby="pricing-custom-heading" className="section bg-surface-subtle">
+        <div className={container}>
+          <SectionHeader id="pricing-custom-heading" title={PRICING_CUSTOM.heading} />
+          <ul className="max-w-3xl">
             <PriceCard card={PRICING_CUSTOM.card} kind="custom" href={booking} />
           </ul>
         </div>
       </section>
 
-      <section data-pricing-section="how" aria-labelledby="pricing-how-heading" className="py-20 bg-background">
-        <div className={`${container} max-w-3xl space-y-4`}>
-          <h2 id="pricing-how-heading" className="text-3xl md:text-4xl font-bold">
-            {PRICING_HOW.heading}
-          </h2>
-          <ol className="list-decimal pl-6 space-y-2 text-lg text-foreground/80 leading-relaxed">
+      <section data-pricing-section="how" aria-labelledby="pricing-how-heading" className="section bg-background">
+        <div className={container}>
+          <SectionHeader id="pricing-how-heading" title={PRICING_HOW.heading} />
+          <ol className="list-decimal pl-6 space-y-2 text-body-lg text-foreground/80 max-w-measure">
             {PRICING_HOW.steps.map((s) => (
               <li key={s}>{s}</li>
             ))}

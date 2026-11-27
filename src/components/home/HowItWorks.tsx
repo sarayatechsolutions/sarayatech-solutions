@@ -1,12 +1,11 @@
+import SectionHeader from "@/components/SectionHeader";
 import { HOW_IT_WORKS } from "./content";
 
 /** Four steps, in order (STS-031, REQ-059). */
 const HowItWorks = () => (
-  <section data-home-section="how-it-works" aria-labelledby="home-how-heading" className="py-20 bg-background">
+  <section data-home-section="how-it-works" aria-labelledby="home-how-heading" className="section bg-background">
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 id="home-how-heading" className="text-3xl md:text-4xl font-bold text-center mb-12">
-        {HOW_IT_WORKS.heading}
-      </h2>
+      <SectionHeader id="home-how-heading" title={HOW_IT_WORKS.heading} />
 
       <ol className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {HOW_IT_WORKS.steps.map((step, index) => (

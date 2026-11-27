@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import FinalCta from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
+import SectionHeader from "@/components/SectionHeader";
 import { PUBLISHED_POSTS } from "@/content/insights/posts";
 import { formatPostDate, postPath } from "@/content/insights/blog";
 import { FREE_AUDIT_ACTION } from "@/content/trust/trust";
@@ -27,20 +29,18 @@ const Insights = () => {
   const topics = INSIGHTS_TOPICS.items.filter((t) => !published.has(INSIGHTS_TOPIC_SLUGS[t]));
   return (
     <>
-      <section data-insights-section="hero" className="pt-32 pb-16 gradient-primary text-primary-foreground">
-        <div className={`${container} max-w-3xl space-y-6`}>
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">{INSIGHTS_HERO.headline}</h1>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed">{INSIGHTS_HERO.intro}</p>
-        </div>
-      </section>
+      <PageHero
+        id="insights-heading"
+        title={INSIGHTS_HERO.headline}
+        intro={INSIGHTS_HERO.intro}
+        sectionAttrs={{ "data-insights-section": "hero" }}
+      />
 
       {PUBLISHED_POSTS.length > 0 && (
-        <section data-insights-section="articles" aria-labelledby="insights-articles-heading" className="py-20 bg-background">
-          <div className={`${container} max-w-3xl space-y-6`}>
-            <h2 id="insights-articles-heading" className="text-3xl md:text-4xl font-bold">
-              {INSIGHTS_ARTICLES.heading}
-            </h2>
-            <ul className="space-y-6">
+        <section data-insights-section="articles" aria-labelledby="insights-articles-heading" className="section bg-background">
+          <div className={container}>
+            <SectionHeader id="insights-articles-heading" title={INSIGHTS_ARTICLES.heading} />
+            <ul className="max-w-3xl space-y-6">
               {PUBLISHED_POSTS.map((p) => (
                 <li key={p.slug}>
                   <article className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-3">
@@ -65,13 +65,10 @@ const Insights = () => {
       )}
 
       {topics.length > 0 && (
-        <section data-insights-section="topics" aria-labelledby="insights-topics-heading" className="py-20 bg-background">
-          <div className={`${container} max-w-3xl space-y-6`}>
-            <h2 id="insights-topics-heading" className="text-3xl md:text-4xl font-bold">
-              {INSIGHTS_TOPICS.heading}
-            </h2>
-            <p className="text-lg text-foreground/80 leading-relaxed">{INSIGHTS_TOPICS.intro}</p>
-            <ul className="list-disc pl-6 space-y-3 text-lg text-foreground/80">
+        <section data-insights-section="topics" aria-labelledby="insights-topics-heading" className="section bg-background">
+          <div className={container}>
+            <SectionHeader id="insights-topics-heading" title={INSIGHTS_TOPICS.heading} lead={INSIGHTS_TOPICS.intro} />
+            <ul className="list-disc pl-6 space-y-3 text-body-lg text-foreground/80 max-w-measure">
               {topics.map((t) => (
                 <li key={t}>{t}</li>
               ))}

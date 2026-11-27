@@ -1,5 +1,6 @@
 import { ArrowRight, Globe, Megaphone, Smartphone, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import SectionHeader from "@/components/SectionHeader";
 import { SERVICES, type Pillar } from "./content";
 
 const ICONS: Record<Pillar["id"], LucideIcon> = {
@@ -10,11 +11,9 @@ const ICONS: Record<Pillar["id"], LucideIcon> = {
 
 /** Three pillars, five offerings (STS-031, I-1, REQ-054…058, REQ-070). */
 const ServicePillars = () => (
-  <section data-home-section="services" aria-labelledby="home-services-heading" className="py-20 bg-muted/30">
+  <section data-home-section="services" aria-labelledby="home-services-heading" className="section bg-surface-subtle">
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 id="home-services-heading" className="text-3xl md:text-4xl font-bold text-center max-w-3xl mx-auto mb-12">
-        {SERVICES.heading}
-      </h2>
+      <SectionHeader id="home-services-heading" title={SERVICES.heading} />
 
       <div className="grid gap-8 lg:grid-cols-3">
         {SERVICES.pillars.map((pillar) => {

@@ -1,10 +1,10 @@
 import { ArrowRight, Check, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import CtaLink from "@/components/home/CtaLink";
 import { BUSINESS, bookingHref } from "@/config/business";
-import { PROOF_PATH } from "@/components/home/content";
+import { HERO, PROOF_PATH } from "@/components/home/content";
 import FinalCta from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
+import SectionHeader from "@/components/SectionHeader";
 import {
   SERVICE_PAGES,
   SERVICE_PAGE_LABELS as L,
@@ -23,14 +23,14 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
     case "list":
       return (
         <>
-          {section.intro && <p className="text-lg text-foreground/80 mb-6">{section.intro}</p>}
+          {section.intro && <p className="text-body-lg text-foreground/80 max-w-measure mb-6">{section.intro}</p>}
           <ul className="grid gap-6 md:grid-cols-2">
             {section.items.map((item) => (
               <li key={item.title} className="flex gap-3">
                 <Check aria-hidden="true" className="w-6 h-6 mt-0.5 shrink-0 text-primary" />
                 <div className="space-y-1">
                   <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-                  <p className="text-foreground/80 leading-relaxed">{item.copy}</p>
+                  <p className="text-foreground/80 leading-relaxed max-w-measure">{item.copy}</p>
                 </div>
               </li>
             ))}
@@ -40,7 +40,7 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
     case "steps":
       return (
         <>
-          {section.intro && <p className="text-lg text-foreground/80 mb-6">{section.intro}</p>}
+          {section.intro && <p className="text-body-lg text-foreground/80 max-w-measure mb-6">{section.intro}</p>}
           <ol className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {section.items.map((item, i) => (
               <li key={item.title} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-2">
@@ -48,7 +48,7 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
                   {i + 1}
                 </span>
                 <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-                <p className="text-foreground/80 leading-relaxed">{item.copy}</p>
+                <p className="text-foreground/80 leading-relaxed max-w-measure">{item.copy}</p>
               </li>
             ))}
           </ol>
@@ -56,9 +56,9 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
       );
     case "text":
       return (
-        <div className="space-y-4 max-w-3xl">
+        <div className="space-y-4 max-w-measure">
           {section.paragraphs.map((p) => (
-            <p key={p} className="text-lg text-foreground/80 leading-relaxed">
+            <p key={p} className="text-body-lg text-foreground/80">
               {p}
             </p>
           ))}
@@ -68,14 +68,14 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
       const projects = serviceProjects(section.projects);
       return (
         <>
-          <p className="text-lg text-foreground/80 mb-6">{section.intro}</p>
+          <p className="text-body-lg text-foreground/80 max-w-measure mb-6">{section.intro}</p>
           {projects.length > 0 && (
             <ul className="grid gap-6 md:grid-cols-2">
               {projects.map((project) => (
                 <li key={project.company} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-2">
                   <p className="text-sm font-semibold text-primary">{project.industry}</p>
                   <h3 className="text-xl font-bold text-foreground">{project.company}</h3>
-                  <p className="text-foreground/80 leading-relaxed">{project.summary}</p>
+                  <p className="text-foreground/80 leading-relaxed max-w-measure">{project.summary}</p>
                   <a
                     href={project.link}
                     target="_blank"
@@ -102,11 +102,11 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
     case "faq":
       return (
         // Every answer is in the HTML and visible: no accordion hides it from no-JS readers.
-        <div className="space-y-6 max-w-3xl">
+        <div className="space-y-6 max-w-measure">
           {section.items.map((item) => (
             <div key={item.question} className="space-y-1">
               <h3 className="text-lg font-semibold text-foreground">{item.question}</h3>
-              <p className="text-foreground/80 leading-relaxed">{item.answer}</p>
+              <p className="text-foreground/80 leading-relaxed max-w-measure">{item.answer}</p>
             </div>
           ))}
         </div>
@@ -126,39 +126,26 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
 
   return (
     <>
-      <section
-        data-service-section="hero"
-        aria-labelledby={headingId}
-        className="bg-gradient-to-br from-primary via-primary-light to-primary text-white"
-      >
-        <div className={`${container} pt-28 pb-16 md:pt-36 md:pb-20`}>
-          <div className="max-w-3xl space-y-6">
-            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">{page.eyebrow}</p>
-            <h1 id={headingId} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-              {page.h1}
-            </h1>
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed">{page.intro}</p>
-            <div className="pt-2">
-              <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
-                <CtaLink href={bookingHref()}>{L.primaryCta}</CtaLink>
-              </Button>
-            </div>
-            <p className="text-sm text-white/85">{BUSINESS.serviceAreaText}</p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        id={headingId}
+        eyebrow={page.eyebrow}
+        title={page.h1}
+        intro={page.intro}
+        primaryCta={{ label: L.primaryCta, href: bookingHref() }}
+        secondaryCta={{ label: HERO.secondaryCta, href: PROOF_PATH }}
+        meta={BUSINESS.serviceAreaText}
+        sectionAttrs={{ "data-service-section": "hero" }}
+      />
 
       {page.sections.map((section, i) => (
         <section
           key={section.id}
           data-service-section={section.id}
           aria-labelledby={`service-${page.slug}-${section.id}`}
-          className={`py-16 ${i % 2 === 0 ? "bg-background" : "bg-muted/30"}`}
+          className={`section ${i % 2 === 0 ? "bg-background" : "bg-surface-subtle"}`}
         >
           <div className={container}>
-            <h2 id={`service-${page.slug}-${section.id}`} className="text-3xl md:text-4xl font-bold mb-8">
-              {section.heading}
-            </h2>
+            <SectionHeader id={`service-${page.slug}-${section.id}`} title={section.heading} />
             <SectionBody section={section} />
           </div>
         </section>
@@ -167,10 +154,10 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
       <nav
         data-service-section="other-services"
         aria-labelledby={`service-${page.slug}-others`}
-        className="py-16 border-t border-border"
+        className="section-tight border-t border-border"
       >
         <div className={container}>
-          <h2 id={`service-${page.slug}-others`} className="text-2xl md:text-3xl font-bold mb-6">
+          <h2 id={`service-${page.slug}-others`} className="text-h3 text-foreground mb-6">
             {L.otherServicesHeading}
           </h2>
           <ul className="flex flex-wrap gap-x-8 gap-y-3">

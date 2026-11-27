@@ -2,6 +2,7 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import realisations from "../../../data/realisations.json";
+import SectionHeader from "@/components/SectionHeader";
 import { PROOF, PROOF_PATH } from "./content";
 
 interface Realisation {
@@ -29,14 +30,9 @@ const proofProjects = (data: Realisation[] = realisations as Realisation[]) =>
 const ProofTeaser = () => {
   const projects = proofProjects();
   return (
-    <section data-home-section="proof" aria-labelledby="home-proof-heading" className="py-20 bg-muted/30">
+    <section data-home-section="proof" aria-labelledby="home-proof-heading" className="section bg-surface-subtle">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-          <h2 id="home-proof-heading" className="text-3xl md:text-4xl font-bold">
-            {PROOF.heading}
-          </h2>
-          <p className="text-lg text-foreground/80">{PROOF.intro}</p>
-        </div>
+        <SectionHeader id="home-proof-heading" title={PROOF.heading} lead={PROOF.intro} />
 
         {projects.length > 0 && (
           <ul className="grid gap-8 md:grid-cols-3">
@@ -65,7 +61,7 @@ const ProofTeaser = () => {
           </ul>
         )}
 
-        <div className="text-center mt-12">
+        <div className="mt-10">
           <Button asChild variant="secondary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
             <Link to={PROOF_PATH}>{PROOF.cta}</Link>
           </Button>

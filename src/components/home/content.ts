@@ -52,6 +52,20 @@ export const HERO = {
   secondaryCta: "See Our Work",
 } as const;
 
+/**
+ * Hero frames (design audit B4, FD-05): real shipped work already on the Our Work page, shown at
+ * lg and up. Not MIMAP (its screenshot shows a stock person and a design-tool toolbar, REQ-015 and
+ * FD-35) and not iSaraya (ownership open, C11). Each frame links to Our Work, so the alt text names
+ * the image and says it is one of our projects.
+ */
+export const HERO_FRAMES = {
+  label: "Two of our recent projects",
+  frames: [
+    { company: "ASTA", alt: "Screenshot of the ASTA website, one of our projects" },
+    { company: "BMV INSPECTION", alt: "Screens from the BMV INSPECTION booking app, one of our projects" },
+  ],
+} as const;
+
 export const PROBLEM = {
   heading: "Running a business is hard enough.",
   copy: "Your website is outdated, customers can't find you on Google, and social media keeps falling to the bottom of the list. Hiring a web designer and a separate marketing agency means two bills, two contracts and nobody responsible for results. SarayaTech handles all of it.",
@@ -127,18 +141,21 @@ export const SERVICES: { heading: string; pillars: Pillar[] } = {
   ],
 };
 
-/** Four steps, in the source order (REQ-059). Steps 1 and 2 drop the I-12 promises. */
+/**
+ * Four steps, in the source order (REQ-059). Steps 1 and 2 drop the I-12 promises. Step titles
+ * carry no trailing period (design audit section 3.4, Steps).
+ */
 export const HOW_IT_WORKS = {
   heading: "How it works",
   steps: [
     {
-      title: "Free consultation.",
+      title: "Free consultation",
       copy: "We review your website, Google profile and competitors with you on a call.",
     },
-    { title: "Clear plan and price.", copy: "You get a written plan with a clear price." },
-    { title: "We build and launch.", copy: "Your site or app goes live, set up to rank and convert." },
+    { title: "Clear plan and price", copy: "You get a written plan with a clear price." },
+    { title: "We build and launch", copy: "Your site or app goes live, set up to rank and convert." },
     {
-      title: "We grow it every month.",
+      title: "We grow it every month",
       copy: "Marketing, updates and a simple report showing calls, leads and traffic.",
     },
   ],

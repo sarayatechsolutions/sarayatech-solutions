@@ -120,7 +120,7 @@ export const TrustSlot = ({ id, items, standalone = false, omit = [] }: TrustSlo
   const content = inRouter ? <CurrentPath>{body}</CurrentPath> : body(null);
   if (!standalone) return content;
   return (
-    <section data-final-cta="trust-only" aria-labelledby={headingId} className="py-16 bg-muted">
+    <section data-final-cta="trust-only" aria-labelledby={headingId} className="section-tight bg-muted">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">{content}</div>
     </section>
   );
@@ -154,14 +154,14 @@ const FinalCta = ({ id, heading, copy, primary, secondary, sectionAttrs, items }
       {...sectionAttrs}
       data-final-cta="full"
       aria-labelledby={headingId}
-      className="py-20 gradient-hero text-primary-foreground"
+      className="section gradient-hero text-primary-foreground"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <h2 id={headingId} className="text-3xl md:text-5xl font-extrabold leading-tight">
             {heading ?? FINAL_CTA.heading}
           </h2>
-          <p className="text-lg md:text-xl text-white/90 leading-relaxed">{copy ?? FINAL_CTA.copy}</p>
+          <p className="text-body-lg text-white/90 max-w-measure mx-auto">{copy ?? FINAL_CTA.copy}</p>
           {/* Design audit B3: xl buttons wrap instead of overflowing at 320 px and are 56 px tall;
               the pair stacks full width below `sm`, primary first, 12 px apart. */}
           <div className="pt-2 flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">

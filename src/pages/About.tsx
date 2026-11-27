@@ -1,7 +1,7 @@
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import CtaLink from "@/components/home/CtaLink";
 import FinalCta from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
+import SectionHeader from "@/components/SectionHeader";
+import { HERO, PROOF_PATH } from "@/components/home/content";
 import { FREE_AUDIT_ACTION } from "@/content/trust/trust";
 import { BUSINESS, bookingHref } from "@/config/business";
 import { responsiveImage } from "@/lib/responsiveImage";
@@ -26,7 +26,7 @@ const container = "container mx-auto px-4 sm:px-6 lg:px-8";
 export const FounderSection = ({ founder }: { founder: FounderStory | null }) => {
   if (!founder) return null;
   return (
-    <section data-about-section="founder" aria-labelledby="about-founder-heading" className="py-20 bg-background">
+    <section data-about-section="founder" aria-labelledby="about-founder-heading" className="section bg-background">
       <div className={`${container} grid gap-10 md:grid-cols-[auto,1fr] items-start max-w-5xl`}>
         {founder.photo && (
           <img
@@ -38,14 +38,14 @@ export const FounderSection = ({ founder }: { founder: FounderStory | null }) =>
           />
         )}
         <div className="space-y-4">
-          <h2 id="about-founder-heading" className="text-3xl md:text-4xl font-bold">
+          <h2 id="about-founder-heading" className="text-h2 text-foreground">
             {founder.heading}
           </h2>
           <p className="font-semibold text-primary">
             {founder.name}, {founder.role}
           </p>
           {founder.paragraphs.map((p) => (
-            <p key={p} className="text-lg text-foreground/80 leading-relaxed">
+            <p key={p} className="text-body-lg text-foreground/80 max-w-measure">
               {p}
             </p>
           ))}
@@ -90,47 +90,34 @@ const About = () => {
 
   return (
     <>
-      <section
-        data-about-section="hero"
-        aria-labelledby="about-heading"
-        className="bg-gradient-to-br from-primary via-primary-light to-primary text-white"
-      >
-        <div className={`${container} pt-28 pb-16 md:pt-36 md:pb-20`}>
-          <div className="max-w-3xl space-y-6">
-            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">{BUSINESS.serviceAreaText}</p>
-            <h1 id="about-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-              {ABOUT_HERO.headline}
-            </h1>
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed">{ABOUT_HERO.intro}</p>
-            <div className="pt-2">
-              <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
-                <CtaLink href={booking}>{ABOUT_HERO.cta}</CtaLink>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        id="about-heading"
+        eyebrow={BUSINESS.serviceAreaText}
+        title={ABOUT_HERO.headline}
+        intro={ABOUT_HERO.intro}
+        primaryCta={{ label: ABOUT_HERO.cta, href: booking }}
+        secondaryCta={{ label: HERO.secondaryCta, href: PROOF_PATH }}
+        sectionAttrs={{ "data-about-section": "hero" }}
+      />
 
-      <section data-about-section="who" aria-labelledby="about-who-heading" className="py-20 bg-background">
-        <div className={`${container} max-w-3xl space-y-4`}>
-          <h2 id="about-who-heading" className="text-3xl md:text-4xl font-bold">
-            {ABOUT_WHO.heading}
-          </h2>
-          {ABOUT_WHO.paragraphs.map((p) => (
-            <p key={p} className="text-lg text-foreground/80 leading-relaxed">
-              {p}
-            </p>
-          ))}
+      <section data-about-section="who" aria-labelledby="about-who-heading" className="section bg-background">
+        <div className={container}>
+          <SectionHeader id="about-who-heading" title={ABOUT_WHO.heading} className="!mb-6" />
+          <div className="max-w-measure space-y-4">
+            {ABOUT_WHO.paragraphs.map((p) => (
+              <p key={p} className="text-body-lg text-foreground/80">
+                {p}
+              </p>
+            ))}
+          </div>
         </div>
       </section>
 
       <FounderSection founder={FOUNDER} />
 
-      <section data-about-section="values" aria-labelledby="about-values-heading" className="py-20 bg-muted/30">
+      <section data-about-section="values" aria-labelledby="about-values-heading" className="section bg-surface-subtle">
         <div className={container}>
-          <h2 id="about-values-heading" className="text-3xl md:text-4xl font-bold mb-10">
-            {ABOUT_VALUES.heading}
-          </h2>
+          <SectionHeader id="about-values-heading" title={ABOUT_VALUES.heading} />
           <ul className="grid gap-6 md:grid-cols-3">
             {ABOUT_VALUES.items.map((v) => (
               <li key={v.title} className="bg-card rounded-2xl p-6 shadow-card border border-border space-y-2">
@@ -142,14 +129,9 @@ const About = () => {
         </div>
       </section>
 
-      <section data-about-section="team" aria-labelledby="about-team-heading" className="py-20 bg-background">
+      <section data-about-section="team" aria-labelledby="about-team-heading" className="section bg-background">
         <div className={container}>
-          <div className="max-w-3xl mb-10 space-y-3">
-            <h2 id="about-team-heading" className="text-3xl md:text-4xl font-bold">
-              {ABOUT_TEAM.heading}
-            </h2>
-            <p className="text-lg text-foreground/80 leading-relaxed">{ABOUT_TEAM.intro}</p>
-          </div>
+          <SectionHeader id="about-team-heading" title={ABOUT_TEAM.heading} lead={ABOUT_TEAM.intro} />
           <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {ABOUT_TEAM.members.map((m) => (
               <MemberCard key={m.name} member={m} />

@@ -20,6 +20,7 @@ import FormPrivacyNote from "@/components/FormPrivacyNote";
 import LeadSourceSelect from "@/components/LeadSourceSelect";
 import LeadReferenceNote from "@/components/LeadReferenceNote";
 import { TrustSlot } from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
 import { MapPin, Phone, Mail, Clock, CheckCircle2, CalendarDays } from "lucide-react";
 import {
   CONTACT_LIMITS,
@@ -118,23 +119,15 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
   return (
     <div className="min-h-screen">
       <div>
-        {/* Hero Section */}
-        <section className="pt-32 pb-20 gradient-primary text-primary-foreground">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6 animate-reveal">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
-                Let's talk about your business
-              </h1>
-              <p className="text-xl md:text-2xl text-primary-foreground/90 leading-relaxed">
-                Tell us what you're working on and what you need help with.{" "}
-                {REPLY_COPY}
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* Design audit B4: the shared hero, start-aligned, no entrance animation. */}
+        <PageHero
+          id="contact-heading"
+          title="Let's talk about your business"
+          intro={<>Tell us what you're working on and what you need help with. {REPLY_COPY}</>}
+        />
 
         {/* Contact Form & Info */}
-        <section className="py-24 bg-background">
+        <section className="section bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid lg:grid-cols-3 gap-12">
               {/* Contact Information: every block below renders only from confirmed config. */}
