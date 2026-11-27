@@ -88,6 +88,43 @@ export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now", "Ask about this role", "F
  */
 export const SITEWIDE_FORBIDDEN_PHRASES = ["Enterprise-grade", "Enterprise Technology Solutions"];
 
+/**
+ * Design audit B9 / FD-36: fabricated social proof held by five retired components in
+ * src/components/home/ (TestimonialsSection, StatsSection, ClientLogos, SolutionsShowcase,
+ * ValueProposition). The owner rule keeps the files; no page imports them. If one is ever imported
+ * again, its invented quotes, names, client "logos" and stats would reach the built HTML: this list
+ * fails the smoke run when they do. Matched case-insensitively. Each phrase is specific to those
+ * files, so no real copy trips it (StatsSection's "Enterprise Clients" label is left out: a live
+ * careers listing says "our enterprise clients"). src/content/retiredComponents.test.tsx checks the same list
+ * against the server render and the import graph.
+ */
+export const RETIRED_FAKE_CONTENT_PHRASES = [
+  "10x growth",
+  "40% cost reduction",
+  "60% faster deployment",
+  "315% efficiency",
+  "Michael Chen",
+  "Sarah Martinez",
+  "David Thompson",
+  "Global Finance Corp",
+  "Manufacturing Leader Inc",
+  "Healthcare Solutions Ltd",
+  "Fortune 500 Bank",
+  "Global Manufacturer",
+  "Healthcare Leader",
+  "Retail Giant",
+  "Aviation Corp",
+  "Trusted by Fortune 500 companies",
+  "Average ROI",
+  "Measured client growth in first year",
+  "Client Satisfaction",
+  "Industry-leading retention rate",
+  "Why Businesses Trust Us",
+  "Trusted Partner",
+  // SolutionsShowcase's heading copy; split over two JSX lines in source, one run of text in HTML.
+  "accelerate your digital transformation",
+];
+
 /** Legal drafts (STS-037): no compliance claim (C21) and no blanket "never shared" promise. */
 export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compliant", "never be shared", "never share"];
 
@@ -442,6 +479,12 @@ function checkSitewidePhrases(distDir) {
     ({ file, phrase }) => `${file.slice(distDir.length + 1)}: contains ${JSON.stringify(phrase)} (REQ-011)`,
   );
   if (!failures.length) console.log(`  ok   ${count} built HTML file(s) free of ${SITEWIDE_FORBIDDEN_PHRASES.join(" / ")}`);
+  // B9 / FD-36: none of the retired components' fabricated content may reach a built page.
+  const fake = findForbiddenInHtml(distDir, RETIRED_FAKE_CONTENT_PHRASES).map(
+    ({ file, phrase }) => `${file.slice(distDir.length + 1)}: contains ${JSON.stringify(phrase)} (retired fake content, FD-36)`,
+  );
+  if (!fake.length) console.log(`  ok   ${count} built HTML file(s) free of the retired components' fake content`);
+  failures.push(...fake);
   return { failures, count };
 }
 

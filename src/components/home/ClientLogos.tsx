@@ -1,3 +1,11 @@
+/**
+ * RETIRED (design audit B9 / FD-36). DO NOT IMPORT.
+ * This component holds invented client "logos" (Fortune 500 bank, aviation corp and the like).
+ * It is not true of SarayaTech and must never be shown on the site. No page renders it; the
+ * file is kept only because front-end code files are never deleted (owner rule).
+ * Guarded by src/content/retiredComponents.test.tsx (import graph and server render) and by
+ * RETIRED_FAKE_CONTENT_PHRASES in tests/smoke/smoke.mjs (built HTML).
+ */
 import {
   Building2,
   Factory,
