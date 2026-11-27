@@ -7,7 +7,6 @@ import {
   bookingReply,
   contactReply,
   locationReply,
-  reachUsBlock,
   type BusinessFacts,
 } from "./chatbot-facts";
 
@@ -40,7 +39,17 @@ interface IntentMatch {
 
 /** Shown when neither the AI backend nor a local answer is available. */
 export const CHAT_UNAVAILABLE_MESSAGE =
-  "Chat is unavailable right now — use the contact form or book a call.";
+  "Chat is unavailable right now. Please use the [contact form](/contact) and we will reply by email.";
+
+/**
+ * FF-4: the honest "I don't know" answer, used when no local answer matches. It never guesses and
+ * never greets; it hands over to a person through the contact form or the free audit.
+ */
+export const CHAT_FALLBACK_REPLY =
+  "I'm not sure I can answer that one here, and I'd rather not guess.\n\n" +
+  "A person on our team can help:\n\n" +
+  "- Send your question through the [contact form](/contact) and we will reply by email.\n" +
+  "- Or request a [free audit](/free-audit) of your website.";
 
 /** The only pricing statement the bot makes: no figures, packages or terms. */
 export const PRICING_REPLY = "Packages are quoted after a free consultation.";
@@ -49,9 +58,75 @@ export const PRICING_REPLY = "Packages are quoted after a free consultation.";
 const FILLER_WORDS = new Set([
   "the", "and", "you", "your", "are", "can", "how", "what", "who", "why", "when", "does", "for",
   "with", "our", "about", "like", "would", "could", "should", "will", "have", "has", "this", "that",
-  "there", "their", "from", "into", "want", "need", "please", "tell", "know", "get",
+  "there", "their", "from", "into", "want", "need", "please", "tell", "know", "get", "they", "them",
+  "which", "whats",
 ]);
-const isMeaningfulWord = (w: string) => w.length >= 3 && !FILLER_WORDS.has(w);
+/**
+ * FF-4: partial credit needs at least 4 letters. Three-letter keywords such as "sup", "hey" or
+ * "app" matched inside "support", "they" or "happy"; they still count as whole words.
+ */
+const isMeaningfulWord = (w: string) => w.length >= 4 && !FILLER_WORDS.has(w);
+
+/**
+ * FF-4: one normalisation for messages and keywords alike. Lowercase, accents folded ("café" ->
+ * "cafe"), curly apostrophes straightened and dropped inside a word ("what's" -> "whats", so
+ * "What’s up" and "whats up" match the same keyword), the company name removed, everything
+ * else that is not a letter or digit turned into a word break.
+ */
+export function normaliseForMatching(text: string): string {
+  return (text ?? "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[\u2018\u2019\u02bc`]/g, "'")
+    .replace(/sarayatech|saraya tech/g, " ")
+    .replace(/([a-z0-9])'([a-z0-9])/g, "$1$2")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/** The normalised message as whole words. */
+export function tokenise(text: string): string[] {
+  const normalised = normaliseForMatching(text);
+  return normalised ? normalised.split(" ") : [];
+}
+
+/** True when the phrase's words appear in the message as a contiguous run of whole words. */
+export function phraseOccurs(message: string[], phrase: string[]): boolean {
+  if (phrase.length === 0 || phrase.length > message.length) return false;
+  outer: for (let i = 0; i + phrase.length <= message.length; i++) {
+    for (let j = 0; j < phrase.length; j++) {
+      if (!sameWord(message[i + j], phrase[j])) continue outer;
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Whole-word equality with plural tolerance: "costs" is "cost", "websites" is "website",
+ * "businesses" is "business". Words under 3 letters must match exactly, so "hi" is never "his".
+ */
+function sameWord(a: string, b: string): boolean {
+  if (a === b) return true;
+  const [short, long] = a.length < b.length ? [a, b] : [b, a];
+  if (short.length < 3) return false;
+  return long === `${short}s` || long === `${short}es`;
+}
+
+/**
+ * Partial credit between two meaningful (4+ letter) words: one is the start of the other
+ * ("website" / "websites"), or both share a 5+ letter stem ("developing" / "development"). A word
+ * found INSIDE another ("chain" in "blockchain") is not a match.
+ */
+function sharesStem(a: string, b: string): boolean {
+  if (a === b) return true;
+  const [short, long] = a.length < b.length ? [a, b] : [b, a];
+  if (long.startsWith(short)) return true;
+  let common = 0;
+  while (common < short.length && short[common] === long[common]) common++;
+  return common >= 5 && common >= short.length - 3;
+}
 
 /** Common superset of the per-service shapes in knowledge-base.json. */
 interface ServiceInfo {
@@ -92,50 +167,37 @@ class ChatbotService {
   }
 
   /**
-   * Normalizes text for better matching
-   */
-  private normalizeText(text: string): string {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/sarayatech|saraya tech/g, "") // Remove company name to avoid interference
-      .replace(/[^\w\s]/g, " ") // Remove punctuation
-      .replace(/\s+/g, " ") // Normalize spaces
-      .trim();
-  }
-
-  /**
-   * Calculates the intent score based on keyword matching with weights
+   * Scores one intent against a message. FF-4: every keyword is matched on WORD boundaries over
+   * normalised tokens (see normaliseForMatching / phraseOccurs), never as a raw substring, so
+   * "hi" no longer fires inside "this", "which" or "blockchain", "yo" inside "your", "sup" inside
+   * "support" or "hey" inside "they".
+   *
+   * A keyword that is not present as a phrase can still earn half its weight per word that a
+   * message word shares a stem with (see sharesStem: "websites" for "website", "developing" for
+   * "development"). Priority intents score on whole-phrase hits only.
    */
   private calculateIntentScore(userMessage: string, intent: Intent, exactOnly = false): number {
-    const normalizedMessage = this.normalizeText(userMessage);
+    const messageTokens = tokenise(userMessage);
+    const partialTokens = messageTokens.filter(isMeaningfulWord);
     let totalScore = 0;
 
-    intent.keywords.forEach(({ word, weight }) => {
-      const normalizedKeyword = this.normalizeText(word);
+    for (const { word, weight } of intent.keywords) {
+      const keywordTokens = tokenise(word);
+      if (keywordTokens.length === 0) continue;
 
-      // Exact match
-      if (normalizedMessage.includes(normalizedKeyword)) {
+      if (phraseOccurs(messageTokens, keywordTokens)) {
         totalScore += weight;
+        continue;
       }
       // Priority intents are phrase-driven: no partial credit, or broad intents' leftovers leak in.
-      else if (exactOnly) {
-        return;
-      }
-      // Partial match (word boundaries). Short and filler words are ignored: otherwise "i" or
-      // "a" is contained in nearly every keyword and "How can I contact you?" scores highest
-      // for a service-detail intent instead of the contact intent.
-      else {
-        const words = normalizedMessage.split(" ").filter(isMeaningfulWord);
-        const keywordWords = normalizedKeyword.split(" ").filter(isMeaningfulWord);
+      if (exactOnly) continue;
 
-        keywordWords.forEach(kw => {
-          if (words.some(w => w.includes(kw) || kw.includes(w))) {
-            totalScore += weight * 0.5; // Partial match gets half weight
-          }
-        });
+      // Partial credit, half weight per keyword word. Short and filler words never count: "i",
+      // "a" or "you" would otherwise match nearly every keyword.
+      for (const kw of keywordTokens.filter(isMeaningfulWord)) {
+        if (partialTokens.some((w) => sharesStem(w, kw))) totalScore += weight * 0.5;
       }
-    });
+    }
 
     return totalScore;
   }
@@ -146,39 +208,25 @@ class ChatbotService {
   private detectIntent(userMessage: string): IntentMatch | null {
     const intentMatches: IntentMatch[] = [];
 
-    this.intents.forEach(intent => {
+    for (const intent of this.intents) {
+      // An intent with no keywords (out_of_scope) used to "match" every message with score 0, which
+      // made the problem-to-solution answer and the fallback below unreachable. Nothing that scored
+      // nothing is a match.
+      if (intent.keywords.length === 0) continue;
       const score = this.calculateIntentScore(userMessage, intent, (intent.priority ?? 0) > 0);
+      if (score <= 0 || score < intent.threshold) continue;
 
-      if (score >= intent.threshold) {
-        const maxPossibleScore = intent.keywords.reduce((sum, kw) => sum + kw.weight, 0);
-        const confidence = Math.min((score / maxPossibleScore) * 100, 100);
+      const maxPossibleScore = intent.keywords.reduce((sum, kw) => sum + kw.weight, 0);
+      intentMatches.push({ intent, score, confidence: Math.min((score / maxPossibleScore) * 100, 100) });
+    }
 
-        intentMatches.push({
-          intent,
-          score,
-          confidence
-        });
-      }
-    });
-
-    // Priority tier first, then score descending
+    // Priority tier first, then score descending. (The debug log that echoed every visitor's
+    // intent scores to the console is gone.)
     intentMatches.sort(
       (a, b) => (b.intent.priority ?? 0) - (a.intent.priority ?? 0) || b.score - a.score
     );
 
-    // Debug log (can be removed in production)
-    if (intentMatches.length > 0) {
-      console.debug('[Amina] Detected intents:',
-        intentMatches.map(m => ({
-          id: m.intent.id,
-          score: m.score,
-          confidence: m.confidence.toFixed(1) + '%'
-        }))
-      );
-    }
-
-    // Return the best match if any
-    return intentMatches.length > 0 ? intentMatches[0] : null;
+    return intentMatches[0] ?? null;
   }
 
   /**
@@ -325,7 +373,7 @@ class ChatbotService {
    * Generates response matching business problems to solutions
    */
   private generateProblemSolutionResponse(userMessage: string): string {
-    const normalizedMessage = this.normalizeText(userMessage);
+    const messageTokens = tokenise(userMessage);
 
     // Problem keywords mapping
     const problemKeywords = {
@@ -344,7 +392,7 @@ class ChatbotService {
     // Find matching problems
     const matchedProblems: string[] = [];
     for (const [problem, keywords] of Object.entries(problemKeywords)) {
-      if (keywords.some(keyword => normalizedMessage.includes(keyword.toLowerCase()))) {
+      if (keywords.some(keyword => phraseOccurs(messageTokens, tokenise(keyword)))) {
         matchedProblems.push(problem);
       }
     }
@@ -394,31 +442,37 @@ class ChatbotService {
   }
 
   /**
-   * Generates default response
+   * The fallback when no local answer fits (FF-4). It says so plainly and offers the two routes a
+   * person answers: the contact form and the free audit.
    */
   private generateDefaultResponse(): string {
-    return `That's a great question! While I'm still learning, I'd be happy to connect you with our team who can provide detailed answers.\n\n` +
-      `🔗 **Explore our services:** /services\n` +
-      `🔗 **Learn about us:** /about\n` +
-      `🔗 **View our projects:** /our-work\n` +
-      `🔗 **Get in touch:** /contact\n\n` +
-      `${reachUsBlock(this.business)}\n\n` +
-      `What else would you like to know about SarayaTech?`;
+    return CHAT_FALLBACK_REPLY;
   }
 
   /**
-   * Main method to get response from user message
-   * Now supports both ChatGPT (natural responses) and intent-based (fallback)
+   * The answer to one visitor message: the AI backend's reply, else a local answer, else the
+   * unavailable message.
+   *
+   * FF-6: pass `signal` to cancel. A cancelled request rejects with an AbortError and never falls
+   * back to a local answer, so a reply the visitor no longer waits for is not shown.
    */
-  public async getResponse(userMessage: string): Promise<string> {
+  public async getResponse(userMessage: string, options: { signal?: AbortSignal } = {}): Promise<string> {
+    const { signal } = options;
+    const throwIfAborted = () => {
+      if (signal?.aborted) throw new DOMException("The chat request was cancelled.", "AbortError");
+    };
+    throwIfAborted();
+
     // AI answers come from our backend (/api/chat); the browser holds no provider key.
     if (this.useOpenAI && openAIService.isAvailable()) {
       try {
-        const response = await openAIService.chat(userMessage);
+        const response = await openAIService.chat(userMessage, { signal });
         if (!response.error) return response.message;
+        throwIfAborted();
         // Log the failure class only, never the visitor's message.
         console.warn('[Chatbot] AI backend unavailable, using local answers:', response.error);
       } catch {
+        throwIfAborted();
         console.warn('[Chatbot] AI backend call failed, using local answers');
       }
     }
@@ -493,6 +547,7 @@ class ChatbotService {
       case "portfolio":
       case "company_info":
       case "experience":
+      case "team":
         return this.generateCompanyResponse();
 
       case "payment":
@@ -568,10 +623,12 @@ class ChatbotService {
    */
   public getQuickActions(): { label: string; message: string }[] {
     return [
-      { label: "📅 Book a Meeting", message: "I'd like to schedule a consultation" },
-      { label: "💼 Our Services", message: "What services do you offer?" },
-      { label: "💰 Pricing", message: "How much does it cost?" },
-      { label: "📞 Contact", message: "How can I contact you?" }
+      // FD-31: no emoji (each chip draws one lucide icon). "Request a consultation" until booking
+      // is verified in src/config/business.ts; its answer is bookingReply(), which follows config.
+      { label: "Request a consultation", message: "I'd like to schedule a consultation" },
+      { label: "Our services", message: "What services do you offer?" },
+      { label: "Pricing", message: "How much does it cost?" },
+      { label: "Contact", message: "How can I contact you?" }
     ];
   }
 }

@@ -1,26 +1,36 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, it, expect, vi } from "vitest";
+import { beforeAll, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import colors from "tailwindcss/colors";
 import AminaChatbot from "./AminaChatbot";
 import chatbotService from "@/services/chatbot.service";
-import { composite, contrastRatio, hslToRgb, parseHsl, readTokens, type Rgb } from "@/design/contrast";
+import { composite, contrastRatio, hslToRgb, parseHsl, readTokens } from "@/design/contrast";
 
-// The chat palette (STS-041, documented in docs/design/design-system.md by STS-063): the user bubble
-// is solid --gold with gray-900 text (it was a gold-to-red gradient with an undefined `text-dark`),
-// Amina's bubble is gray-900 with white text. These hold the classes and the contrast together.
+// The chat palette (B8 / FD-31, documented in docs/design/design-system.md section 7). Changed on
+// purpose with B8: it was a gold user bubble with gray-900 text and a gray-900 Amina bubble. Now the
+// user bubble is --primary (navy) with --primary-foreground, Amina's is --muted with --foreground,
+// the header is --primary, and gold is kept for the launcher alone. Tokens only.
 const css = readFileSync(resolve(__dirname, "../../index.css"), "utf8");
-const GOLD = hslToRgb(...parseHsl(readTokens(css, ":root").gold));
-const hex = (h: string): Rgb => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16)) as Rgb;
-const GRAY_900 = hex(colors.gray[900]);
-const WHITE: Rgb = [255, 255, 255];
+const tokens = readTokens(css, ":root");
+const rgb = (name: string) => hslToRgb(...parseHsl(tokens[name]));
+const PRIMARY = rgb("primary");
+const PRIMARY_FG = rgb("primary-foreground");
+const MUTED = rgb("muted");
+const FOREGROUND = rgb("foreground");
+const MUTED_FG = rgb("muted-foreground");
+const BACKGROUND = rgb("background");
+const GOLD = rgb("gold");
+const GOLD_FG = rgb("gold-foreground");
 const classes = (el: Element | null) => (el?.getAttribute("class") ?? "").split(/\s+/);
 
-describe("chat bubble palette (STS-041 / STS-063)", () => {
-  it("renders the user bubble gold with gray-900 text and Amina's bubble gray-900 with white text", async () => {
+beforeAll(async () => {
+  await import("./ChatPanel");
+}, 60000);
+
+describe("chat bubble palette (B8 / FD-31)", () => {
+  it("renders the user bubble navy with white text and Amina's bubble --muted with --foreground text", async () => {
     const user = userEvent.setup();
     vi.spyOn(chatbotService, "getResponse").mockResolvedValue("Bot reply");
     render(
@@ -29,25 +39,38 @@ describe("chat bubble palette (STS-041 / STS-063)", () => {
       </MemoryRouter>,
     );
     await user.click(screen.getByRole("button", { name: /open chat/i }));
-    await user.type(screen.getByRole("textbox", { name: /message amina/i }), "User question");
+    await user.type(await screen.findByRole("textbox", { name: /message amina/i }, { timeout: 5000 }), "User question");
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
-    const mine = (await screen.findByText("User question")).closest("div.rounded-2xl");
-    expect(classes(mine)).toEqual(expect.arrayContaining(["bg-gold", "text-gray-900"]));
-    expect(classes(mine).filter((c) => /^(bg-gradient|from-|to-)/.test(c))).toEqual([]);
-    const amina = (await screen.findByText("Bot reply")).closest("div.rounded-2xl");
-    expect(classes(amina)).toEqual(expect.arrayContaining(["bg-gray-900", "text-white"]));
-    // The timestamp is the faintest text in a bubble.
-    for (const bubble of [mine, amina]) expect(classes(bubble?.querySelector("span") ?? null)).toContain("opacity-80");
+    const mine = (await screen.findByText("User question")).closest("[data-chat-bubble]");
+    expect(mine).toHaveAttribute("data-chat-bubble", "user");
+    expect(classes(mine)).toEqual(expect.arrayContaining(["bg-primary", "text-primary-foreground"]));
+    const amina = (await screen.findByText("Bot reply")).closest("[data-chat-bubble]");
+    expect(amina).toHaveAttribute("data-chat-bubble", "amina");
+    expect(classes(amina)).toEqual(expect.arrayContaining(["bg-muted", "text-foreground"]));
+    for (const bubble of [mine, amina]) {
+      expect(classes(bubble).filter((c) => /^(bg-gradient|from-|to-|bg-gold|bg-gray|text-gray|text-white)/.test(c))).toEqual([]);
+    }
+    expect(classes(mine?.querySelector("time") ?? null)).toContain("text-primary-foreground/80");
+    expect(classes(amina?.querySelector("time") ?? null)).toContain("text-muted-foreground");
+    expect(classes(document.querySelector("[data-chat-header]"))).toEqual(expect.arrayContaining(["bg-primary", "text-primary-foreground"]));
+  });
+
+  it("uses no hex colour, gray-* or gold class anywhere in the panel source", () => {
+    const panel = readFileSync(resolve(__dirname, "ChatPanel.tsx"), "utf8");
+    expect(panel).not.toMatch(/#[0-9a-f]{3,8}\b|\bgray-\d|\bgold\b|text-white|bg-white/i);
   });
 
   it.each([
-    ["gray-900 text on the gold user bubble", GRAY_900, GOLD, 4.5],
-    ["gray-900 timestamp at 80% on gold", composite(GRAY_900, GOLD, 0.8), GOLD, 4.5],
-    ["white text on the gray-900 Amina bubble", WHITE, GRAY_900, 4.5],
-    ["white timestamp at 80% on gray-900", composite(WHITE, GRAY_900, 0.8), GRAY_900, 4.5],
-    ["gold typing dots on gray-900 (non-text, 1.4.11)", GOLD, GRAY_900, 3],
-    ["gray-900 launcher icon on its lightest gradient stop #D4AF37 (non-text)", GRAY_900, hex("#D4AF37"), 3],
+    ["white text on the navy user bubble", PRIMARY_FG, PRIMARY, 4.5],
+    ["white timestamp at 80% on navy", composite(PRIMARY_FG, PRIMARY, 0.8), PRIMARY, 4.5],
+    ["--foreground text on the --muted Amina bubble", FOREGROUND, MUTED, 4.5],
+    ["--muted-foreground timestamp on --muted", MUTED_FG, MUTED, 4.5],
+    ["--primary link text on --muted", PRIMARY, MUTED, 4.5],
+    ["white title on the navy header", PRIMARY_FG, PRIMARY, 4.5],
+    ["--muted-foreground privacy notice on --background", MUTED_FG, BACKGROUND, 4.5],
+    ["--muted-foreground typing dots on --muted (non-text, 1.4.11)", MUTED_FG, MUTED, 3],
+    ["navy launcher icon on --gold (non-text)", GOLD_FG, GOLD, 3],
   ])("%s meets its WCAG minimum", (_name, fg, bg, min) => {
     expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(min);
   });

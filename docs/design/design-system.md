@@ -11,8 +11,7 @@ Stack: Tailwind 3, shadcn/ui primitives in `src/components/ui/`, framer-motion, 
 
 All colours are HSL triples in CSS variables, used through Tailwind as `hsl(var(--x))`
 (`bg-primary`, `text-muted-foreground`, `bg-gold`). A component uses the token, never a hex code.
-The only raw colours left are in the chat launcher gradient (section 6) and Tailwind's `gray-*`
-scale inside the chat panel.
+Since B8 the chat launcher and panel use tokens too (section 7); no raw colour is left in the chat.
 
 ### Light (`:root`, the theme the site ships)
 
@@ -30,7 +29,7 @@ scale inside the chat panel.
 | `--accent-foreground` | `0 0% 100%` | CTA label |
 | `--accent-hover` | `0 85% 40%` | CTA hover, `#BD0F0F` (design audit B1: darker, never lighter) |
 | `--accent-active` | `0 85% 35%` | CTA pressed, `#A50D0D` |
-| `--gold` | `45 90% 60%` | Chat launcher, chat user bubble, avatar and badge only |
+| `--gold` | `45 90% 60%` | The chat launcher only (B8: the user bubble, avatar and badge moved to navy) |
 | `--gold-foreground` | `220 70% 25%` | Navy text on gold |
 | `--secondary` | `215 15% 42%` | Slate secondary text and secondary buttons (42% since STS-041) |
 | `--secondary-foreground` | `0 0% 100%` | Text on `--secondary` |
@@ -164,18 +163,19 @@ non-text passes, 4.5:1 text does not) and 2.98:1 on `--primary`; `--border-stron
 `--surface-subtle`. The audit's own figures (6.48, 6.34, 4.90, "7.9 or higher") were computed from rounded
 hex codes; the table above is the helper's result from the exact HSL.
 
-Chat panel pairs, enforced by
-[`src/components/chatbot/AminaChatbot.palette.test.tsx`](../../src/components/chatbot/AminaChatbot.palette.test.tsx)
-(`gray-900` is Tailwind's `#111827`):
+Chat panel pairs (B8), enforced by
+[`src/components/chatbot/AminaChatbot.palette.test.tsx`](../../src/components/chatbot/AminaChatbot.palette.test.tsx):
 
 | Pair | Ratio | Minimum |
 | --- | --- | --- |
-| `text-gray-900` on `bg-gold` (user bubble) | 11.07 | 4.5 |
-| Timestamp `text-gray-900` at `opacity-80` on gold | 7.01 | 4.5 |
-| `text-white` on `bg-gray-900` (Amina bubble) | 17.74 | 4.5 |
-| Timestamp white at `opacity-80` on gray-900 | 11.58 | 4.5 |
-| Gold typing dots on gray-900 (non-text) | 11.07 | 3 |
-| `text-gray-900` launcher icon on `#D4AF37` (non-text) | 8.44 | 3 |
+| `text-primary-foreground` on `bg-primary` (user bubble, header) | 12.47 | 4.5 |
+| Timestamp `text-primary-foreground/80` on navy | 8.55 | 4.5 |
+| `text-foreground` on `bg-muted` (Amina bubble) | 14.16 | 4.5 |
+| Timestamp `text-muted-foreground` on `bg-muted` | 5.55 | 4.5 |
+| Link `text-primary` on `bg-muted` | 11.11 | 4.5 |
+| Privacy notice `text-muted-foreground` on `bg-background` | 6.23 | 4.5 |
+| Typing dots `bg-muted-foreground` on `bg-muted` (non-text) | 5.55 | 3 |
+| Launcher icon `text-gold-foreground` on `bg-gold` (non-text) | 7.79 | 3 |
 
 ## 3. Focus
 
@@ -200,16 +200,19 @@ Chat panel pairs, enforced by
 - **Per element.** Decorative motion also carries `motion-reduce:hidden` or `motion-reduce:animate-none`,
   and hover scaling carries `motion-reduce:hover:scale-100`.
 - **WCAG 2.2.2 (Pause, Stop, Hide).** Motion that starts on its own must stop within 5 s, or come with a
-  visible, keyboard-operable pause control. Prefer stopping. The chat launcher (STS-062) runs three
-  waves 1 s apart (2.5 s each), one 4 s gradient sweep and two 2 s icon bobs. All of it is over at
-  **4.5 s**, then the launcher is static. The timing lives in the `chat-launcher-*` classes in
+  visible, keyboard-operable pause control. Prefer stopping. The chat launcher (STS-062, B8 / A11) runs two
+  `--gold` waves at 35 % opacity, scale 1 to 1.6, 1 s apart (2.5 s each), and two 1.5 s icon bobs. All of
+  it is over at **3.5 s**, then the launcher is static. The timing lives in the `chat-launcher-*` classes in
   `src/index.css`, inside `@layer components` so the `motion-reduce:*` utilities override them.
 - **Pitfall: tailwindcss-animate.** Its `duration-*`, `delay-*` and `ease-*` utilities set the
   *animation* timing as well as the transition timing, and they override a component class. On an
   element that carries a CSS animation, give the transition its timing with an arbitrary property,
-  e.g. `[transition-duration:300ms]`. (`duration-300` once cut the launcher sweep from 4 s to 0.3 s.)
-- **Animate `transform` and `opacity`**. The launcher sweep (`background-position` on a 64 px button)
-  is the one existing exception. Colour changes on hover use `transition-colors`, never `transition-all`.
+  e.g. `[transition-duration:300ms]`. (`duration-300` once cut the old launcher sweep from 4 s to 0.3 s.)
+- **Animate `transform` and `opacity`**. (B8 removed the one exception, the launcher's
+  `background-position` sweep.) Colour changes on hover use `transition-colors`, never `transition-all`.
+- **Chat panel (A10).** Opens from `y: 12, scale: 0.98, opacity: 0` over `-slow` with `--ease-enter`;
+  closes over `-base` with `--ease-exit`. No height animation. Under reduced motion framer-motion keeps
+  only the cross-fade.
 - **Motion tokens (design audit B1).** Durations `--duration-instant` 75 ms (press), `-fast` 120 ms
   (hover and focus colour), `-base` 200 ms (menus, chips, accordions, card hover), `-slow` 320 ms
   (entrance reveals, chat panel), `-page` 450 ms (the hero visual only). Easings `--ease-standard`
@@ -227,7 +230,8 @@ Chat panel pairs, enforced by
 - Enforced by [`src/design/motion-focus.test.ts`](../../src/design/motion-focus.test.ts) (the
   reduced-motion block) and
   [`src/components/chatbot/AminaChatbot.motion.test.tsx`](../../src/components/chatbot/AminaChatbot.motion.test.tsx)
-  (launcher animations are finite, end by 4.5 s, end at rest, and are switched off for reduced motion).
+  (launcher animations are finite, end by 3.5 s, end at rest, and are switched off for reduced motion;
+  the panel's open and close timing).
 - Known loops outside that budget. These are follow-ups, not precedent: the hero decorations
   `grid-animated` and `float-circle-*` in `src/index.css` are `infinite`, but no page uses them today.
   The chat typing dots loop while a reply is pending. `src/pages/Industries.tsx` has a
@@ -430,8 +434,8 @@ navy halo. Only colour, border, shadow and transform transition (`duration-fast 
 - **One consultation label:** [`src/content/cta.ts`](../../src/content/cta.ts). While the booking link
   is unverified the button reads "Request a Free Consultation" (design audit section 5: "Book" promises
   a calendar). Once the owner verifies a booking URL it reads "Book a Free Consultation" everywhere.
-- The chat header controls and Send are `h-11 w-11` (checked in `AminaChatbot.test.tsx`); the chat is
-  restyled in B8. Chat quick actions are `min-h-11` (not tested).
+- The chat header controls and Send are `h-11 w-11` and the launcher `h-14 w-14` (checked in
+  `AminaChatbot.test.tsx`). Chat quick actions are outline `<Button>`s at `min-h-11`.
 - Icon-only buttons need `aria-label`, and their icon needs `aria-hidden="true"`.
 
 ## 6a. Logo (design audit B2)
@@ -448,14 +452,25 @@ navy halo. Only colour, border, shadow and transform transition (`duration-fast 
 
 ## 7. Chat palette (Amina)
 
-- User bubble: `bg-gold text-gray-900`. It was a gold-to-red gradient with an undefined `text-dark`
-  class, so its text colour was never set. Amina bubble: `bg-gray-900 text-white`.
-- Timestamps `text-xs opacity-80` (was `opacity-60`). Avatar and the "AI" badge use `bg-gold text-gray-900`.
-- Header icons `text-gray-700`, subtitle `text-gray-600`, quick actions `text-gray-800` on `bg-gray-100`
-  with `border-gray-300`.
-- Launcher: gold/orange gradient (`#D4AF37`, `#FFA500`) with a `gray-900` icon. Motion budget in section 4.
-- Panel: `inset-x-2` (full width minus 8 px) on phones, `sm:w-[380px]` from 640 px, never taller than the
-  viewport. Long words wrap (`[overflow-wrap:anywhere]`).
+B8 (design audit FD-31, FD-32) moved the chat onto tokens. Contrast pairs are in section 2.
+
+- Header: `bg-primary text-primary-foreground`, title "Amina" (the dialog's name) and "AI assistant".
+  Header controls are ghost icon buttons in white with the `on-dark` focus treatment (white outline,
+  navy halo), 44 px.
+- User bubble: `bg-primary text-primary-foreground`. Amina bubble: `bg-muted text-foreground`. Both
+  `rounded-lg`, `max-w-[80%]`. Timestamps `text-xs`, `text-primary-foreground/80` or `text-muted-foreground`.
+- Links in replies: `text-primary` underlined. Only live routes and the allow-listed hosts become links
+  (FF-5, `src/components/chatbot/chatLinks.ts`); everything else stays text.
+- Quick actions: `<Button variant="outline">` chips, one lucide icon each, no emoji.
+- No "Powered by" line: the privacy notice above the input is the one statement of who processes the chat.
+- Launcher: 56 px `bg-gold` with a `text-gold-foreground` (navy) icon, `shadow-md` (`shadow-lg` on
+  hover), the shadcn focus ring. It is the site's one gold element. Motion budget in section 4.
+- Panel: `bg-background`, `border-border`, `rounded-lg`, `shadow-lg`. `inset-x-2` (full width minus
+  8 px) on phones, `sm:w-[380px]` from 640 px, never taller than the viewport. Long words wrap
+  (`[overflow-wrap:anywhere]`).
+- Behaviour: a modal dialog (focus moves in, Tab stays inside, Escape closes, focus returns to the
+  launcher), replies announced in a polite log, one request at a time (FF-6, FF-7). The panel is a
+  lazy chunk fetched on hover or focus of the launcher (FF-11).
 
 ## 8. Rules for a new component
 

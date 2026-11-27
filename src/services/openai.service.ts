@@ -28,6 +28,11 @@ export const CHAT_LIMITS = {
   historyContent: 2000,
 } as const;
 
+/** FF-6: per-request options. The request body is unchanged; only the fetch can be cancelled. */
+export interface ChatRequestOptions {
+  signal?: AbortSignal;
+}
+
 interface ChatClientOptions {
   apiUrl?: string;
   fetchImpl?: typeof fetch;
@@ -80,9 +85,11 @@ class OpenAIService {
     }
   }
 
-  public async chat(userMessage: string): Promise<ChatResponse> {
+  public async chat(userMessage: string, options: ChatRequestOptions = {}): Promise<ChatResponse> {
     const message = (userMessage ?? "").trim().slice(0, CHAT_LIMITS.message);
     if (!message) return { message: "", error: "empty_message" };
+    const { signal } = options;
+    if (signal?.aborted) return { message: "", error: "aborted" };
 
     let response: Response;
     try {
@@ -90,9 +97,10 @@ class OpenAIService {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, history: this.cappedHistory() }),
+        ...(signal ? { signal } : {}),
       });
     } catch {
-      return { message: "", error: "network" };
+      return { message: "", error: signal?.aborted ? "aborted" : "network" };
     }
 
     if (!response.ok) return { message: "", error: `http_${response.status}` };
@@ -104,8 +112,10 @@ class OpenAIService {
     try {
       body = await response.json();
     } catch {
-      return { message: "", error: "bad_response" };
+      return { message: "", error: signal?.aborted ? "aborted" : "bad_response" };
     }
+    // A reply that arrives after the visitor closed the chat is dropped, and not remembered.
+    if (signal?.aborted) return { message: "", error: "aborted" };
 
     const reply = (body as { success?: unknown; reply?: unknown } | null) ?? {};
     if (reply.success !== true || typeof reply.reply !== "string" || !reply.reply.trim()) {

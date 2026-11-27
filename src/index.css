@@ -267,33 +267,22 @@ All colors MUST be HSL.
   }
 }
 
-/* STS-062 (WCAG 2.2.2 Pause, Stop, Hide): the chat launcher's attention motion is finite. Every
-   animation below ends within 4.5 s of the launcher appearing (delay + duration x iterations) and
-   its last keyframe is the resting state: rings invisible, sheen at 0% 50%, icon at 0. Nothing here
-   may use `infinite`. In the components layer so `motion-reduce:animate-none` / `motion-reduce:hidden`
+/* STS-062 (WCAG 2.2.2 Pause, Stop, Hide), B8 / A11: the chat launcher's attention motion is finite.
+   Every animation below ends within 3.5 s of the launcher appearing (delay + duration x iterations)
+   and its last keyframe is the resting state: waves invisible, icon at 0. Nothing here may use
+   `infinite`. In the components layer so `motion-reduce:animate-none` / `motion-reduce:hidden`
    (utilities) still win; the reduced-motion block above ends them instantly as well.
    Enforced by src/components/chatbot/AminaChatbot.motion.test.tsx. */
 @layer components {
+  /* One --gold wave: 35 % opacity at the button's size, gone at 1.6x. */
   @keyframes chat-launcher-wave {
     0% {
       transform: scale(1);
-      opacity: 0.5;
-    }
-    50% {
-      opacity: 0.3;
+      opacity: 0.35;
     }
     100% {
-      transform: scale(2.2);
+      transform: scale(1.6);
       opacity: 0;
-    }
-  }
-  @keyframes chat-launcher-sheen {
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
     }
   }
   @keyframes chat-launcher-bob {
@@ -302,26 +291,19 @@ All colors MUST be HSL.
       transform: translateY(0);
     }
     50% {
-      transform: translateY(-4px);
+      transform: translateY(-3px);
     }
   }
-  /* Three waves, one a second, each 2.5 s: the last ends at 2 s + 2.5 s = 4.5 s. */
+  /* Two waves, 1 s apart, each 2.5 s: the second ends at 1 s + 2.5 s = 3.5 s. */
   .chat-launcher-wave-1 {
-    animation: chat-launcher-wave 2.5s cubic-bezier(0.4, 0, 0.2, 1) 0s 1 both;
+    animation: chat-launcher-wave 2.5s cubic-bezier(0, 0, 0.2, 1) 0s 1 both;
   }
   .chat-launcher-wave-2 {
-    animation: chat-launcher-wave 2.5s cubic-bezier(0.4, 0, 0.2, 1) 1s 1 both;
+    animation: chat-launcher-wave 2.5s cubic-bezier(0, 0, 0.2, 1) 1s 1 both;
   }
-  .chat-launcher-wave-3 {
-    animation: chat-launcher-wave 2.5s cubic-bezier(0.4, 0, 0.2, 1) 2s 1 both;
-  }
-  /* One 4 s sweep of the button gradient. */
-  .chat-launcher-sheen {
-    animation: chat-launcher-sheen 4s linear 0s 1 both;
-  }
-  /* Two 2 s bobs of the icon: 4 s. */
+  /* Two 1.5 s bobs of the icon: 3 s. */
   .chat-launcher-bob {
-    animation: chat-launcher-bob 2s ease-in-out 0s 2 both;
+    animation: chat-launcher-bob 1.5s ease-in-out 0s 2 both;
   }
 }
 

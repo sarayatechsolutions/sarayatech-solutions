@@ -195,10 +195,18 @@ describe("chatbot quick actions reach their intended local answer (scorer: no 1-
       expect(label, labelPart).toBeDefined();
       return chatbotService.getResponse(byLabel[label!]);
     };
-    expect(await ask("Book a Meeting")).toBe(bookingReply());
+    // B8 / FD-31: "Request a consultation" replaced "Book a Meeting" (booking is not verified).
+    expect(await ask("Request a consultation")).toBe(bookingReply());
     expect(await ask("Contact")).toBe(contactReply());
     expect(await ask("Pricing")).toContain(PRICING_REPLY);
-    expect(await ask("Our Services")).toContain("We offer a comprehensive range of digital solutions");
+    expect(await ask("Our services")).toContain("We offer a comprehensive range of digital solutions");
+  });
+
+  it("labels the chips in words only: no emoji, and no booking promise (B8 / FD-31)", () => {
+    for (const { label } of chatbotService.getQuickActions()) {
+      expect(label).not.toMatch(/\p{Extended_Pictographic}/u);
+      expect(label).not.toMatch(/book/i);
+    }
   });
 });
 

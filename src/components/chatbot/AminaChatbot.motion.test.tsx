@@ -8,9 +8,13 @@ import AminaChatbot from "./AminaChatbot";
 // STS-062 (WCAG 2.2.2 Pause, Stop, Hide). The launcher's waves, gradient sheen and icon bob used to
 // loop forever (framer-motion `repeat: Infinity`). They are now CSS animations with a finite
 // iteration count, defined in src/index.css, that all end within 5 s and come to rest.
+// B8 / A11 changed this file on purpose: two --gold waves (not three) to 1.6x, no sheen, all over by
+// 3.5 s; the launcher lives in ChatLauncher.tsx and the typing dots in ChatPanel.tsx (FF-11).
 // jsdom does not run CSS, so this reads the rules from the stylesheet and the classes from the DOM.
 const css = readFileSync(resolve(__dirname, "../../index.css"), "utf8");
-const source = readFileSync(resolve(__dirname, "AminaChatbot.tsx"), "utf8");
+const launcherSource = readFileSync(resolve(__dirname, "ChatLauncher.tsx"), "utf8");
+const panelSource = readFileSync(resolve(__dirname, "ChatPanel.tsx"), "utf8");
+const source = [readFileSync(resolve(__dirname, "AminaChatbot.tsx"), "utf8"), launcherSource, panelSource].join("\n");
 
 /** WCAG 2.2.2: moving content that starts on its own may last at most 5 s without a pause control. */
 const LIMIT_S = 5;
@@ -59,12 +63,12 @@ function renderLauncher() {
 }
 
 describe("chat launcher motion is finite (STS-062, WCAG 2.2.2)", () => {
-  it("binds the waves, the sheen and the icon bob to the chat-launcher-* CSS animations", () => {
+  it("binds the two waves and the icon bob to the chat-launcher-* CSS animations", () => {
     const { button, container } = renderLauncher();
     const rings = [...container.children].filter((el) => el !== button);
-    expect(rings).toHaveLength(3);
-    rings.forEach((ring, i) => expect(classes(ring)).toContain(`chat-launcher-wave-${i + 1}`));
-    expect(classes(button)).toContain("chat-launcher-sheen");
+    expect(rings).toHaveLength(2);
+    rings.forEach((ring, i) => expect(classes(ring)).toEqual(expect.arrayContaining([`chat-launcher-wave-${i + 1}`, "bg-gold"])));
+    expect(classes(button).filter((c) => c.startsWith("chat-launcher-"))).toEqual([]);
     expect(classes(container.querySelector("[data-chat-launcher-icon]"))).toContain("chat-launcher-bob");
   });
 
@@ -73,13 +77,7 @@ describe("chat launcher motion is finite (STS-062, WCAG 2.2.2)", () => {
     const animated = new Set(
       [container, ...container.querySelectorAll("*")].flatMap((el) => classes(el).filter((c) => c.startsWith("chat-launcher-"))),
     );
-    expect([...animated].sort()).toEqual([
-      "chat-launcher-bob",
-      "chat-launcher-sheen",
-      "chat-launcher-wave-1",
-      "chat-launcher-wave-2",
-      "chat-launcher-wave-3",
-    ]);
+    expect([...animated].sort()).toEqual(["chat-launcher-bob", "chat-launcher-wave-1", "chat-launcher-wave-2"]);
     let longest = 0;
     for (const cls of animated) {
       const a = animationOf(cls);
@@ -89,8 +87,8 @@ describe("chat launcher motion is finite (STS-062, WCAG 2.2.2)", () => {
       expect(end, `${cls} ends at ${end}s`).toBeLessThanOrEqual(LIMIT_S);
       longest = Math.max(longest, end);
     }
-    // The documented budget (docs/design/design-system.md): all motion over at 4.5 s.
-    expect(longest).toBeCloseTo(4.5, 5);
+    // The documented budget (docs/design/design-system.md, A11): all motion over at 3.5 s.
+    expect(longest).toBeCloseTo(3.5, 5);
   });
 
   it("no utility on an animated element overrides the CSS timing (tailwindcss-animate's duration-*, delay-*, ...)", () => {
@@ -107,14 +105,17 @@ describe("chat launcher motion is finite (STS-062, WCAG 2.2.2)", () => {
   it("comes to rest: the last keyframe is the static state, and the end state is held", () => {
     const wave = block(css, /@keyframes\s+chat-launcher-wave\s*\{/);
     expect(block(wave, /100%\s*\{/)).toMatch(/opacity:\s*0\s*;/);
-    expect(block(css, /@keyframes\s+chat-launcher-sheen\s*\{/)).toMatch(/0%,\s*100%\s*\{\s*background-position:\s*0% 50%/);
+    // A11: from the button's size at 35 % to 1.6x, gone.
+    expect(block(wave, /0%\s*\{/)).toMatch(/transform:\s*scale\(1\)\s*;\s*opacity:\s*0?\.35\s*;/);
+    expect(block(wave, /100%\s*\{/)).toMatch(/transform:\s*scale\(1\.6\)/);
+    expect(css).not.toMatch(/chat-launcher-sheen/);
     expect(block(css, /@keyframes\s+chat-launcher-bob\s*\{/)).toMatch(/0%,\s*100%\s*\{\s*transform:\s*translateY\(0\)/);
     // `both` keeps the rings at opacity 0 after the last wave instead of snapping back to a solid disc.
-    for (const n of [1, 2, 3]) expect(block(css, new RegExp(String.raw`\.chat-launcher-wave-${n}\s*\{`))).toMatch(/\bboth;/);
+    for (const n of [1, 2]) expect(block(css, new RegExp(String.raw`\.chat-launcher-wave-${n}\s*\{`))).toMatch(/\bboth;/);
   });
 
   it("nothing in the launcher is driven by a framer-motion loop any more", () => {
-    const launcher = source.slice(source.indexOf("{/* Floating Chat Button */}"), source.indexOf("{/* Chat Window */}"));
+    const launcher = launcherSource.slice(launcherSource.indexOf("// Floating Chat Button"), launcherSource.indexOf("// End Floating Chat Button"));
     expect(launcher.length).toBeGreaterThan(0);
     expect(launcher).not.toMatch(/Infinity|repeat\s*:/);
     // No Tailwind built-in looping animation (animate-ping, -pulse, -spin, -bounce) either.
@@ -128,13 +129,11 @@ describe("chat launcher motion is finite (STS-062, WCAG 2.2.2)", () => {
 });
 
 describe("chat launcher under prefers-reduced-motion (STS-041, kept by STS-062)", () => {
-  it("hides the waves and switches the sheen and the bob off", () => {
+  it("hides the waves, switches the bob off and keeps the hover lift motion-safe only", () => {
     const { button, container } = renderLauncher();
     const rings = [...container.children].filter((el) => el !== button);
     for (const ring of rings) expect(classes(ring)).toEqual(expect.arrayContaining(["pointer-events-none", "motion-reduce:hidden"]));
-    expect(classes(button)).toEqual(
-      expect.arrayContaining(["motion-reduce:animate-none", "motion-reduce:![background-position:50%_50%]", "motion-reduce:hover:scale-100"]),
-    );
+    expect(classes(button).filter((c) => /translate|scale/.test(c))).toEqual(["motion-safe:hover:-translate-y-0.5"]);
     expect(classes(container.querySelector("[data-chat-launcher-icon]"))).toContain("motion-reduce:animate-none");
   });
 
@@ -146,7 +145,7 @@ describe("chat launcher under prefers-reduced-motion (STS-041, kept by STS-062)"
     while (rest.search(/@layer components\s*\{/) >= 0) {
       const layer = block(rest, /@layer components\s*\{/);
       if (/\.chat-launcher-wave-1\s*\{/.test(layer)) {
-        for (const cls of ["chat-launcher-wave-2", "chat-launcher-wave-3", "chat-launcher-sheen", "chat-launcher-bob"]) {
+        for (const cls of ["chat-launcher-wave-2", "chat-launcher-bob"]) {
           expect(layer).toMatch(new RegExp(String.raw`\.${cls}\s*\{`));
         }
         found = true;
@@ -164,13 +163,25 @@ describe("typing indicator motion is finite (STS-066, WCAG 2.2.2)", () => {
   });
 
   it("the three dots end within 5 s: 0.6 s x (1 + repeats) + the last delay", async () => {
-    const { TYPING_DOT_REPEATS } = await import("./AminaChatbot");
-    const delays = [...source.matchAll(/repeat: TYPING_DOT_REPEATS, delay: ([\d.]+)/g)].map((m) => Number(m[1]));
+    const { TYPING_DOT_REPEATS } = await import("./ChatPanel");
+    const delays = [...panelSource.matchAll(/repeat: TYPING_DOT_REPEATS, delay: ([\d.]+)/g)].map((m) => Number(m[1]));
     expect(delays).toEqual([0, 0.2, 0.4]);
     expect(0.6 * (1 + TYPING_DOT_REPEATS) + Math.max(...delays)).toBeLessThanOrEqual(LIMIT_S);
   });
 
   it("announces typing as text in a status region and hides the decorative dots", () => {
-    expect(source).toMatch(/role="status">\s*<span className="sr-only">Amina is typing<\/span>\s*<div className="flex gap-1" aria-hidden="true">/);
+    expect(panelSource).toMatch(/role="status">\s*<span className="sr-only">Amina is typing<\/span>\s*<div className="flex gap-1" aria-hidden="true">/);
+  });
+});
+
+describe("chat panel motion (B8 / A10)", () => {
+  it("opens slow / enter from 12 px below at 98 %, and closes base / exit", () => {
+    const motion = block(panelSource, /const PANEL_MOTION = \{/);
+    expect(motion).toMatch(/initial: \{ opacity: 0, y: 12, scale: 0\.98 \}/);
+    // --duration-slow 320 ms with --ease-enter; --duration-base 200 ms with --ease-exit.
+    expect(motion).toMatch(/animate: \{[^}]*duration: 0\.32, ease: \[0, 0, 0\.2, 1\]/);
+    expect(motion).toMatch(/exit: \{[^}]*duration: 0\.2, ease: \[0\.4, 0, 1, 1\]/);
+    // No height animation: the panel switches height instantly when minimized.
+    expect(panelSource).not.toMatch(/height:\s*isMinimized/);
   });
 });
