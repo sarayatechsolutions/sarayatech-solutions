@@ -57,6 +57,17 @@ describe("Header with the default (unconfirmed) business config (STS-038)", () =
     expect(within(nav).getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
   });
 
+  it("reserves the logo's box and draws no box or scale hack around it (design audit B2)", () => {
+    renderAt("/");
+    const logo = screen.getByRole("img", { name: "SarayaTech Solutions home" });
+    expect(logo).toHaveAttribute("width", "989");
+    expect(logo).toHaveAttribute("height", "373");
+    const cls = (logo.getAttribute("class") ?? "").split(/\s+/);
+    // 48 px tall from 380 px wide: 989/373 x 48 = 127 px, the audit's "at least 120 px at 390".
+    expect(cls).toEqual(expect.arrayContaining(["w-auto", "min-[380px]:h-12"]));
+    expect(cls.filter((c) => /(^|:)(scale-|bg-|border|shadow|p-|px-|py-)/.test(c))).toEqual([]);
+  });
+
   it("highlights the section on a detail page as aria-current=true, never as the current page", () => {
     renderAt("/services/website-design");
     const services = within(screen.getByRole("navigation", { name: "Main" })).getByRole("link", { name: "Services" });

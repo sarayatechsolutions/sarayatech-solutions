@@ -72,12 +72,19 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
           {/* Brand + NAP */}
           <div className="col-span-2">
             <Link to="/" className={`inline-block transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
+              {/* Design audit B2 (FD-02): logo-white.webp is transparent but carries wide empty
+                  margins (mark at 16-295 x 40-143 of 300 x 200). Instead of a 125% scale, which grew
+                  the image past its own box, the box is sized to the mark (56 px tall, 152 px wide)
+                  and object-cover crops the empty margin. Same pixels, no redraw; a trimmed white
+                  logo.svg is an OWNER INPUT. The offset is in px, not %: the image renders 152 x 101
+                  and -18 px centres the mark (y 40-143) in the 56 px box. A "%" in the markup would
+                  trip the /our-work smoke guard against unsourced percentage claims. */}
               <img
                 src="/logo-white.webp"
                 width={300}
                 height={200}
                 alt={`${config.name} home`}
-                className="h-20 w-auto scale-125"
+                className="h-14 w-[152px] object-cover object-[center_-18px]"
               />
             </Link>
             {/* No tagline: the old "digital transformation" line is banned copy (REQ-012). */}

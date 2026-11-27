@@ -131,12 +131,17 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 h-20">
           <Link to="/" className={`shrink-0 rounded-md transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
+            {/* Design audit B2 (FD-02): the only colour logo is public/logo.png, a JPEG whose light
+                grey (#F7F7F7) backdrop is baked into the pixels; no box styling is added on top. A
+                transparent logo.svg is an OWNER INPUT: swap it in here when supplied (same alt, real
+                width/height). Sized to at least 120 px wide at 390 px (127 px), intrinsic
+                width/height kept so the box is reserved before the image loads (no CLS). */}
             <img
               src="/logo.png"
               alt={`${config.name} home`}
               width={989}
               height={373}
-              className="h-9 w-auto min-[400px]:h-12 sm:h-14 xl:h-16"
+              className="h-11 w-auto min-[380px]:h-12 sm:h-14 xl:h-16"
             />
           </Link>
 

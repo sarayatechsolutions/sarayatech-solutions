@@ -23,6 +23,18 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
     expect(screen.queryByRole("list", { name: /social media/ })).toBeNull();
   });
 
+  it("shows the white logo cropped to its mark, with its box reserved and no scale hack (design audit B2)", () => {
+    renderFooter();
+    const logo = screen.getByRole("img", { name: "SarayaTech Solutions home" });
+    expect(logo).toHaveAttribute("width", "300");
+    expect(logo).toHaveAttribute("height", "200");
+    const cls = (logo.getAttribute("class") ?? "").split(/\s+/);
+    expect(cls).toEqual(expect.arrayContaining(["h-14", "w-[152px]", "object-cover", "object-[center_-18px]"]));
+    // No "%" in the markup: /our-work forbids it (unsourced percentage claims, smoke WORK_FORBIDDEN_PHRASES).
+    expect(cls.join(" ")).not.toContain("%");
+    expect(cls.filter((c) => c.startsWith("scale-"))).toEqual([]);
+  });
+
   it('has no href="#" and no empty href', () => {
     const { container } = renderFooter();
     for (const href of hrefs(container)) {

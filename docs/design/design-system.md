@@ -272,6 +272,18 @@ no skipped levels (enforced by [`src/a11y.test.tsx`](../../src/a11y.test.tsx)).
 - Red CTA: `bg-accent hover:bg-accent-light text-accent-foreground`. Navy: `bg-primary hover:bg-primary-light text-primary-foreground`.
 - Icon-only buttons need `aria-label`, and their icon needs `aria-hidden="true"`.
 
+## 6a. Logo (design audit B2)
+
+- Header: `public/logo.png` (989 x 373) at `h-11`, `h-12` from 380 px (127 px wide, the audit asks for at
+  least 120 px at 390), `h-14` from `sm`, `h-16` from `xl`. Its light grey backdrop (`#F7F7F7`) is baked
+  into the JPEG; no box, padding, background or scale is added on top.
+- Footer: `public/logo-white.webp` (300 x 200, transparent) in a `h-14 w-[152px]` box with
+  `object-cover object-[center_-18px]`, which crops the file's empty margins instead of scaling the image past
+  its own box.
+- Both keep their intrinsic `width` / `height` attributes, so the box is reserved before load (no CLS).
+- **Owner input:** a transparent colour `logo.svg` and a trimmed white logo. The mark is never redrawn or
+  recoloured here. Tested in `Header.test.tsx` and `Footer.test.tsx`.
+
 ## 7. Chat palette (Amina)
 
 - User bubble: `bg-gold text-gray-900`. It was a gold-to-red gradient with an undefined `text-dark`
