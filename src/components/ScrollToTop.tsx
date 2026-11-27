@@ -9,6 +9,8 @@ import { useLocation, useNavigationType, type Location } from "react-router-dom"
  *  - a new route (link click, PUSH) starts at the top;
  *  - Back and Forward (POP) return to where the visitor was on that history entry, also after a
  *    reload (positions are kept per history entry in sessionStorage);
+ *  - a link to the page already shown (footer "Home" on /) starts at the top too (FF-17): React
+ *    Router reports it as a REPLACE of an identical URL, which is not a query update;
  *  - a link with a hash scrolls its target into view. The offset for the fixed header is CSS:
  *    `html { scroll-padding-top: calc(var(--header-h) + 1rem) }` (src/index.css), which
  *    scrollIntoView honours, so no pixel value is repeated here.
@@ -92,7 +94,7 @@ const ScrollToTop = () => {
   const navigationType = useNavigationType();
   const positions = useRef<Positions | null>(null);
   const current = useRef<string>(entryKey(location));
-  const previous = useRef<{ pathname: string; hash: string } | null>(null);
+  const previous = useRef<{ pathname: string; search: string; hash: string } | null>(null);
 
   // Take scrolling over from the browser, and record the position of the entry being viewed.
   useEffect(() => {
@@ -128,7 +130,9 @@ const ScrollToTop = () => {
     const key = entryKey(location);
     const samePage = previous.current?.pathname === location.pathname;
     const hashChanged = previous.current !== null && previous.current.hash !== location.hash;
-    previous.current = { pathname: location.pathname, hash: location.hash };
+    // FF-17: a link to the URL already shown. Only the history key changed.
+    const sameUrl = samePage && previous.current?.search === location.search && !hashChanged;
+    previous.current = { pathname: location.pathname, search: location.search, hash: location.hash };
     current.current = key;
 
     positions.current ??= loadAndClean();
@@ -150,8 +154,9 @@ const ScrollToTop = () => {
       target.scrollIntoView({ block: "start" });
       return;
     }
-    // REPLACE on the same page (a filter or query update) keeps the visitor where they are.
-    if (navigationType === "REPLACE" && samePage) return;
+    // REPLACE on the same page (a filter or query update) keeps the visitor where they are; a REPLACE
+    // of the identical URL is a click on a link to this page, which goes to the top like any link.
+    if (navigationType === "REPLACE" && samePage && !sameUrl) return;
     window.scrollTo(0, 0);
   }, [location.key, location.pathname, location.search, location.hash]);
 

@@ -17,6 +17,7 @@ const Page = ({ name }: { name: string }) => (
   <div>
     <h1>{name}</h1>
     <Link to="/b">to b</Link>
+    <Link to="/a">to a</Link>
     <Link to="/b#target">to target</Link>
     <section id="target">target</section>
     <section id="with space">spaced</section>
@@ -126,6 +127,24 @@ describe("ScrollToTop (FF-8)", () => {
     await scrollWindowTo(300);
     act(() => navigate("/a?tab=2", { replace: true }));
     expect(scrollTo()).not.toHaveBeenCalled();
+  });
+
+  it("a link to the page already shown goes to the top (FF-17: React Router makes it a REPLACE)", async () => {
+    renderApp();
+    await scrollWindowTo(600);
+    await userEvent.setup().click(screen.getByRole("link", { name: "to a" }));
+    expect(screen.getByRole("heading", { name: "A" })).toBeInTheDocument();
+    expect(scrollTo()).toHaveBeenCalledTimes(1);
+    expect(scrollTo()).toHaveBeenLastCalledWith(0, 0);
+  });
+
+  it("an identical-URL REPLACE with a query goes to the top; a query change still keeps the position", async () => {
+    renderApp("/a?tab=2");
+    await scrollWindowTo(400);
+    act(() => navigate("/a?tab=3", { replace: true }));
+    expect(scrollTo()).not.toHaveBeenCalled();
+    act(() => navigate("/a?tab=3", { replace: true }));
+    expect(scrollTo()).toHaveBeenLastCalledWith(0, 0);
   });
 
   it("keeps positions across a reload in sessionStorage (written on pagehide)", async () => {
