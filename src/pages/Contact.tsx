@@ -38,6 +38,7 @@ import {
   hasVerifiedBooking,
   phoneHref,
 } from "@/config/business";
+import { consultationCtaLabel } from "@/content/cta";
 
 /**
  * The business facts this page reads. Production always uses BUSINESS; tests pass a populated
@@ -161,13 +162,9 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                         </p>
                       </div>
                     </div>
-                    <Button
-                      asChild
-                      size="lg"
-                      className="w-full bg-accent hover:bg-accent-light"
-                    >
+                    <Button asChild variant="primary" size="lg" className="w-full">
                       <a href={booking} target="_blank" rel="noopener noreferrer">
-                        Book a Free Consultation
+                        {consultationCtaLabel(config)}
                         <span className="sr-only"> (opens in a new tab)</span>
                       </a>
                     </Button>
@@ -440,13 +437,8 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                       )}
                     </div>
 
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full bg-accent hover:bg-accent-light shadow-card"
-                      disabled={loading}
-                    >
-                      {loading ? "Sending..." : "Send Message"}
+                    <Button type="submit" variant="primary" size="xl" className="w-full" loading={loading}>
+                      Send Message
                     </Button>
 
                     {/* REQ-173: replaces "Your information will never be shared.", which /privacy contradicts. */}
@@ -505,10 +497,7 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-4">
-            <Button
-              onClick={() => setModalOpen(false)}
-              className="min-h-11 h-auto w-full sm:w-auto bg-accent hover:bg-accent-light"
-            >
+            <Button onClick={() => setModalOpen(false)} variant="primary" className="w-full sm:w-auto">
               Great, Thanks!
             </Button>
           </div>

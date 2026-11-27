@@ -31,25 +31,15 @@ const HeroSection = () => {
 
           <p className="text-lg md:text-xl text-white/90 leading-relaxed">{HERO.subheadline}</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <Button
-              asChild
-              size="lg"
-              // STS-041: at 320 px the nowrap 20 px label measured 333 px in a 288 px column (page scrolled
-              // sideways). Full width and wrapping below `sm`, unchanged from `sm` up.
-              className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-lg sm:text-xl font-bold px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto group"
-            >
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            {/* STS-041: at 320 px the nowrap 20 px label measured 333 px in a 288 px column (page scrolled
+                sideways). The xl size wraps; the pair goes full width below `sm` (design audit B3). */}
+            <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
               <CtaLink href={bookingHref()} cta="hero_consultation">
                 {HERO.primaryCta}
-                <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
               </CtaLink>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="bg-white/10 hover:bg-white/20 text-white border-white/40 text-lg sm:text-xl font-bold px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto"
-            >
+            <Button asChild variant="on-dark" size="xl" className="w-full sm:w-auto">
               <Link to={PROOF_PATH}>{HERO.secondaryCta}</Link>
             </Button>
           </div>

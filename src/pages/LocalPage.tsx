@@ -55,15 +55,8 @@ const LocalPage = ({ entry, kind, hub }: LocalPageProps) => {
           </nav>
           <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight">{entry.h1}</h1>
           <p className="text-lg md:text-xl text-white/90 leading-relaxed">{entry.intro}</p>
-          <Button
-            asChild
-            size="lg"
-            className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-xl font-bold px-8 h-14 w-full sm:w-auto"
-          >
-            <Link to={FREE_AUDIT_PATH}>
-              {L.primaryCta}
-              <ArrowRight aria-hidden="true" className="ml-2" />
-            </Link>
+          <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
+            <Link to={FREE_AUDIT_PATH}>{L.primaryCta}</Link>
           </Button>
         </div>
       </section>

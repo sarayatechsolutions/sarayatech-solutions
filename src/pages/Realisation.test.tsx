@@ -6,6 +6,7 @@ import { PROJECT_COPY, WORK_HERO } from "@/content/work/work";
 import { workProjects } from "@/pages/Realisation";
 import realisations from "../../data/realisations.json";
 import { WORK_FORBIDDEN_PHRASES, buildRoutes } from "../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-035. /our-work (STS-057; formerly /realisation) is rendered exactly as the build prerenders it (entry-server), then read
 // as a document, so these assertions hold for the HTML a crawler or no-JS visitor gets.
@@ -45,7 +46,7 @@ describe("Our Work page (STS-035, REQ-007, REQ-028)", () => {
   });
 
   it("sends the call to action to bookingHref()", () => {
-    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a) === "Book a Free Consultation");
+    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a) === CONSULTATION_CTA_LABEL);
     expect(ctas).toHaveLength(1);
     expect(ctas[0].getAttribute("href")).toBe(bookingHref());
   });

@@ -39,11 +39,8 @@ const PackagesTeaser = () => {
         </ul>
 
         <div className="text-center mt-12">
-          <Button asChild size="lg" className="bg-primary hover:bg-primary-light text-primary-foreground text-lg px-6 sm:px-8 min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto">
-            <Link to={PRICING_PATH}>
-              {PACKAGES.cta}
-              <ArrowRight aria-hidden="true" className="ml-2" />
-            </Link>
+          <Button asChild variant="secondary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
+            <Link to={PRICING_PATH}>{PACKAGES.cta}</Link>
           </Button>
         </div>
       </div>

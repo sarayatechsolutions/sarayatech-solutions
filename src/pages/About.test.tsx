@@ -7,6 +7,7 @@ import { ABOUT_HERO, ABOUT_TEAM, FOUNDER } from "@/content/about/about";
 import { FounderSection } from "@/pages/About";
 import leadershipTeam from "../../data/leadership-team.json";
 import { ABOUT_FORBIDDEN_PHRASES, buildRoutes } from "../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-036. /about is rendered exactly as the build prerenders it (entry-server), then read as a
 // document, so these assertions hold for the HTML a crawler or no-JS visitor gets.
@@ -41,7 +42,7 @@ describe("About page content (STS-036, REQ-030)", () => {
   });
 
   it("sends every call to action to bookingHref(), never to Careers", () => {
-    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a).startsWith("Book a Free Consultation"));
+    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a).startsWith(CONSULTATION_CTA_LABEL));
     expect(ctas.length).toBeGreaterThanOrEqual(1);
     for (const a of ctas) expect(a.getAttribute("href")).toBe(bookingHref());
     expect(main.querySelector('a[href="/careers"]')).toBeNull();

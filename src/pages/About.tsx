@@ -103,11 +103,8 @@ const About = () => {
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed">{ABOUT_HERO.intro}</p>
             <div className="pt-2">
-              <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-                <CtaLink href={booking}>
-                  {ABOUT_HERO.cta}
-                  <ArrowRight aria-hidden="true" className="w-5 h-5" />
-                </CtaLink>
+              <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
+                <CtaLink href={booking}>{ABOUT_HERO.cta}</CtaLink>
               </Button>
             </div>
           </div>

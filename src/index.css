@@ -254,28 +254,8 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-sm);
   }
 
-  /* Design audit B1: alias lines slated for removal in B3. No caller uses them any more; they no
-     longer animate `all` or scale. New code uses transition-colors duration-fast ease-standard,
-     and the interactive card hover (A5) spelled out. */
-  .transition-smooth {
-    transition-property: color, background-color, border-color, opacity, box-shadow, transform;
-    transition-duration: var(--duration-fast);
-    transition-timing-function: var(--ease-standard);
-  }
-
-  .hover-lift {
-    transition-property: transform, box-shadow;
-    transition-duration: var(--duration-base);
-    transition-timing-function: var(--ease-standard);
-  }
-  .hover-lift:hover {
-    box-shadow: var(--shadow-md);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .hover-lift:hover {
-      transform: translateY(-2px);
-    }
-  }
+  /* Design audit B3 removed the `.transition-smooth` and `.hover-lift` aliases. Hover colour uses
+     transition-colors duration-fast ease-standard; the interactive card hover (A5) is spelled out. */
 
   /* Design audit B1 (FD-44): the section rhythm. */
   .section {

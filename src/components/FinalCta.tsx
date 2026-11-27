@@ -20,15 +20,12 @@ import { FREE_AUDIT_ACTION, TRUST, proofItems, type CtaAction, type ProofIcon, t
  *
  * Contrast (tokens in src/index.css, measured on the lightest gradient stop, primary-light
  * hsl(220 60% 35%)): white 8.82:1, white/90 7.49:1. The accent button label (white on
- * hsl(0 85% 55%), 4.20:1; hover accent-light 3.28:1) is kept at 20px bold, i.e. large text, where
- * the AA minimum is 3:1. No motion beyond a hover nudge, which is motion-safe only.
+ * --accent) is 5.01:1, 6.50:1 on hover and 7.87:1 pressed (darker steps, design audit B1/B3), so it
+ * passes as normal text too. No motion beyond a hover nudge, which is motion-safe only.
  */
 
 const ICONS: Record<ProofIcon, LucideIcon> = { star: Star, map: MapPin, work: Briefcase, team: Layers };
 
-/** Large-text buttons that wrap instead of overflowing at 320px, 56px tall (touch target >= 44px). */
-const buttonBase =
-  "w-full sm:w-auto h-auto min-h-14 whitespace-normal text-center text-xl font-bold px-8 py-3 group";
 
 const tone = {
   dark: {
@@ -136,7 +133,8 @@ interface FinalCtaProps {
   copy?: string;
   /** Filled accent button. Default: "Get My Free Audit" -> /free-audit (REQ-063). */
   primary?: CtaAction;
-  /** Outline button. Default: "Book a Free Consultation" -> bookingHref(). */
+  /** On-dark button. Default: CONSULTATION_CTA_LABEL ("Request a Free Consultation" while booking is
+   *  unverified) -> bookingHref(). */
   secondary?: CtaAction;
   /** Page section marker kept from the page's old CTA, e.g. { "data-about-section": "cta" }. */
   sectionAttrs?: Record<`data-${string}`, string>;
@@ -164,23 +162,15 @@ const FinalCta = ({ id, heading, copy, primary, secondary, sectionAttrs, items }
             {heading ?? FINAL_CTA.heading}
           </h2>
           <p className="text-lg md:text-xl text-white/90 leading-relaxed">{copy ?? FINAL_CTA.copy}</p>
-          <div className="pt-2 flex flex-col sm:flex-row sm:flex-wrap gap-4 justify-center">
-            <Button
-              asChild
-              size="lg"
-              className={`${buttonBase} bg-accent hover:bg-accent-light text-accent-foreground shadow-accent`}
-            >
+          {/* Design audit B3: xl buttons wrap instead of overflowing at 320 px and are 56 px tall;
+              the pair stacks full width below `sm`, primary first, 12 px apart. */}
+          <div className="pt-2 flex flex-col sm:flex-row sm:flex-wrap gap-3 justify-center">
+            <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
               <CtaLink href={main.href} cta={ctaIdFor(main.href)}>
                 {main.label}
-                <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
               </CtaLink>
             </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className={`${buttonBase} bg-transparent border-2 border-white text-white hover:bg-white/10 hover:text-white`}
-            >
+            <Button asChild variant="on-dark" size="xl" className="w-full sm:w-auto">
               <CtaLink href={second.href} cta={ctaIdFor(second.href)}>{second.label}</CtaLink>
             </Button>
           </div>

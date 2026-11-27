@@ -117,7 +117,9 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
     </span>
   );
 
-  const ctaClass = `h-11 px-3 sm:px-5 bg-primary text-primary-foreground hover:bg-primary-light shadow-card ${focusRing}`;
+  // Design audit B3: the secondary (navy) md button. Only layout is added here: tighter side padding
+  // below `sm` and no wrapping, so the bar still fits at 320 px.
+  const ctaClass = `px-3 sm:px-5 whitespace-nowrap ${focusRing}`;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
@@ -202,7 +204,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
               </a>
             )}
 
-            <Button asChild className={ctaClass}>
+            <Button asChild variant="secondary" className={ctaClass}>
               {cta.external ? (
                 <a href={cta.href} target="_blank" rel="noopener noreferrer" data-track-cta="header_cta">
                   {ctaLabel}
@@ -260,14 +262,14 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
               </ul>
               {tel && phoneLabel && (
                 <div className="mt-4 flex flex-col gap-2 border-t border-border px-4 pt-4">
-                  <Button asChild variant="outline" className={`h-11 w-full text-primary hover:bg-muted hover:text-primary ${focusRing}`}>
+                  <Button asChild variant="outline" className={`h-11 w-full ${focusRing}`}>
                     <a href={tel} data-cta="phone_click" data-cta-location="menu">
                       <Phone aria-hidden="true" />
                       Call {config.name}
                     </a>
                   </Button>
                   {sms && (
-                    <Button asChild variant="outline" className={`h-11 w-full text-primary hover:bg-muted hover:text-primary ${focusRing}`}>
+                    <Button asChild variant="outline" className={`h-11 w-full ${focusRing}`}>
                       <a href={sms} data-cta="text_click" data-cta-location="menu">
                         <MessageSquare aria-hidden="true" />
                         Text {config.name}

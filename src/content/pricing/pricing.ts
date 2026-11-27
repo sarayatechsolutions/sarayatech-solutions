@@ -21,6 +21,8 @@
  * future translation layer would read from.
  */
 
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
+
 /** How a price is written (REQ-066 to REQ-069). */
 export type PriceKind = "one-time" | "monthly" | "monthly-plus-ad-spend" | "quote-from";
 
@@ -55,7 +57,7 @@ export const PRICING_HERO = {
   // OWNER REVIEW: intro written for STS-033 from the home packages intro; promises no price or guarantee.
   intro:
     "Pick the package that fits where your business is today. Each one is quoted for your business, so you see a clear price in writing before anything starts.",
-  cta: "Book a Free Consultation",
+  cta: CONSULTATION_CTA_LABEL,
 } as const;
 
 export const PRICING_PACKAGES: { heading: string; forLabel: string; includesLabel: string; packages: readonly PackageDef[] } = {
@@ -134,7 +136,7 @@ export const PRICING_CTA = {
   // OWNER REVIEW: closing call to action written for STS-033.
   heading: "Not sure which package fits?",
   copy: "Tell us about your business and we will recommend one, or ask for a free audit first. No obligation either way.",
-  button: "Book a Free Consultation",
+  button: CONSULTATION_CTA_LABEL,
 } as const;
 
 const usd = (n: number): string => `$${n.toLocaleString("en-US")}`;

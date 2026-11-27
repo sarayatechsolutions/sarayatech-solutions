@@ -1,3 +1,5 @@
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
+
 /**
  * Copy for the /services hub (STS-039). It replaces the retired /solutions index as the one page
  * that lists everything SarayaTech sells, and it is the 301 target for every retired solution or
@@ -12,5 +14,5 @@ export const SERVICES_INDEX = {
   eyebrow: "Services for small businesses in Columbus, OH",
   h1: "Our services",
   intro: "Websites, apps and marketing for small businesses. Pick a service to see what's included and how we work.",
-  primaryCta: "Book a Free Consultation",
+  primaryCta: CONSULTATION_CTA_LABEL,
 } as const;

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render } from "@/entry-server";
 import { BUSINESS } from "@/config/business";
 import { HERO, PROBLEM, FINAL_CTA, HOW_IT_WORKS, SERVICES } from "@/components/home/content";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-031. The home route is rendered exactly as the build prerenders it (entry-server), then
 // read as a document, so these assertions hold for the HTML a crawler or no-JS visitor gets.
@@ -81,7 +82,9 @@ describe("home page sections (STS-031, REQ-021)", () => {
 describe("home page calls to action (REQ-051, REQ-063, REQ-175)", () => {
   it("books through the business config: /contact while the booking link is unverified", () => {
     expect(BUSINESS.booking.verified).toBe(false);
-    expect(linkByText("Book a Free Consultation")?.getAttribute("href")).toBe("/contact");
+    // Design audit B3 / section 5: "Book" promises a calendar, so the unverified label is "Request".
+    expect(CONSULTATION_CTA_LABEL).toBe("Request a Free Consultation");
+    expect(linkByText(CONSULTATION_CTA_LABEL)?.getAttribute("href")).toBe("/contact");
     expect(main.querySelector('a[href*="calendly"]')).toBeNull();
   });
 

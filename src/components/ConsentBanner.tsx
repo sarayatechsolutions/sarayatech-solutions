@@ -44,10 +44,10 @@ const ConsentBanner = ({ onChoice }: ConsentBannerProps) => (
       </Link>
     </p>
     <div className="mt-3 grid grid-cols-2 gap-2">
-      <Button type="button" className="min-h-11 h-auto whitespace-normal" onClick={() => onChoice("granted")}>
+      <Button type="button" variant="secondary" className="whitespace-normal" onClick={() => onChoice("granted")}>
         {CONSENT_BANNER.accept}
       </Button>
-      <Button type="button" className="min-h-11 h-auto whitespace-normal" onClick={() => onChoice("denied")}>
+      <Button type="button" variant="secondary" className="whitespace-normal" onClick={() => onChoice("denied")}>
         {CONSENT_BANNER.decline}
       </Button>
     </div>

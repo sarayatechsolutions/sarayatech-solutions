@@ -5,6 +5,7 @@ import { bookingHref } from "@/config/business";
 import { FREE_AUDIT_PATH } from "@/components/home/content";
 import { TRUST_ONLY_PATHS } from "@/content/trust/trust";
 import { TRUST_ONLY_ROUTES, buildRoutes, closingBlockFor } from "../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-046 (GAP-05): every public page, rendered exactly as the build prerenders it, ends with
 // ONE closing block. Deliberate exceptions get the trust slot without a second CTA:
@@ -50,7 +51,7 @@ describe("sitewide closing block (STS-046)", () => {
       expect(hrefs).toContain(bookingHref());
     } else {
       expect(text(block)).not.toContain("Get My Free Audit");
-      expect(text(block)).not.toContain("Book a Free Consultation");
+      expect(text(block)).not.toContain(CONSULTATION_CTA_LABEL);
     }
   });
 });

@@ -320,11 +320,13 @@ const FreeAudit = () => {
 
               <Button
                 type="submit"
-                size="lg"
-                disabled={loading}
-                className="w-full sm:w-auto min-h-[44px] bg-accent hover:bg-accent-light"
+                variant="primary"
+                size="xl"
+                className="w-full sm:w-auto"
+                loading={loading}
+                loadingLabel={AUDIT_FORM.sending}
               >
-                {loading ? AUDIT_FORM.sending : AUDIT_FORM.submit}
+                {AUDIT_FORM.submit}
               </Button>
               {/* REQ-173: privacy link next to the submit button, worded to agree with /privacy. */}
               <FormPrivacyNote />

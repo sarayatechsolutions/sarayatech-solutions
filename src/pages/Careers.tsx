@@ -30,15 +30,8 @@ const Careers = () => (
           <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-[65ch]">{CAREERS.body}</p>
           <div className="pt-2">
             {/* One link styled as a button, never a <button> nested inside an <a> (STS-056). */}
-            <Button
-              asChild
-              size="lg"
-              className="bg-accent hover:bg-accent-light text-accent-foreground min-h-14 h-auto whitespace-normal text-lg font-bold w-full sm:w-auto group"
-            >
-              <Link to={CAREERS_CONTACT_PATH}>
-                {CAREERS.cta}
-                <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-0.5" />
-              </Link>
+            <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
+              <Link to={CAREERS_CONTACT_PATH}>{CAREERS.cta}</Link>
             </Button>
           </div>
         </div>

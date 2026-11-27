@@ -56,7 +56,7 @@ export const PriceCard = ({
         {price ?? fallback}
       </p>
       {note && <p className="text-sm text-foreground/70 -mt-3">{note}</p>}
-      <Button asChild className="min-h-11 h-auto whitespace-normal bg-primary hover:bg-primary-light text-primary-foreground">
+      <Button asChild variant="secondary" size="lg">
         <CtaLink href={href}>{kind === "custom" ? PRICING_LABELS.customCta : PRICING_LABELS.packageCta}</CtaLink>
       </Button>
     </li>
@@ -84,11 +84,8 @@ const Pricing = () => {
             </h1>
             <p className="text-lg md:text-xl text-white/90 leading-relaxed">{PRICING_HERO.intro}</p>
             <div className="pt-2">
-              <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-                <CtaLink href={booking}>
-                  {PRICING_HERO.cta}
-                  <ArrowRight aria-hidden="true" className="w-5 h-5" />
-                </CtaLink>
+              <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
+                <CtaLink href={booking}>{PRICING_HERO.cta}</CtaLink>
               </Button>
             </div>
           </div>

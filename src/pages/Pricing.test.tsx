@@ -14,6 +14,7 @@ import {
 } from "@/content/pricing/pricing";
 import { PriceCard } from "@/pages/Pricing";
 import { PRICING_FORBIDDEN_PHRASES, buildRoutes } from "../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-033. /pricing is rendered exactly as the build prerenders it (entry-server), then read as a
 // document, so these assertions hold for the HTML a crawler or no-JS visitor gets.
@@ -89,7 +90,7 @@ describe("Pricing page (STS-033, REQ-027, REQ-065)", () => {
 describe("Pricing page calls to action", () => {
   it("sends every card and the booking CTAs to bookingHref(), and offers the free audit", () => {
     for (const c of cards()) expect(c.querySelector("a")?.getAttribute("href")).toBe(bookingHref());
-    const booking = [...main.querySelectorAll("a")].filter((a) => text(a).startsWith("Book a Free Consultation"));
+    const booking = [...main.querySelectorAll("a")].filter((a) => text(a).startsWith(CONSULTATION_CTA_LABEL));
     expect(booking.length).toBeGreaterThanOrEqual(1);
     for (const a of booking) expect(a.getAttribute("href")).toBe(bookingHref());
     const audit = [...main.querySelectorAll("a")].find((a) => text(a) === "Get My Free Audit");

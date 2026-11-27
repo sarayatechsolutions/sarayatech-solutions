@@ -21,6 +21,7 @@
  */
 
 import { WORK_PATH } from "@/content/work/work";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 /** Service pages (STS-032). Literal paths: content/services imports this module for PROOF. */
 const SERVICE_PAGE_PATH = {
@@ -47,7 +48,7 @@ export const HERO = {
   headline: "We build your website. Then we bring you customers.",
   subheadline:
     "SarayaTech is a Columbus web design and marketing team for local and small businesses. One partner for your website, app, Google presence and social media, with results you can see every month.",
-  primaryCta: "Book a Free Consultation",
+  primaryCta: CONSULTATION_CTA_LABEL,
   secondaryCta: "See Our Work",
 } as const;
 

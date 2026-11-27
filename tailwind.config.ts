@@ -48,14 +48,13 @@ export default {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-        // Design audit B1: hover and pressed are darker steps of the CTA red. `light` is a
-        // temporary alias of `hover` (darker, not lighter) until B3 removes its last callers.
+        // Design audit B1: hover and pressed are darker steps of the CTA red (there is no lighter
+        // `accent-light` any more; B3 removed its last callers).
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
           hover: "hsl(var(--accent-hover))",
           active: "hsl(var(--accent-active))",
-          light: "hsl(var(--accent-hover))",
         },
         success: {
           DEFAULT: "hsl(var(--success))",

@@ -6,6 +6,7 @@ import { bookingHref } from "@/config/business";
 import { SERVICES } from "@/components/home/content";
 import { SERVICE_PAGES, servicePath, serviceProjects, type ServiceSlug } from "@/content/services/services";
 import { SERVICE_ROUTES } from "../../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-032. Each page is rendered exactly as the build prerenders it (entry-server), then read as
 // a document, so these assertions hold for the HTML a crawler or a no-JS visitor gets.
@@ -78,7 +79,7 @@ describe.each(SERVICE_PAGES)("service page /services/$slug (STS-032)", (page) =>
 
   it("books through the business config and sends the free-audit CTA to an existing route", () => {
     const byText = (label: string) => [...main.querySelectorAll("a")].find((a) => text(a) === label);
-    expect(byText("Book a Free Consultation")?.getAttribute("href")).toBe(bookingHref());
+    expect(byText(CONSULTATION_CTA_LABEL)?.getAttribute("href")).toBe(bookingHref());
     expect(main.querySelector('a[href*="calendly"]')).toBeNull();
     expect(byText("Get My Free Audit")?.getAttribute("href")).toBe("/free-audit");
   });

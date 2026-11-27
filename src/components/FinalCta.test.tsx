@@ -6,6 +6,7 @@ import FinalCta, { TrustSlot } from "@/components/FinalCta";
 import { BUSINESS, bookingHref, verifiedGoogleReviews } from "@/config/business";
 import { FREE_AUDIT_PATH, PROOF_PATH } from "@/components/home/content";
 import { TRUST, launchedProjectNames, proofItems } from "@/content/trust/trust";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-046 (GAP-05): the sitewide closing block shows verified proof only.
 
@@ -99,7 +100,7 @@ describe("final CTA actions", () => {
   it("defaults to the free audit (REQ-063) and a consultation through bookingHref()", () => {
     const doc = toDoc(<FinalCta id="t" />);
     expect(linkByText(doc, "Get My Free Audit")?.getAttribute("href")).toBe(FREE_AUDIT_PATH);
-    expect(linkByText(doc, "Book a Free Consultation")?.getAttribute("href")).toBe(bookingHref());
+    expect(linkByText(doc, CONSULTATION_CTA_LABEL)?.getAttribute("href")).toBe(bookingHref());
     expect(doc.querySelector('a[href*="calendly"]')).toBeNull();
   });
 
@@ -127,7 +128,7 @@ describe("standalone trust slot", () => {
     const section = doc.querySelector('section[data-final-cta="trust-only"]');
     expect(doc.getElementById(section?.getAttribute("aria-labelledby") ?? "")?.tagName).toBe("H2");
     expect(linkByText(doc, "Get My Free Audit")).toBeUndefined();
-    expect(linkByText(doc, "Book a Free Consultation")).toBeUndefined();
+    expect(linkByText(doc, CONSULTATION_CTA_LABEL)).toBeUndefined();
   });
 
   it("renders nothing at all when there is no proof to show", () => {

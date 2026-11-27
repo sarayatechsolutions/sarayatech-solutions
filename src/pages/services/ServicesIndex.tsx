@@ -27,15 +27,8 @@ const ServicesIndex = () => (
           </h1>
           <p className="text-lg md:text-xl text-white/90 leading-relaxed">{C.intro}</p>
           <div className="pt-2">
-            <Button
-              asChild
-              size="lg"
-              className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent text-xl font-bold px-8 h-14 group w-full sm:w-auto"
-            >
-              <CtaLink href={bookingHref()}>
-                {C.primaryCta}
-                <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
-              </CtaLink>
+            <Button asChild variant="primary" size="xl" className="w-full sm:w-auto" iconEnd={<ArrowRight />}>
+              <CtaLink href={bookingHref()}>{C.primaryCta}</CtaLink>
             </Button>
           </div>
           <p className="text-sm text-white/85">{BUSINESS.serviceAreaText}</p>

@@ -22,7 +22,7 @@ scale inside the chat panel.
 | `--foreground` | `220 30% 15%` | Body text |
 | `--card` / `--card-foreground` | `0 0% 100%` / `220 30% 15%` | Card surface and text |
 | `--popover` / `--popover-foreground` | `0 0% 100%` / `220 30% 15%` | Menus, popovers |
-| `--primary` | `220 70% 25%` | Navy brand: headings, links, default buttons, navy bands |
+| `--primary` | `220 70% 25%` | Navy brand: headings, links, secondary (default) buttons, navy bands |
 | `--primary-foreground` | `0 0% 100%` | Text on navy |
 | `--primary-light` | `220 60% 35%` | Navy hover, lightest navy band stop |
 | `--primary-dark` | `220 80% 18%` | Darkest navy (gradients) |
@@ -74,7 +74,7 @@ new code uses the Tailwind names. The red glow under CTAs (`--shadow-accent`) is
 
 Removed by the design audit B1: `--accent-light` (hover now goes darker), `--gradient-accent`,
 `--gradient-gold`, `--shadow-glow`, `--shadow-accent`, `--transition-smooth`, `--transition-bounce`.
-Tailwind's `accent-light` colour is a temporary alias of `--accent-hover` until B3 removes its callers.
+B3 then removed Tailwind's `accent-light` alias and the `.transition-smooth` / `.hover-lift` classes.
 
 ### Dark (`.dark`)
 
@@ -261,15 +261,50 @@ no skipped levels (enforced by [`src/a11y.test.tsx`](../../src/a11y.test.tsx)).
 
 ## 6. Buttons and touch targets
 
-- **44 px minimum** for anything a finger hits: `h-11` / `min-h-11`, or `h-11 w-11` for icon-only
-  buttons. The shadcn sizes are smaller: `default` 40 px, `sm` 36 px, `icon` 40 px (`lg` is 44 px).
-  Use `size="lg"`, or add `h-11` when you use the others. The chat header controls and Send are
-  `h-11 w-11` (checked in `AminaChatbot.test.tsx`). Chat quick actions are `min-h-11` (not tested).
-- **CTAs are 56 px and wrap on mobile:** `min-h-14 h-auto py-3 whitespace-normal text-center w-full sm:w-auto`.
-  Never `whitespace-nowrap` on a CTA: at 320 px the label must wrap and not overflow. Shared in
-  `src/components/FinalCta.tsx`. Hero and teaser CTAs are enforced by
+One button system (design audit B3): [`src/components/ui/button.tsx`](../../src/components/ui/button.tsx),
+tested in [`button.test.tsx`](../../src/components/ui/button.test.tsx). A caller picks a `variant` and a
+`size` and adds **layout only** (`w-full sm:w-auto`, margins). It never restates colour, height or
+whitespace: `grep 'bg-accent hover:bg-accent' src` finds `button.tsx` and nothing else.
+
+| Variant | Rest | Hover | Pressed | Use |
+| --- | --- | --- | --- | --- |
+| `primary` | `--accent` (5.01:1) | `--accent-hover` `#BD0F0F` (6.50:1) | `--accent-active` (7.87:1) | The conversion action, at most one per view |
+| `secondary` (default) | `--primary` | `--primary-light` | `--primary-dark` | Header CTA, package cards, teasers, consent |
+| `outline` | white, `--primary` text, `primary/30` border | `--muted`, full `--primary` border | `--border` | Secondary action on a light surface |
+| `on-dark` | `white/10`, white text, `white/60` border (5.50:1) | `white/20`, white border | `white/25` | Secondary action on navy (hero, FinalCta) |
+| `ghost` | transparent, `--primary` text | `--muted` | `--border` | Toolbars |
+| `link` | underlined `--primary` | full-strength underline | | Inline |
+
+Hover and pressed go **darker, never lighter**, and `outline`, `ghost`, `on-dark` and `link` never turn
+red. Focus is the base `:focus-visible` rule (section 3); `on-dark` switches to a white outline with a
+navy halo. Only colour, border, shadow and transform transition (`duration-fast ease-standard`), and the
+1 px press nudge is `motion-safe` only. The legacy shadcn names still type-check: `variant="default"` is
+`secondary`, and `size="default"` / `size="sm"` are `md`, so nothing drops under 44 px.
+
+| Size | Height | Type | Use |
+| --- | --- | --- | --- |
+| `md` (default) | `min-h-11`, 44 px | 16 px semibold | Forms, cards, the header CTA, dialogs |
+| `lg` | `min-h-12`, 48 px | 16 px bold | Package cards, the 404, the Contact booking card |
+| `xl` | `min-h-14`, 56 px, `h-auto`, wraps | 18 px, 20 px from `sm`, bold | Hero, FinalCta, page heroes, form submits |
+| `icon` | `h-11 w-11` | | Icon only: needs an `aria-label` |
+
+- **CTAs wrap on mobile.** `xl` is `whitespace-normal h-auto`; the caller adds `w-full sm:w-auto`, so a
+  CTA pair stacks full width below `sm` (primary first, `gap-3`). Never `whitespace-nowrap` on a CTA: at
+  320 px the label must wrap. Hero and teaser CTAs are enforced by
   [`src/a11y.test.tsx`](../../src/a11y.test.tsx).
-- Red CTA: `bg-accent hover:bg-accent-light text-accent-foreground`. Navy: `bg-primary hover:bg-primary-light text-primary-foreground`.
+- **Trailing arrow:** pass it as `iconEnd={<ArrowRight />}`. The button wraps it in an `aria-hidden`
+  span that nudges 2 px on hover, motion-safe only. It works with `asChild` links too.
+- **Loading:** `loading` (native buttons only; a link never loads) shows a 16 px spinner (a static dot
+  under reduced motion) before `loadingLabel` (default "Sending..."), sets `disabled` and
+  `aria-busy="true"`, and holds the resting width as `min-width` so the button does not jump. A busy
+  button keeps full opacity (`aria-busy:opacity-100`) rather than the disabled 50% fade, so "Sending..."
+  stays at the variant's contrast. Used by
+  the Contact and Free Audit submits.
+- **One consultation label:** [`src/content/cta.ts`](../../src/content/cta.ts). While the booking link
+  is unverified the button reads "Request a Free Consultation" (design audit section 5: "Book" promises
+  a calendar). Once the owner verifies a booking URL it reads "Book a Free Consultation" everywhere.
+- The chat header controls and Send are `h-11 w-11` (checked in `AminaChatbot.test.tsx`); the chat is
+  restyled in B8. Chat quick actions are `min-h-11` (not tested).
 - Icon-only buttons need `aria-label`, and their icon needs `aria-hidden="true"`.
 
 ## 6a. Logo (design audit B2)
@@ -303,7 +338,7 @@ no skipped levels (enforced by [`src/a11y.test.tsx`](../../src/a11y.test.tsx)).
    `src/design/contrast.ts`. Use `--input` for control borders, never `--border`.
 3. Every interactive element shows visible focus: the base rule, or `focus-visible:ring-2 ring-ring ring-offset-2`.
    Never `outline-none` without a ring.
-4. Touch targets are 44 px or more. CTAs follow the 56 px wrapping pattern (section 6).
+4. Touch targets are 44 px or more. Use `<Button>` with a variant and size (section 6); never restyle it.
 5. Mobile first: it must work at 320 px with no horizontal scroll. Desktop is the enhancement.
 6. Motion: transform and opacity only. A reduced-motion variant (`motion-reduce:*`, or MotionConfig).
    Nothing that starts on its own runs past 5 s.
