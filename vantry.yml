@@ -1,7 +1,7 @@
 # vantry.yml — SarayaTech website frontend (adopted 2026-11-24, see ../docs/decisions/0001-program-structure.md)
 version: 2
 
-stack: "React 18 + Vite 5 + TypeScript + Tailwind 3 + shadcn/ui + react-router-dom 6 SPA, deployed on Cloudflare Pages; contact form posts to the separate Express mailer (saraya-mailer)"
+stack: "React 18 + Vite 6 + TypeScript + Tailwind 3 + shadcn/ui + react-router-dom 7, prerendered SPA on Cloudflare Pages; the contact and audit forms post to the separate Next.js 16 backend (saraya-backend) at VITE_API_URL"
 
 project_type: web
 
