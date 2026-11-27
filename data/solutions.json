@@ -10,7 +10,7 @@
     "description": "We design and develop high-performance, scalable web and mobile applications perfectly aligned with your business objectives.",
     "overview": [
       "Our expert team guides businesses through the design and development of custom digital solutions. From responsive web applications to native mobile apps, we master the full spectrum of modern technologies to create exceptional user experiences.",
-      "With over 50 projects delivered for clients across various sectors (healthcare, education, transportation, services), we transform your ideas into performant and sustainable digital solutions."
+      "We build for clients in sectors such as healthcare, education, transportation and services, and we turn your ideas into performant and sustainable digital solutions."
     ],
     "features": [
       {
@@ -54,28 +54,7 @@
         "description": "Post-launch support and user training"
       }
     ],
-    "benefits": [
-      {
-        "metric": "50+",
-        "label": "Projects Delivered",
-        "description": "Successful applications"
-      },
-      {
-        "metric": "95%",
-        "label": "Client Satisfaction",
-        "description": "Clients recommend our services"
-      },
-      {
-        "metric": "3 months",
-        "label": "Average Timeline",
-        "description": "From idea to launch"
-      },
-      {
-        "metric": "100%",
-        "label": "Custom Built",
-        "description": "Solutions tailored to your needs"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
       "Modern and performant technologies",
       "Agile and iterative approach",
@@ -83,7 +62,7 @@
       "End-to-end support"
     ],
     "featuresList": ["Web", "Mobile", "PWA"],
-    "image": "/images/web-dev.jpg",
+    "image": "/images/web-dev.webp",
     "link": "/solutions/web-mobile-development",
     "reverse": false,
     "ctaTitle": "Ready to Digitize Your Business?",
@@ -147,28 +126,7 @@
         "description": "Quality, security and GDPR compliance"
       }
     ],
-    "benefits": [
-      {
-        "metric": "30+",
-        "label": "Data Projects",
-        "description": "BI solutions deployed"
-      },
-      {
-        "metric": "70%",
-        "label": "Time Saved",
-        "description": "In data analysis"
-      },
-      {
-        "metric": "360°",
-        "label": "Complete Vision",
-        "description": "Of your business"
-      },
-      {
-        "metric": "Real-time",
-        "label": "Live Data",
-        "description": "Updated dashboards"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
       "Custom dashboards with Power BI, Tableau, or custom solutions",
       "Automated data pipelines",
@@ -176,7 +134,7 @@
       "Team training on tools"
     ],
     "featuresList": ["Dashboards", "ETL", "Analytics"],
-    "image": "/images/data.jpg",
+    "image": "/images/data.webp",
     "link": "/solutions/data-bi-solutions",
     "reverse": true,
     "ctaTitle": "Unlock the Value of Your Data",
@@ -240,28 +198,7 @@
         "description": "Long-term support"
       }
     ],
-    "benefits": [
-      {
-        "metric": "40+",
-        "label": "Software Created",
-        "description": "Business solutions deployed"
-      },
-      {
-        "metric": "60%",
-        "label": "Productivity",
-        "description": "Average gain observed"
-      },
-      {
-        "metric": "100%",
-        "label": "Customized",
-        "description": "Adapted to your processes"
-      },
-      {
-        "metric": "Long-term",
-        "label": "Partnership",
-        "description": "Ongoing support"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
       "In-depth analysis of your business needs",
       "Robust and scalable technical architecture",
@@ -269,7 +206,7 @@
       "Complete documentation and training"
     ],
     "featuresList": ["Custom", "Integrations", "Scalable"],
-    "image": "/images/custom-software.jpg",
+    "image": "/images/custom-software.webp",
     "link": "/solutions/custom-business-software",
     "reverse": false,
     "ctaTitle": "Automate Your Business Processes",
@@ -333,36 +270,15 @@
         "description": "Maintenance and technical support"
       }
     ],
-    "benefits": [
-      {
-        "metric": "25+",
-        "label": "Infrastructures",
-        "description": "Cloud projects completed"
-      },
-      {
-        "metric": "40%",
-        "label": "Optimized Costs",
-        "description": "Average cloud savings"
-      },
-      {
-        "metric": "99.9%",
-        "label": "Availability",
-        "description": "Highly available infrastructures"
-      },
-      {
-        "metric": "24/7",
-        "label": "Monitoring",
-        "description": "Continuous surveillance"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
       "Multi-cloud expertise (AWS, Azure, GCP)",
       "Complete automation (IaC, CI/CD)",
-      "Guaranteed security and compliance",
+      "Security and compliance best practices",
       "Continuous cost optimization"
     ],
     "featuresList": ["Cloud", "DevOps", "Monitoring"],
-    "image": "/images/cloud.jpg",
+    "image": "/images/cloud.webp",
     "link": "/solutions/cloud-infrastructure",
     "reverse": true,
     "ctaTitle": "Modernize Your Infrastructure",
@@ -426,28 +342,7 @@
         "description": "Change support and skills development"
       }
     ],
-    "benefits": [
-      {
-        "metric": "60+",
-        "label": "Consulting Missions",
-        "description": "Companies supported"
-      },
-      {
-        "metric": "100%",
-        "label": "Customized",
-        "description": "Tailored approach"
-      },
-      {
-        "metric": "Optimized ROI",
-        "label": "Investments",
-        "description": "IT maximized"
-      },
-      {
-        "metric": "Expert",
-        "label": "Support",
-        "description": "By senior consultants"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
       "Industry and technical expertise",
       "Proven methodology (Agile, Lean)",
@@ -455,7 +350,7 @@
       "End-to-end support"
     ],
     "featuresList": ["Audit", "Strategy", "Management"],
-    "image": "/images/digital.jpg",
+    "image": "/images/digital.webp",
     "link": "/solutions/digital-strategy-consulting",
     "reverse": false,
     "ctaTitle": "Define Your Digital Strategy",
@@ -519,36 +414,15 @@
         "description": "Security training for your teams"
       }
     ],
-    "benefits": [
-      {
-        "metric": "20+",
-        "label": "Security Audits",
-        "description": "Successfully completed"
-      },
-      {
-        "metric": "100%",
-        "label": "Compliance",
-        "description": "GDPR guaranteed"
-      },
-      {
-        "metric": "0",
-        "label": "Breaches",
-        "description": "On our secured projects"
-      },
-      {
-        "metric": "Proactive",
-        "label": "Approach",
-        "description": "Security from design"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
-      "Certified cybersecurity expertise",
+      "Cybersecurity expertise",
       "Security by Design approach",
-      "Guaranteed regulatory compliance",
+      "Regulatory compliance support",
       "Continuous threat monitoring"
     ],
     "featuresList": ["Audit", "GDPR", "Protection"],
-    "image": "/images/security.jpg",
+    "image": "/images/security.webp",
     "link": "/solutions/security-compliance",
     "reverse": true,
     "ctaTitle": "Secure Your Information System",
@@ -612,28 +486,7 @@
         "description": "Team training and ongoing maintenance"
       }
     ],
-    "benefits": [
-      {
-        "metric": "24/7",
-        "label": "Availability",
-        "description": "Round-the-clock support"
-      },
-      {
-        "metric": "Scalable",
-        "label": "Solutions",
-        "description": "Grow with your business"
-      },
-      {
-        "metric": "100%",
-        "label": "Custom Built",
-        "description": "Tailored to your needs"
-      },
-      {
-        "metric": "Multi-Channel",
-        "label": "Deployment",
-        "description": "Reach customers everywhere"
-      }
-    ],
+    "benefits": [],
     "benefitsList": [
       "24/7 automated customer support",
       "Reduced operational costs and response times",
@@ -641,7 +494,7 @@
       "Seamless CRM and business tool integration"
     ],
     "featuresList": ["AI", "Chatbots", "Automation"],
-    "image": "/images/ai.jpg",
+    "image": "/images/ai.webp",
     "link": "/solutions/ai-automation-chatbots",
     "reverse": false,
     "ctaTitle": "Ready to Automate with AI?",

@@ -1,0 +1,208 @@
+{
+  "/images/ai.webp": {
+    "width": 1600,
+    "height": 1600,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/ai-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/ai.webp"
+      }
+    ]
+  },
+  "/images/ASTA.webp": {
+    "width": 1600,
+    "height": 1434,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/ASTA-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/ASTA.webp"
+      }
+    ]
+  },
+  "/images/bmv.webp": {
+    "width": 1600,
+    "height": 1712,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/bmv-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/bmv.webp"
+      }
+    ]
+  },
+  "/images/cloud.webp": {
+    "width": 1600,
+    "height": 1067,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/cloud-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/cloud.webp"
+      }
+    ]
+  },
+  "/images/custom-software.webp": {
+    "width": 1600,
+    "height": 1067,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/custom-software-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/custom-software.webp"
+      }
+    ]
+  },
+  "/images/data.webp": {
+    "width": 1600,
+    "height": 1066,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/data-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/data.webp"
+      }
+    ]
+  },
+  "/images/digital.webp": {
+    "width": 1600,
+    "height": 1055,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/digital-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/digital.webp"
+      }
+    ]
+  },
+  "/images/isaraya.webp": {
+    "width": 1184,
+    "height": 864,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/isaraya-800.webp"
+      },
+      {
+        "w": 1184,
+        "src": "/images/isaraya.webp"
+      }
+    ]
+  },
+  "/images/Issa.webp": {
+    "width": 480,
+    "height": 719,
+    "variants": [
+      {
+        "w": 240,
+        "src": "/images/Issa-240.webp"
+      },
+      {
+        "w": 480,
+        "src": "/images/Issa.webp"
+      }
+    ]
+  },
+  "/images/mimap.webp": {
+    "width": 651,
+    "height": 653,
+    "variants": [
+      {
+        "w": 651,
+        "src": "/images/mimap.webp"
+      }
+    ]
+  },
+  "/images/Sanokho.webp": {
+    "width": 480,
+    "height": 640,
+    "variants": [
+      {
+        "w": 240,
+        "src": "/images/Sanokho-240.webp"
+      },
+      {
+        "w": 480,
+        "src": "/images/Sanokho.webp"
+      }
+    ]
+  },
+  "/images/SarayaTechSenegal.webp": {
+    "width": 1600,
+    "height": 1450,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/SarayaTechSenegal-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/SarayaTechSenegal.webp"
+      }
+    ]
+  },
+  "/images/security.webp": {
+    "width": 1600,
+    "height": 1061,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/security-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/security.webp"
+      }
+    ]
+  },
+  "/images/Tidiani.webp": {
+    "width": 480,
+    "height": 480,
+    "variants": [
+      {
+        "w": 240,
+        "src": "/images/Tidiani-240.webp"
+      },
+      {
+        "w": 480,
+        "src": "/images/Tidiani.webp"
+      }
+    ]
+  },
+  "/images/web-dev.webp": {
+    "width": 1600,
+    "height": 1067,
+    "variants": [
+      {
+        "w": 800,
+        "src": "/images/web-dev-800.webp"
+      },
+      {
+        "w": 1600,
+        "src": "/images/web-dev.webp"
+      }
+    ]
+  }
+}

@@ -1,42 +1,29 @@
 {
   "company": {
     "name": "SarayaTech Solutions",
-    "description": "A leading digital transformation and AI innovation company specializing in custom software development, data solutions, and cloud services.",
-    "mission": "To design and develop custom digital solutions that precisely meet our clients' needs, simplifying technology rather than complicating it.",
-    "founded": "2020",
-    "location": "Operates globally with a distributed team serving clients worldwide",
+    "description": "SarayaTech Solutions builds websites and apps and grows local visibility for small businesses in Columbus, OH: website design, app development, local SEO, social media marketing and paid ads.",
+    "mission": "To give small businesses one partner for being found, contacted and booked online.",
+    "founded": "",
+    "location": null,
+    "_location_source": "STS-058: location / service area comes from src/config/business.ts (address, serviceAreaText) via src/services/chatbot-facts.ts. Do not hard-code it here.",
     "stats": {
-      "projects_delivered": "250+",
-      "enterprise_clients": "50+",
-      "years_experience": "20+",
-      "client_satisfaction": "97%",
-      "countries_served": "20+",
-      "industries_served": "6+"
+      "projects_delivered": "",
+      "clients_served": "",
+      "years_experience": "",
+      "client_satisfaction": "",
+      "countries_served": "",
+      "industries_served": ""
     },
     "contact": {
-      "email": "info@saraya.tech",
-      "phone": "+1 (614)-783-0443",
-      "calendly": "https://calendly.com/saraya-info",
-      "address": {
-        "street": "2765 S Hamilton Rd",
-        "city": "Columbus",
-        "state": "OH",
-        "zip": "43232",
-        "country": "United States",
-        "full": "2765 S Hamilton Rd, Columbus, OH 43232, United States"
-      },
-      "social": {
-        "linkedin": "linkedin.com/company/sarayatech",
-        "twitter": "@sarayatech"
-      }
+      "_source": "STS-058: email, phone, address, booking link and social profiles come ONLY from src/config/business.ts (helpers hasEmail, hasPhone, hasAddress, bookingHref/hasVerifiedBooking, socialLinks) via src/services/chatbot-facts.ts. An unconfirmed value is never stated; the bot points to the /contact form. Do not add contact facts here."
     },
     "team": {
-      "size": "Expert team with 8+ years of experience",
+      "size": "",
       "leadership": [
         {
           "name": "Cheikh Ahmed Tidiani Top",
           "role": "Tech Lead",
-          "experience": "8+ years in full stack development, specializing in React/Node.js architectures",
+          "experience": "Full stack development, specializing in React/Node.js architectures",
           "education": "Graduate of École Polytechnique de Thiès"
         },
         {
@@ -54,280 +41,97 @@
         {
           "name": "Baye Lam",
           "role": "DevOps Engineer",
-          "experience": "6+ years in DevOps and cloud infrastructure",
-          "expertise": "Kubernetes, Docker, CI/CD, AWS/Azure"
+          "experience": "DevOps and cloud infrastructure",
+          "expertise": "CI/CD and deployments"
         }
       ]
     }
   },
   "services": {
-    "web_mobile_development": {
-      "name": "Web & Mobile Development",
-      "subtitle": "Custom web and mobile applications tailored to your business needs",
-      "description": "We design and develop high-performance, scalable web and mobile applications perfectly aligned with your business objectives.",
-      "technologies": [
-        "React",
-        "Vue.js",
-        "Angular",
-        "Node.js",
-        "Python",
-        ".NET",
-        "React Native",
-        "Flutter",
-        "TypeScript",
-        "Next.js"
+    "website_design": {
+      "name": "Website Design",
+      "subtitle": "Websites that win customers",
+      "description": "Fast, mobile-friendly sites built to turn visitors into calls and bookings. Details: /services/website-design",
+      "route": "/services/website-design",
+      "features": [
+        "Mobile-friendly design",
+        "Built for calls and bookings",
+        "Fast pages",
+        "Set up to be found on Google"
       ],
-      "use_cases": [
-        "Modern Web Applications",
-        "Native Mobile Apps (iOS/Android)",
-        "Progressive Web Apps (PWA)",
-        "E-commerce platforms",
-        "SaaS applications"
-      ],
-      "pricing_range": "Starting from $15,000",
-      "timeline": "3 months average from idea to launch",
-      "stats": {
-        "projects_delivered": "50+",
-        "client_satisfaction": "95%",
-        "average_timeline": "3 months",
-        "custom_built": "100%"
-      },
+      "pricing_range": "Quoted after a free consultation, in a written plan you see before any work starts.",
       "benefits": [
-        "Modern and performant technologies",
-        "Agile and iterative approach",
-        "Quality and maintainable code",
-        "End-to-end support",
-        "Cross-platform compatibility",
-        "UI/UX design included",
-        "Third-party integrations",
-        "Post-launch training & support"
+        "A clear next step on every page",
+        "Each page gets its own title and description",
+        "One partner for your website and your Google presence"
       ]
     },
-    "ai_automation": {
-      "name": "AI Automation & Chatbot Development",
-      "subtitle": "Intelligent chatbots and AI-powered automation solutions",
-      "description": "We build intelligent chatbots and AI-powered automation solutions to streamline your business processes and enhance customer engagement.",
+    "app_development": {
+      "name": "App Development",
+      "subtitle": "Apps and custom software that save you time",
+      "description": "Booking systems, customer portals and mobile apps for small businesses with a process to automate. Details: /services/app-development",
+      "route": "/services/app-development",
       "features": [
-        "Custom chatbot development with NLP",
-        "Multi-channel deployment (Web, WhatsApp, Messenger, Telegram)",
-        "Workflow automation",
-        "CRM and business tool integration",
-        "24/7 automated customer support",
-        "Continuous learning ML models",
-        "Analytics & conversation insights"
-      ],
-      "technologies": [
-        "OpenAI GPT",
-        "NLP",
-        "Machine Learning",
-        "Python",
-        "TensorFlow",
-        "Natural Language Processing"
-      ],
-      "use_cases": [
-        "Customer service automation",
-        "Lead qualification",
-        "FAQ automation",
         "Booking systems",
-        "Virtual assistants"
+        "Customer portals",
+        "Mobile apps",
+        "Tools for your process"
       ],
-      "pricing_range": "Starting from $10,000",
+      "pricing_range": "Quoted after a free consultation, in a written plan you see before any work starts.",
       "benefits": [
-        "Reduce operational costs by 60%",
-        "24/7 availability",
-        "Multi-language support",
-        "Seamless integration with existing systems",
-        "Scalable solutions that grow with your business",
-        "100% custom built for your brand"
+        "You approve the screens before we build them",
+        "After launch we keep it running and help with changes",
+        "Examples we have built: BMV Inspection and MIMAP"
       ]
     },
-    "data_bi": {
-      "name": "Data & Business Intelligence Solutions",
-      "subtitle": "Transform your data into strategic insights",
-      "description": "We develop data analysis and business intelligence solutions tailored to your business needs for informed decision-making.",
+    "local_seo": {
+      "name": "Local SEO",
+      "subtitle": "Get found on Google",
+      "description": "Google Business Profile, local SEO and reviews, so nearby customers find you first. Details: /services/local-seo",
+      "route": "/services/local-seo",
       "features": [
-        "Custom BI dashboards (Power BI, Tableau, custom)",
-        "Data warehouse design and implementation",
-        "Predictive analytics and ML models",
-        "Real-time reporting",
-        "ETL pipelines and automation",
-        "Multi-source data integration",
-        "Data governance and GDPR compliance"
+        "Google Business Profile claimed, verified and filled in",
+        "A direct review link and help replying to every review",
+        "Consistent name, address and phone across directories",
+        "A simple monthly report on calls, leads and traffic"
       ],
-      "technologies": [
-        "Power BI",
-        "Tableau",
-        "Apache Spark",
-        "SQL",
-        "Python",
-        "AWS Redshift",
-        "ETL tools"
-      ],
-      "use_cases": [
-        "Sales analytics",
-        "Financial reporting",
-        "Marketing insights",
-        "Operational dashboards",
-        "Predictive models"
-      ],
-      "pricing_range": "Starting from $12,000",
-      "stats": {
-        "data_projects": "30+",
-        "time_saved": "70%",
-        "complete_vision": "360°",
-        "live_data": "Real-time updates"
-      },
+      "pricing_range": "Quoted after a free consultation, in a written plan you see before any work starts.",
       "benefits": [
-        "Custom dashboards with Power BI, Tableau, or custom solutions",
-        "Automated data pipelines",
-        "Predictive analytics and Machine Learning",
-        "Team training on tools",
-        "70% time saved in data analysis",
-        "Real-time updated dashboards"
+        "Nearby customers find you first",
+        "Your pages match the searches local customers type"
       ]
     },
-    "custom_software": {
-      "name": "Custom Business Software Development",
-      "subtitle": "Tailored software solutions for your specific processes",
-      "description": "We design custom business software that perfectly adapts to your processes and specific needs including ERP, CRM, management systems, and specialized platforms.",
+    "social_media_marketing": {
+      "name": "Social Media Marketing",
+      "subtitle": "Social media done for you",
+      "description": "Planned, posted and reported monthly. You always own your accounts. Details: /services/social-media-marketing",
+      "route": "/services/social-media-marketing",
       "features": [
-        "Modular and scalable architecture",
-        "Full-stack development (Frontend, Backend, Database)",
-        "System integrations with existing tools",
-        "Process automation and workflows",
-        "Multi-user management with roles and permissions",
-        "Cloud or on-premise deployment",
-        "Enhanced security (authentication, encryption, audit)",
-        "Long-term support and maintenance"
+        "A monthly content plan",
+        "We create and publish the posts",
+        "A monthly report on what we posted and how it did"
       ],
-      "technologies": [
-        "Java",
-        "Python",
-        ".NET",
-        "Go",
-        "Kubernetes",
-        "Docker",
-        "React",
-        "Node.js"
-      ],
-      "pricing_range": "Starting from $20,000",
-      "stats": {
-        "software_created": "40+",
-        "productivity_gain": "60%",
-        "customization": "100%"
-      },
+      "pricing_range": "Quoted after a free consultation, in a written plan you see before any work starts.",
       "benefits": [
-        "In-depth analysis of your business needs",
-        "Robust and scalable technical architecture",
-        "Agile development with continuous feedback",
-        "Complete documentation and training",
-        "60% average productivity gain",
-        "100% customized to your processes"
+        "You always own your accounts",
+        "We agree on the platforms that fit your customers during your free consultation"
       ]
     },
-    "cloud_devops": {
-      "name": "Cloud & Infrastructure Services",
-      "subtitle": "Secure, high-performance and optimized cloud infrastructures",
-      "description": "We guide you in designing, deploying and optimizing your cloud infrastructure for performance, security, and cost-efficiency.",
+    "paid_ads": {
+      "name": "Paid Ads",
+      "subtitle": "Track every ad dollar",
+      "description": "Google and Meta ads with tracking on every call and form. Details: /services/paid-ads",
+      "route": "/services/paid-ads",
       "features": [
-        "Cloud consulting and strategy",
-        "Cloud migration (AWS, Azure, Google Cloud)",
-        "Containerization (Docker, Kubernetes)",
-        "CI/CD pipeline setup",
-        "Infrastructure as Code (IaC)",
-        "Monitoring and observability",
-        "Performance optimization",
-        "Cost optimization (40% average savings)",
-        "Infrastructure security and disaster recovery"
+        "Google Ads",
+        "Meta ads",
+        "Tracking on every call and form",
+        "A monthly report on what each campaign brought in"
       ],
-      "technologies": [
-        "AWS",
-        "Azure",
-        "Google Cloud",
-        "Terraform",
-        "Jenkins",
-        "GitLab CI",
-        "Docker",
-        "Kubernetes",
-        "Ansible"
-      ],
-      "pricing_range": "Starting from $8,000",
-      "stats": {
-        "infrastructures_deployed": "25+",
-        "cost_savings": "40%",
-        "availability": "99.9%",
-        "monitoring": "24/7"
-      },
+      "pricing_range": "Quoted after a free consultation, in a written plan you see before any work starts.",
       "benefits": [
-        "Multi-cloud expertise (AWS, Azure, GCP)",
-        "Complete automation (IaC, CI/CD)",
-        "Guaranteed security and compliance",
-        "Continuous cost optimization",
-        "40% average cloud cost savings",
-        "99.9% uptime availability"
-      ]
-    },
-    "digital_transformation": {
-      "name": "Digital Strategy & Consulting",
-      "subtitle": "Strategic support for successful digital transformation",
-      "description": "We support you in defining and implementing your digital strategy for concrete and measurable results through audits, roadmaps, and expert guidance.",
-      "features": [
-        "Technical audit and system analysis",
-        "Digital roadmap creation",
-        "IT architecture design",
-        "Technology selection advice",
-        "Project management support",
-        "ROI optimization",
-        "Security and GDPR consulting",
-        "Training and change management"
-      ],
-      "pricing_range": "Starting from $5,000",
-      "stats": {
-        "consulting_missions": "60+",
-        "customization": "100%"
-      },
-      "benefits": [
-        "Industry and technical expertise",
-        "Proven methodology (Agile, Lean)",
-        "Strategic and operational vision",
-        "End-to-end support",
-        "Senior consultant expertise"
-      ]
-    },
-    "cybersecurity": {
-      "name": "Security & Compliance",
-      "subtitle": "Secure your applications and ensure regulatory compliance",
-      "description": "We secure your applications and infrastructures while ensuring compliance with GDPR and other regulations through comprehensive security solutions.",
-      "features": [
-        "Security audit and vulnerability assessment",
-        "Application security (OWASP, penetration testing)",
-        "Encryption and authentication",
-        "GDPR compliance implementation",
-        "Security monitoring and threat detection",
-        "IAM and Single Sign-On (SSO)",
-        "Data security (backup, recovery, anonymization)",
-        "Security awareness training"
-      ],
-      "technologies": [
-        "SIEM tools",
-        "Firewall management",
-        "Encryption",
-        "Zero Trust Architecture",
-        "Penetration testing tools"
-      ],
-      "pricing_range": "Starting from $7,000",
-      "stats": {
-        "security_audits": "20+",
-        "gdpr_compliance": "100%",
-        "breaches_on_projects": "0"
-      },
-      "benefits": [
-        "Certified cybersecurity expertise",
-        "Security by Design approach",
-        "Guaranteed regulatory compliance",
-        "Continuous threat monitoring",
-        "100% GDPR compliance guaranteed",
-        "Zero breaches on secured projects"
+        "You see which ads bring in leads and which do not",
+        "Your ad spend is separate from our management fee"
       ]
     }
   },
@@ -335,94 +139,67 @@
     "consultation": {
       "step": 1,
       "name": "Free Consultation",
-      "description": "We start with a discovery call to understand your business needs, challenges, and goals.",
-      "duration": "30-60 minutes",
-      "deliverable": "Project scope document"
+      "description": "Book a free consultation. We review your website, Google profile and competitors with you.",
+      "duration": "Set out in your written plan",
+      "deliverable": "Your questions answered"
     },
-    "proposal": {
+    "plan": {
       "step": 2,
-      "name": "Proposal & Planning",
-      "description": "We create a detailed proposal with timeline, budget, and technical approach.",
-      "duration": "3-5 business days",
-      "deliverable": "Detailed proposal and project plan"
+      "name": "Written Plan",
+      "description": "You get a written plan with a clear price before any work starts.",
+      "duration": "Set out in your written plan",
+      "deliverable": "A written plan with a clear price"
     },
-    "development": {
+    "build": {
       "step": 3,
-      "name": "Development & Iteration",
-      "description": "Our team builds your solution with regular check-ins and progress updates using Agile methodology.",
-      "duration": "Varies by project (average 3 months)",
-      "deliverable": "Working prototype and iterations"
+      "name": "Build and Launch",
+      "description": "If it fits, we build and launch.",
+      "duration": "Set out in your written plan",
+      "deliverable": "Your launched project"
     },
-    "deployment": {
+    "grow": {
       "step": 4,
-      "name": "Testing & Deployment",
-      "description": "Rigorous testing followed by smooth deployment to production.",
-      "duration": "1-2 weeks",
-      "deliverable": "Fully deployed solution"
-    },
-    "support": {
-      "step": 5,
-      "name": "Ongoing Support",
-      "description": "Continuous monitoring, maintenance, and feature updates with 24/7 technical support.",
-      "duration": "Ongoing",
-      "deliverable": "24/7 technical support and maintenance"
+      "name": "Grow",
+      "description": "We keep it running and help with changes, and grow it every month where your package includes that.",
+      "duration": "Set out in your written plan",
+      "deliverable": "Ongoing support"
     }
   },
   "industries": [
     {
       "name": "Healthcare",
       "solutions": [
-        "Telemedicine platforms",
-        "Clinic management systems",
-        "HIPAA-compliant applications"
+        "Clinic management: consultations, prescriptions, lab tests and medical certificates"
       ],
       "example": "MIMAP - Clinic management for Mauritania Internal Medicine and Pediatrics"
     },
     {
-      "name": "Finance",
-      "solutions": [
-        "Fintech applications",
-        "Trading platforms",
-        "Banking solutions",
-        "Payment gateways"
-      ]
-    },
-    {
       "name": "E-commerce",
       "solutions": [
-        "Online stores",
-        "Marketplace platforms",
-        "Inventory management",
-        "Payment integration"
+        "Marketplace with store creation, delivery management and messaging"
       ],
-      "example": "iSaraya - Marketplace with 25K+ sellers and 150K+ monthly transactions"
+      "example": "iSaraya - Marketplace connecting sellers and buyers"
     },
     {
       "name": "Education",
       "solutions": [
-        "E-learning platforms",
-        "Student management systems",
-        "Virtual classrooms"
+        "Website for a tech training academy"
       ],
-      "example": "ASTA - American Senegalese Tech Academy with 500+ students trained"
+      "example": "ASTA - American Senegalese Tech Academy"
     },
     {
       "name": "Transportation",
       "solutions": [
-        "Fleet management",
-        "Route optimization",
-        "Rental platforms"
+        "Peer-to-peer car rental platform"
       ],
-      "example": "Saraya Auto Rental - P2P car rental with 10K+ users"
+      "example": "Saraya Auto Rental"
     },
     {
       "name": "Automotive",
       "solutions": [
-        "Inspection platforms",
-        "Booking systems",
-        "Document management"
+        "Appointment booking, admin dashboard, document upload and payments"
       ],
-      "example": "BMV Inspection - Vehicle inspection platform with OCR and payment processing"
+      "example": "BMV Inspection - Vehicle inspection booking platform"
     }
   ],
   "case_studies": [
@@ -431,11 +208,7 @@
       "industry": "Automotive",
       "challenge": "Streamlining vehicle inspection booking and document management",
       "solution": "Platform with appointment booking, admin dashboard, OCR data extraction, and payment processing",
-      "results": {
-        "efficiency": "70%",
-        "satisfaction": "95%",
-        "wait_time_reduction": "50%"
-      },
+      "results": {},
       "link": "https://inspectionfast.com"
     },
     {
@@ -443,23 +216,15 @@
       "industry": "E-commerce",
       "challenge": "Building comprehensive marketplace connecting sellers and buyers",
       "solution": "Marketplace enabling store creation, product/service sales, delivery management, and integrated messaging",
-      "results": {
-        "sellers": "25K+",
-        "transactions": "150K+/month",
-        "retention": "88%"
-      },
+      "results": {},
       "link": "https://isarayas.com/"
     },
     {
       "name": "MIMAP",
       "industry": "Healthcare",
-      "challenge": "Digital transformation of clinic management",
+      "challenge": "Moving clinic management to one online system",
       "solution": "Clinic interface for consultations, prescriptions, lab tests, and medical certificates",
-      "results": {
-        "efficiency": "60%",
-        "wait_time": "-40%",
-        "accuracy": "95%"
-      },
+      "results": {},
       "link": "https://mimapeds.com/"
     },
     {
@@ -467,84 +232,47 @@
       "industry": "Education",
       "challenge": "Creating platform for tech education",
       "solution": "Full Stack development programs and professional training",
-      "results": {
-        "students": "500+",
-        "employment": "85%",
-        "satisfaction": "4.8/5"
-      },
+      "results": {},
       "link": "https://asta-edu.com/"
     }
   ],
   "faqs": [
     {
+      "question": "How much does it cost?",
+      "answer": "Every project is quoted for your business after a free consultation, in a written plan you see before any work starts. See /pricing for the packages."
+    },
+    {
       "question": "How long does a typical project take?",
-      "answer": "Project timelines vary based on scope and complexity. A simple website takes 4-6 weeks, while complex enterprise solutions can take 3-6 months. Our average timeline is 3 months from idea to launch. We provide detailed timelines during the proposal phase."
+      "answer": "The timeline is in your written plan, agreed with you before any work starts."
     },
     {
       "question": "What are your payment terms?",
-      "answer": "We typically work with a 50% upfront payment and 50% upon completion. For larger projects, we can arrange milestone-based payments. All payment terms are discussed during the proposal phase."
+      "answer": "Payment terms are agreed in the written plan, after a free consultation."
     },
     {
-      "question": "Do you offer maintenance and support?",
-      "answer": "Yes! We provide 24/7 technical support and maintenance packages. Our support includes bug fixes, security updates, performance monitoring, and feature enhancements. We have ongoing partnerships with all our clients."
+      "question": "Do you offer support after launch?",
+      "answer": "For apps, yes: after launch we keep it running and help with changes. Ask about support in your free consultation, at /contact."
     },
     {
-      "question": "Can you work with our existing systems?",
-      "answer": "Absolutely! We specialize in integrating with existing systems, modernizing legacy applications, and ensuring seamless data migration. We have experience with CRM, ERP, databases, and various third-party APIs."
+      "question": "Do I own my social media accounts?",
+      "answer": "Yes. You always own your accounts. We post for you, and the accounts stay in your business's name."
     },
     {
-      "question": "What technologies do you use?",
-      "answer": "We use modern, industry-standard technologies including React, Next.js, Node.js, Python, TypeScript, AWS, Azure, Docker, Kubernetes and more. We choose the best tech stack based on your specific needs and requirements."
-    },
-    {
-      "question": "Do you sign NDAs?",
-      "answer": "Yes, we're happy to sign NDAs to protect your intellectual property and confidential information. We take data security and confidentiality very seriously."
+      "question": "Who pays for the ads?",
+      "answer": "Your ad spend is separate from our management fee."
     },
     {
       "question": "Where is your team located?",
-      "answer": "We operate globally with a distributed team. Our leadership is based in Senegal (École Polytechnique de Thiès, UCAD graduates) but we serve clients worldwide across 20+ countries and can accommodate different time zones."
-    },
-    {
-      "question": "What is your client satisfaction rate?",
-      "answer": "We maintain a 97% client satisfaction rate with 95% of clients recommending our services. We've successfully delivered 250+ projects for 50+ enterprise clients across 6+ industries."
+      "answer": null,
+      "_source": "STS-058: answered from src/config/business.ts (address, else serviceAreaText) by locationReply() in src/services/chatbot-facts.ts."
     },
     {
       "question": "Do you have experience in my industry?",
-      "answer": "We have extensive experience across multiple industries including Healthcare (MIMAP clinic), E-commerce (iSaraya marketplace), Education (ASTA academy), Automotive (BMV Inspection), Transportation (Saraya Auto Rental), and more. We've served clients in 20+ countries."
+      "answer": "We have built platforms in Healthcare (MIMAP clinic), E-commerce (iSaraya marketplace), Education (ASTA academy), Automotive (BMV Inspection) and Transportation (Saraya Auto Rental). See /our-work."
     }
   ],
-  "testimonials": [
-    {
-      "client": "BMV INSPECTION",
-      "company": "BMV Inspection",
-      "role": "Operations Manager",
-      "feedback": "The BMV inspection platform has revolutionized how we handle vehicle inspections. The OCR technology and streamlined booking system have significantly improved our efficiency.",
-      "results": "70% process efficiency, 95% client satisfaction"
-    },
-    {
-      "client": "iSaraya",
-      "company": "iSaraya Marketplace",
-      "role": "Platform Manager",
-      "feedback": "iSaraya has created a vibrant marketplace ecosystem. The integrated messaging and delivery management features have been game-changers for our business.",
-      "results": "25K+ active sellers, 150K+ monthly transactions"
-    },
-    {
-      "client": "MIMAP",
-      "company": "Mauritania Internal Medicine and Pediatrics",
-      "role": "Medical Director",
-      "feedback": "The MIMAP platform has transformed our clinic operations. Managing consultations, prescriptions, and certificates is now seamless and efficient.",
-      "results": "60% efficiency gain, 40% wait time reduction"
-    },
-    {
-      "client": "ASTA",
-      "company": "American Senegalese Tech Academy",
-      "role": "Director",
-      "feedback": "ASTA has become the leading tech education platform in Senegal. Our graduates are highly sought after by employers across the region.",
-      "results": "500+ students trained, 85% employment rate"
-    }
-  ],
+  "testimonials": [],
   "booking": {
-    "message": "I'd be happy to help you schedule a meeting with our team! You can book a convenient time slot through our Calendly link: https://calendly.com/saraya-info",
-    "alternative": "Alternatively, you can reach us directly at info@saraya.tech or call +1 (614)-783-0443."
+    "_source": "STS-058: the booking answer is built by bookingReply() in src/services/chatbot-facts.ts from bookingHref()/hasVerifiedBooking() in src/config/business.ts. Unverified booking = the /contact form."
   }
 }

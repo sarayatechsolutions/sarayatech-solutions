@@ -1,3 +1,4 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,20 +26,32 @@ import {
   MessageSquare,
   Workflow,
 } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
+
+type Testimonial = {
+  name: string;
+  company: string;
+  role: string;
+  comment: string;
+};
+
+// Only real, permissioned client quotes belong here (name, business, written
+// consent). The Reviews tab stays hidden while this list is empty.
+const TESTIMONIALS: Testimonial[] = [];
+
+type SolutionBenefit = { metric: string; label: string; description: string };
 
 const SolutionDetails = () => {
   const { solutionId } = useParams();
   const solution = SOLUTIONS_DATA[solutionId as keyof typeof SOLUTIONS_DATA];
   const [activeTab, setActiveTab] = useState("overview");
+  // Per-service metrics render only when documented figures exist (STS-018).
+  const benefits = (solution?.benefits ?? []) as SolutionBenefit[];
 
   if (!solution) {
     return (
       <div className="min-h-screen">
-        <Header />
-        <main className="pt-32 pb-20">
+        <div className="pt-32 pb-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 className="text-4xl font-bold mb-4">Solution Not Found</h1>
             <p className="text-secondary mb-8">
@@ -48,8 +61,7 @@ const SolutionDetails = () => {
               <Button>View All Solutions</Button>
             </Link>
           </div>
-        </main>
-        <Footer />
+        </div>
       </div>
     );
   }
@@ -81,7 +93,7 @@ const SolutionDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="pt-20">
+      <div className="pt-20">
         {/* Breadcrumb */}
         <div className="bg-white border-b">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -157,7 +169,7 @@ const SolutionDetails = () => {
                 {/* Preview Image */}
                 <div className="relative h-96 overflow-hidden">
                   <img
-                    src={solution.image}
+                    {...responsiveImage(solution.image, "(min-width: 1280px) 1200px, 100vw")}
                     alt={solution.title}
                     className="w-full h-full object-cover"
                     loading="eager"
@@ -179,8 +191,13 @@ const SolutionDetails = () => {
 
                 {/* Tabs */}
                 <div className="border-b">
-                  <div className="flex">
+                  <div className="flex" role="tablist" aria-label="Solution details">
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-overview"
+                      aria-selected={activeTab === "overview"}
+                      aria-controls="panel-overview"
                       onClick={() => setActiveTab("overview")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "overview"
@@ -191,6 +208,11 @@ const SolutionDetails = () => {
                       Overview
                     </button>
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-features"
+                      aria-selected={activeTab === "features"}
+                      aria-controls="panel-features"
                       onClick={() => setActiveTab("features")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "features"
@@ -201,6 +223,11 @@ const SolutionDetails = () => {
                       Features
                     </button>
                     <button
+                      type="button"
+                      role="tab"
+                      id="tab-specifications"
+                      aria-selected={activeTab === "specifications"}
+                      aria-controls="panel-specifications"
                       onClick={() => setActiveTab("specifications")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "specifications"
@@ -210,17 +237,29 @@ const SolutionDetails = () => {
                     >
                       Specifications
                     </button>
+                    {TESTIMONIALS.length > 0 && (
+                      <button
+                        type="button"
+                        role="tab"
+                        id="tab-reviews"
+                        aria-selected={activeTab === "reviews"}
+                        aria-controls="panel-reviews"
+                        onClick={() => setActiveTab("reviews")}
+                        className={`px-6 py-3 border-b-2 font-medium transition-colors ${
+                          activeTab === "reviews"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-gray-600 hover:text-gray-900"
+                        }`}
+                      >
+                        Reviews
+                      </button>
+                    )}
                     <button
-                      onClick={() => setActiveTab("reviews")}
-                      className={`px-6 py-3 border-b-2 font-medium transition-colors ${
-                        activeTab === "reviews"
-                          ? "border-primary text-primary"
-                          : "border-transparent text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      Reviews
-                    </button>
-                    <button
+                      type="button"
+                      role="tab"
+                      id="tab-support"
+                      aria-selected={activeTab === "support"}
+                      aria-controls="panel-support"
                       onClick={() => setActiveTab("support")}
                       className={`px-6 py-3 border-b-2 font-medium transition-colors ${
                         activeTab === "support"
@@ -235,8 +274,13 @@ const SolutionDetails = () => {
 
                 {/* Tab Content */}
                 <div className="p-6">
-                  {activeTab === "overview" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-overview"
+                      aria-labelledby="tab-overview"
+                      hidden={activeTab !== "overview"}
+                    >
                       <h2 className="text-2xl font-bold mb-4">
                         Solution Overview
                       </h2>
@@ -268,8 +312,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "features" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-features"
+                      aria-labelledby="tab-features"
+                      hidden={activeTab !== "features"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">All Features</h2>
                       <div className="grid md:grid-cols-2 gap-6">
                         {solution.features.map((feature) => (
@@ -296,8 +345,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "specifications" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-specifications"
+                      aria-labelledby="tab-specifications"
+                      hidden={activeTab !== "specifications"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">
                         Technical Specifications
                       </h2>
@@ -325,14 +379,6 @@ const SolutionDetails = () => {
                             </div>
                             <div className="p-4 bg-gray-50 rounded-lg">
                               <p className="text-sm font-medium text-gray-900 mb-1">
-                                Security
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                SOC 2, GDPR, ISO 27001
-                              </p>
-                            </div>
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <p className="text-sm font-medium text-gray-900 mb-1">
                                 Scalability
                               </p>
                               <p className="text-sm text-gray-600">
@@ -342,12 +388,13 @@ const SolutionDetails = () => {
                           </div>
                         </div>
 
+                        {benefits.length > 0 && (
                         <div>
                           <h3 className="font-semibold text-lg mb-3">
                             Performance Metrics
                           </h3>
                           <div className="space-y-3">
-                            {solution.benefits.map((benefit) => (
+                            {benefits.map((benefit) => (
                               <div
                                 key={benefit.label}
                                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
@@ -362,12 +409,18 @@ const SolutionDetails = () => {
                             ))}
                           </div>
                         </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {activeTab === "reviews" && (
-                    <div>
+                  {TESTIMONIALS.length > 0 && (
+                    <div
+                      role="tabpanel"
+                      id="panel-reviews"
+                      aria-labelledby="tab-reviews"
+                      hidden={activeTab !== "reviews"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">
                         Client Success Stories
                       </h2>
@@ -380,39 +433,12 @@ const SolutionDetails = () => {
                       </div>
 
                       <div className="space-y-6">
-                        {[
-                          {
-                            name: "Sarah Johnson",
-                            company: "TechCorp Inc.",
-                            role: "CTO",
-                            comment:
-                              "Working with SarayaTech was a game-changer. They took the time to understand our unique challenges and built a solution that perfectly fits our workflow. The team's expertise and dedication were exceptional.",
-                          },
-                          {
-                            name: "Michael Chen",
-                            company: "HealthPlus",
-                            role: "Director of Operations",
-                            comment:
-                              "The custom dashboard they developed has transformed how we monitor patient data. The solution exceeded our expectations, and their ongoing support has been outstanding.",
-                          },
-                          {
-                            name: "Emily Rodriguez",
-                            company: "FinanceFlow",
-                            role: "Product Manager",
-                            comment:
-                              "SarayaTech delivered a robust data platform that scales with our needs. Their agile approach and constant communication made the entire process smooth and efficient.",
-                          },
-                        ].map((testimonial, i) => (
+                        {TESTIMONIALS.map((testimonial, i) => (
                           <div
                             key={i}
                             className="p-6 border rounded-lg bg-white"
                           >
                             <div className="flex items-start gap-4 mb-4">
-                              <img
-                                src={`https://i.pravatar.cc/48?img=${i + 10}`}
-                                alt={testimonial.name}
-                                className="w-12 h-12 rounded-full"
-                              />
                               <div className="flex-1">
                                 <h4 className="font-semibold">
                                   {testimonial.name}
@@ -434,8 +460,13 @@ const SolutionDetails = () => {
                     </div>
                   )}
 
-                  {activeTab === "support" && (
-                    <div>
+                  {(
+                    <div
+                      role="tabpanel"
+                      id="panel-support"
+                      aria-labelledby="tab-support"
+                      hidden={activeTab !== "support"}
+                    >
                       <h2 className="text-2xl font-bold mb-6">
                         Support & Resources
                       </h2>
@@ -445,11 +476,11 @@ const SolutionDetails = () => {
                             <Shield className="w-6 h-6 text-primary" />
                           </div>
                           <h3 className="font-semibold text-lg mb-2">
-                            24/7 Support
+                            Support
                           </h3>
                           <p className="text-gray-600 mb-4">
-                            Our dedicated support team is available round the
-                            clock to help you with any questions or issues.
+                            Contact our team with any questions or issues about
+                            your project.
                           </p>
                           <Button variant="outline" size="sm">
                             Contact Support
@@ -588,7 +619,7 @@ const SolutionDetails = () => {
                         Expert Team
                       </h4>
                       <p className="text-xs text-gray-600">
-                        20+ years of industry experience
+                        Meet the people behind your project
                       </p>
                     </div>
                   </div>
@@ -599,24 +630,10 @@ const SolutionDetails = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-sm mb-1">
-                        Proven Track Record
+                        Live Projects
                       </h4>
                       <p className="text-xs text-gray-600">
-                        250+ successful projects delivered
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Shield className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-sm mb-1">
-                        Quality Assurance
-                      </h4>
-                      <p className="text-xs text-gray-600">
-                        97% client satisfaction rate
+                        See projects we have built and launched
                       </p>
                     </div>
                   </div>
@@ -688,7 +705,7 @@ const SolutionDetails = () => {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

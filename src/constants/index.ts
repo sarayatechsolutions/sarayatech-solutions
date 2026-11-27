@@ -38,35 +38,12 @@ export const ABOUT_VALUES = [
   },
 ];
 
-export const LEADERSHIP_TEAM = [
-  {
-    name: "James Anderson",
-    role: "Chief Executive Officer",
-    bio: "20+ years leading technology transformations at Fortune 500 companies.",
-  },
-  {
-    name: "Maria Rodriguez",
-    role: "Chief Technology Officer",
-    bio: "Former VP Engineering at leading cloud platforms. PhD in Computer Science.",
-  },
-  {
-    name: "David Kim",
-    role: "Chief Operating Officer",
-    bio: "Scaled operations from startup to enterprise serving 50+ global clients.",
-  },
-  {
-    name: "Sarah Thompson",
-    role: "Chief Strategy Officer",
-    bio: "20 years consulting experience with Fortune 100, driving digital strategies.",
-  },
-];
+// Fabricated executives removed (STS-018). Only real team members belong here;
+// the live About page reads data/leadership-team.json.
+export const LEADERSHIP_TEAM: { name: string; role: string; bio: string }[] = [];
 
-export const ABOUT_STATS = [
-  { icon: "Users", value: "50+", label: "Clients" },
-  { icon: "Globe", value: "20+", label: "Countries" },
-  { icon: "Award", value: "20+", label: "Years" },
-  { icon: "Zap", value: "97%", label: "Satisfaction" },
-];
+// Unverified figures removed (STS-018). Add only documented, owner-verified stats.
+export const ABOUT_STATS: { icon: string; value: string; label: string }[] = [];
 
 // Navigation data
 export const NAVIGATION_ITEMS = [

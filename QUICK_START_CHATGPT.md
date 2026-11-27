@@ -1,3 +1,5 @@
+> **Obsolete (Sprint 1, STS-012):** the browser no longer calls OpenAI. Chat goes through the backend `POST /api/chat`; the provider key lives only in the backend environment. The steps below are kept for history.
+
 # Quick Start - ChatGPT Integration
 
 ## 🚀 En 3 étapes
@@ -14,7 +16,7 @@
 1. Créer un fichier `.env` à la racine du projet :
 
 ```bash
-VITE_OPENAI_API_KEY=sk-proj-votre_cle_api_ici
+OPENAI_API_KEY=<your-key>  # backend .env only
 ```
 
 2. Redémarrer le serveur de développement :
@@ -164,7 +166,7 @@ console.log(`Messages conversation: ${stats.conversationLength}`);
 
 ### "OpenAI service not initialized"
 
-✅ Solution : Vérifier que `VITE_OPENAI_API_KEY` est défini dans `.env`
+✅ Solution : Vérifier que `OPENAI_API_KEY (backend only)` est défini dans `.env`
 
 ### "Invalid API key"
 

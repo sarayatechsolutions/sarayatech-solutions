@@ -1,3 +1,4 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import { useState } from "react";
 import {
   Cloud,
@@ -11,7 +12,8 @@ import {
   Lightbulb,
   Bot,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+import { motion } from "@/components/motion";
 import solutionsData from "../../data/solutions.json";
 import {
   containerVariants,
@@ -30,6 +32,10 @@ const iconMap = {
   Lightbulb,
   Bot,
 };
+
+// Only documented, owner-verified figures belong here (STS-018). The stats
+// row is not rendered while this list is empty.
+const SERVICE_STATS: { value: string; label: string; color: string }[] = [];
 
 const Solutions = () => {
   const [activeFilter, setActiveFilter] = useState("All Services");
@@ -71,6 +77,7 @@ const Solutions = () => {
           </motion.div>
 
           {/* Stats */}
+          {SERVICE_STATS.length > 0 && (
           <motion.div
             className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mt-12"
             variants={containerVariants}
@@ -78,19 +85,7 @@ const Solutions = () => {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {[
-              {
-                value: "250+",
-                label: "Projects Delivered",
-                color: "text-primary",
-              },
-              {
-                value: "97%",
-                label: "Client Satisfaction",
-                color: "text-accent",
-              },
-              { value: "20+", label: "Years Experience", color: "text-gold" },
-            ].map((stat) => (
+            {SERVICE_STATS.map((stat) => (
               <motion.div
                 key={stat.label}
                 variants={staggerItemVariants}
@@ -105,6 +100,7 @@ const Solutions = () => {
               </motion.div>
             ))}
           </motion.div>
+          )}
         </div>
       </section>
 
@@ -158,10 +154,11 @@ const Solutions = () => {
                     {/* Image */}
                     <motion.div className="relative h-48 overflow-hidden">
                       <img
-                        src={solution.image}
+                        {...responsiveImage(solution.image, "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw")}
                         alt={solution.title}
                         className="w-full h-full object-cover"
                         loading="lazy"
+                        decoding="async"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                       <motion.div

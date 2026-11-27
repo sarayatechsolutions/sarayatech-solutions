@@ -1,7 +1,8 @@
+import { responsiveImage } from "@/lib/responsiveImage";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Cloud, Database, Cpu, Globe, Server, Shield, Zap, Lightbulb, Bot, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion } from "@/components/motion";
 import { SOLUTIONS_DATA } from "@/constants/solutions";
 import { fadeInUpVariants, staggerItemVariants } from "@/constants/animations";
 
@@ -129,10 +130,11 @@ const SolutionsShowcase = () => {
                     whileHover={{ y: -8 }}
                   >
                     <img
-                      src={solution.image}
+                      {...responsiveImage(solution.image, "(min-width: 1024px) 560px, 100vw")}
                       alt={solution.title}
                       className="w-full h-auto object-cover aspect-video"
                       loading="lazy"
+                      decoding="async"
                     />
                   </motion.div>
                   {/* Decorative Element */}

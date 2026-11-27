@@ -1,8 +1,15 @@
 import knowledgeBase from "@/data/chatbot/knowledge-base.json";
 import intentsData from "@/data/chatbot/intents.json";
-import pricingDetails from "@/data/chatbot/pricing-details.json";
 import servicesProblems from "@/data/chatbot/services-problems.json";
 import openAIService from "./openai.service";
+import {
+  bookingCta,
+  bookingReply,
+  contactReply,
+  locationReply,
+  reachUsBlock,
+  type BusinessFacts,
+} from "./chatbot-facts";
 
 interface KeywordWeight {
   word: string;
@@ -16,12 +23,44 @@ interface Intent {
   threshold: number;
   context?: string;
   responses?: string[];
+  /**
+   * Narrow, phrase-driven topics (technology, integrations, site speed). A priority intent scores
+   * on whole-keyword hits only (no partial-word credit) and, once it passes its threshold, wins
+   * over broad intents such as website design or local SEO, which collect many partial-word
+   * points and would otherwise take the question.
+   */
+  priority?: number;
 }
 
 interface IntentMatch {
   intent: Intent;
   score: number;
   confidence: number;
+}
+
+/** Shown when neither the AI backend nor a local answer is available. */
+export const CHAT_UNAVAILABLE_MESSAGE =
+  "Chat is unavailable right now — use the contact form or book a call.";
+
+/** The only pricing statement the bot makes: no figures, packages or terms. */
+export const PRICING_REPLY = "Packages are quoted after a free consultation.";
+
+/** Words too short or too common to count as a partial keyword match. */
+const FILLER_WORDS = new Set([
+  "the", "and", "you", "your", "are", "can", "how", "what", "who", "why", "when", "does", "for",
+  "with", "our", "about", "like", "would", "could", "should", "will", "have", "has", "this", "that",
+  "there", "their", "from", "into", "want", "need", "please", "tell", "know", "get",
+]);
+const isMeaningfulWord = (w: string) => w.length >= 3 && !FILLER_WORDS.has(w);
+
+/** Common superset of the per-service shapes in knowledge-base.json. */
+interface ServiceInfo {
+  name: string;
+  description: string;
+  features?: string[];
+  technologies?: string[];
+  pricing_range?: string;
+  benefits?: string[];
 }
 
 /**
@@ -31,14 +70,18 @@ interface IntentMatch {
 class ChatbotService {
   private intents: Intent[];
   private knowledgeBase: typeof knowledgeBase;
-  private pricingDetails: typeof pricingDetails;
   private servicesProblems: typeof servicesProblems;
   private useOpenAI: boolean = true; // Toggle to enable/disable ChatGPT
+  /**
+   * Contact, location, booking and social facts come from src/config/business.ts, never from
+   * the JSON knowledge base (STS-058). Undefined = the shared BUSINESS config.
+   */
+  private readonly business?: BusinessFacts;
 
-  constructor() {
+  constructor(business?: BusinessFacts) {
+    this.business = business;
     this.intents = intentsData.intents as Intent[];
     this.knowledgeBase = knowledgeBase;
-    this.pricingDetails = pricingDetails;
     this.servicesProblems = servicesProblems;
 
     // Check if OpenAI is available
@@ -64,7 +107,7 @@ class ChatbotService {
   /**
    * Calculates the intent score based on keyword matching with weights
    */
-  private calculateIntentScore(userMessage: string, intent: Intent): number {
+  private calculateIntentScore(userMessage: string, intent: Intent, exactOnly = false): number {
     const normalizedMessage = this.normalizeText(userMessage);
     let totalScore = 0;
 
@@ -75,10 +118,16 @@ class ChatbotService {
       if (normalizedMessage.includes(normalizedKeyword)) {
         totalScore += weight;
       }
-      // Partial match (word boundaries)
+      // Priority intents are phrase-driven: no partial credit, or broad intents' leftovers leak in.
+      else if (exactOnly) {
+        return;
+      }
+      // Partial match (word boundaries). Short and filler words are ignored: otherwise "i" or
+      // "a" is contained in nearly every keyword and "How can I contact you?" scores highest
+      // for a service-detail intent instead of the contact intent.
       else {
-        const words = normalizedMessage.split(" ");
-        const keywordWords = normalizedKeyword.split(" ");
+        const words = normalizedMessage.split(" ").filter(isMeaningfulWord);
+        const keywordWords = normalizedKeyword.split(" ").filter(isMeaningfulWord);
 
         keywordWords.forEach(kw => {
           if (words.some(w => w.includes(kw) || kw.includes(w))) {
@@ -98,7 +147,7 @@ class ChatbotService {
     const intentMatches: IntentMatch[] = [];
 
     this.intents.forEach(intent => {
-      const score = this.calculateIntentScore(userMessage, intent);
+      const score = this.calculateIntentScore(userMessage, intent, (intent.priority ?? 0) > 0);
 
       if (score >= intent.threshold) {
         const maxPossibleScore = intent.keywords.reduce((sum, kw) => sum + kw.weight, 0);
@@ -112,12 +161,14 @@ class ChatbotService {
       }
     });
 
-    // Sort by score descending
-    intentMatches.sort((a, b) => b.score - a.score);
+    // Priority tier first, then score descending
+    intentMatches.sort(
+      (a, b) => (b.intent.priority ?? 0) - (a.intent.priority ?? 0) || b.score - a.score
+    );
 
     // Debug log (can be removed in production)
     if (intentMatches.length > 0) {
-      console.log(`[Amina] Detected intents for "${userMessage}":`,
+      console.debug('[Amina] Detected intents:',
         intentMatches.map(m => ({
           id: m.intent.id,
           score: m.score,
@@ -137,7 +188,7 @@ class ChatbotService {
     const services = Object.values(this.knowledgeBase.services);
     const servicesList = services.map(s => `• **${s.name}**: ${s.description}`).join("\n");
 
-    return `We offer a comprehensive range of digital solutions:\n\n${servicesList}\n\nWhich service interests you? I'd be happy to provide more details!\n\n🔗 **Explore all our services:** /solutions`;
+    return `We offer a comprehensive range of digital solutions:\n\n${servicesList}\n\nWhich service interests you? I'd be happy to provide more details!\n\n🔗 **Explore all our services:** /services`;
   }
 
   /**
@@ -145,7 +196,9 @@ class ChatbotService {
    */
   private generateServiceDetailResponse(context: string): string {
     const serviceKey = context as keyof typeof this.knowledgeBase.services;
-    const service = this.knowledgeBase.services[serviceKey];
+    // The knowledge base is a union of per-service shapes; read it through the
+    // common superset so optional fields (features, technologies) type-check.
+    const service = this.knowledgeBase.services[serviceKey] as ServiceInfo | undefined;
 
     if (!service) return this.generateDefaultResponse();
 
@@ -159,16 +212,15 @@ class ChatbotService {
       response += `**Technologies:** ${service.technologies.join(", ")}\n\n`;
     }
 
-    if (service.pricing_range) {
-      response += `**Pricing:** ${service.pricing_range}\n\n`;
-    }
+    // No published prices: never print a figure from the knowledge base.
+    response += `**Pricing:** ${PRICING_REPLY}\n\n`;
 
     if (service.benefits) {
       response += `**Benefits:**\n${service.benefits.map(b => `• ${b}`).join("\n")}\n\n`;
     }
 
-    response += `🔗 **View all our solutions:** /solutions\n\n`;
-    response += `Would you like to schedule a consultation to discuss your specific needs? Book here: ${this.knowledgeBase.company.contact.calendly}`;
+    response += `🔗 **View all our solutions:** /services\n\n`;
+    response += `Would you like to discuss your specific needs? ${bookingCta(this.business)}`;
 
     return response;
   }
@@ -177,48 +229,32 @@ class ChatbotService {
    * Generates response for pricing inquiry
    */
   private generatePricingResponse(): string {
-    const webPricing = this.pricingDetails.website_development;
-    const mobilePricing = this.pricingDetails.mobile_apps;
-    const aiPricing = this.pricingDetails.ai_chatbot_development;
-
-    return `Our pricing varies based on project scope, complexity, and requirements. Here are detailed breakdowns:\n\n` +
-      `**Website Development:**\n` +
-      `• Basic Brochure: ${webPricing[0].cost} (${webPricing[0].timeline})\n` +
-      `• Corporate/Business: ${webPricing[1].cost} (${webPricing[1].timeline})\n` +
-      `• E-commerce: ${webPricing[2].cost} (${webPricing[2].timeline})\n\n` +
-      `**Mobile Apps:**\n` +
-      `• Basic App (iOS/Android): ${mobilePricing[0].cost}\n` +
-      `• Medium Complexity: ${mobilePricing[1].cost}\n` +
-      `• Enterprise App: ${mobilePricing[2].cost}\n\n` +
-      `**AI Chatbots:**\n` +
-      `• Rule-based: ${aiPricing[0].cost}\n` +
-      `• AI-powered (NLP): ${aiPricing[1].cost}\n` +
-      `• Advanced LLM Integration: ${aiPricing[2].cost}\n\n` +
-      `🔗 **See detailed service information:** /solutions\n` +
-      `🔗 **Contact us for a quote:** /contact\n\n` +
-      `Want to explore our packages? Ask me about our Bronze, Silver, or Gold bundles!\n\n` +
-      `Schedule a free consultation: ${this.knowledgeBase.company.contact.calendly}`;
+    // No published price list: every figure is quoted per project.
+    return `${PRICING_REPLY}\n\n` +
+      `🔗 **See our packages:** /pricing\n` +
+      `🔗 **Contact us:** /contact\n` +
+      `📅 ${bookingCta(this.business)}`;
   }
 
   /**
    * Generates response for contact inquiry
    */
   private generateContactResponse(): string {
-    const contact = this.knowledgeBase.company.contact;
-    return `You can reach us through:\n\n` +
-      `📧 **Email:** ${contact.email}\n` +
-      `📞 **Phone:** ${contact.phone}\n` +
-      `📍 **Address:** ${contact.address.full}\n` +
-      `📅 **Book a Meeting:** ${contact.calendly}\n\n` +
-      `🔗 **Visit our contact page:** /contact\n\n` +
-      `We're available to discuss your project and answer any questions. What works best for you?`;
+    return contactReply(this.business);
+  }
+
+  /**
+   * Generates response for location inquiry (config-driven: address or service area)
+   */
+  private generateLocationResponse(): string {
+    return locationReply(this.business);
   }
 
   /**
    * Generates response for booking inquiry
    */
   private generateBookingResponse(): string {
-    return this.knowledgeBase.booking.message + "\n\n" + this.knowledgeBase.booking.alternative;
+    return bookingReply(this.business);
   }
 
   /**
@@ -236,7 +272,7 @@ class ChatbotService {
     });
 
     response += `🔗 **Learn more about us:** /about\n\n`;
-    response += `Ready to get started? Let's schedule a consultation: ${this.knowledgeBase.company.contact.calendly}`;
+    response += `Ready to get started? ${bookingCta(this.business)}`;
 
     return response;
   }
@@ -246,71 +282,43 @@ class ChatbotService {
    */
   private generateCompanyResponse(): string {
     const company = this.knowledgeBase.company;
-    const stats = company.stats;
 
     return `**About SarayaTech Solutions**\n\n` +
       `${company.description}\n\n` +
-      `**Our Track Record:**\n` +
-      `• ${stats.projects_delivered} projects successfully delivered\n` +
-      `• ${stats.years_experience} of industry experience\n` +
-      `• ${stats.client_satisfaction} client satisfaction rate\n` +
-      `• ${stats.active_clients} active users across our platforms\n\n` +
-      `We've worked with clients across various industries including Healthcare, Finance, E-commerce, and more.\n\n` +
       `🔗 **Learn more about our team:** /about\n` +
-      `🔗 **View our case studies:** /realisation`;
+      `🔗 **View our case studies:** /our-work`;
   }
 
   /**
    * Generates response for payment inquiry
    */
   private generatePaymentResponse(): string {
-    return `We offer flexible payment terms to accommodate different business needs:\n\n` +
-      `**Standard Payment Structure:**\n` +
-      `• 30% deposit upon project kickoff\n` +
-      `• 40% at milestone completion (mid-project)\n` +
-      `• 30% upon final delivery and approval\n\n` +
-      `**For Larger Projects ($20k+):**\n` +
-      `We can structure milestone-based payments aligned with deliverables to ensure mutual confidence throughout the project.\n\n` +
-      `**Payment Methods:**\n` +
-      `We accept bank transfers, credit cards, and for enterprise clients, can work with Net-30 or Net-60 terms.\n\n` +
-      `🔗 **Get a detailed quote:** /contact\n\n` +
-      `Would you like to discuss a payment plan that works for your budget? Schedule a call: ${this.knowledgeBase.company.contact.calendly}`;
+    return `${PRICING_REPLY} Payment terms are agreed in that quote.\n\n` +
+      `🔗 **Contact us:** /contact\n` +
+      `📅 ${bookingCta(this.business)}`;
   }
 
   /**
    * Generates response for contract inquiry
    */
   private generateContractResponse(): string {
-    return `**Our Contract & Terms**\n\n` +
-      `We believe in transparent, fair agreements:\n\n` +
-      `• **Clear Scope**: Detailed project scope with deliverables and timelines\n` +
-      `• **Intellectual Property**: You own all code and assets upon final payment\n` +
-      `• **Confidentiality**: NDA protection for your business ideas and data\n` +
-      `• **Warranty**: 30-90 day warranty for bug fixes post-launch (varies by project size)\n` +
-      `• **Revisions**: Agreed-upon revision rounds included in the scope\n\n` +
-      `🔗 **Contact us for contract details:** /contact\n\n` +
-      `We're happy to review our standard agreement or work with your legal team. Book a consultation: ${this.knowledgeBase.company.contact.calendly}`;
+    // OWNER REVIEW: the site has no confirmed contract wording. Make no commitment on ownership,
+    // confidentiality or revisions here; the written proposal is where they are set out.
+    return `**Scope, ownership and payment terms**\n\n` +
+      `We set out the scope, ownership and payment terms in a written proposal that you see before any work starts.\n\n` +
+      `🔗 **Contact us for details:** /contact\n\n` +
+      `Questions about the proposal? ${bookingCta(this.business)}`;
   }
 
   /**
    * Generates response for support inquiry
    */
   private generateSupportResponse(): string {
-    const maintenance = this.pricingDetails.related_services.maintenance_and_support;
-
     return `**Post-Launch Support & Maintenance**\n\n` +
-      `We offer comprehensive support packages to keep your solution running smoothly:\n\n` +
-      `• **Basic Maintenance**: ${maintenance[0].price} - Updates, backups, monitoring\n` +
-      `• **Standard Support**: ${maintenance[1].price} - Priority support, monthly updates\n` +
-      `• **Premium Support**: ${maintenance[2].price} - 24/7 support, dedicated manager\n` +
-      `• **Enterprise SLA**: ${maintenance[3].price} - Custom SLA with guaranteed response times\n\n` +
-      `All our projects include:\n` +
-      `• Initial warranty period (30-90 days based on project size)\n` +
-      `• Knowledge transfer and documentation\n` +
-      `• Training sessions for your team\n\n` +
-      `🔗 **Learn more:** /solutions\n` +
+      `We can support your solution after launch. The scope of that support is agreed with you during a free consultation and included in your quote.\n\n` +
+      `🔗 **Learn more:** /services\n` +
       `🔗 **Contact us:** /contact\n\n` +
-      `Need ongoing support? Let's discuss: ${this.knowledgeBase.company.contact.calendly}`;
+      `Need ongoing support? ${bookingCta(this.business)}`;
   }
 
   /**
@@ -378,9 +386,9 @@ class ChatbotService {
     }
 
     response += recommendations.slice(0, 3).join('\n\n');
-    response += `\n\n🔗 **Explore all solutions:** /solutions\n`;
+    response += `\n\n🔗 **Explore all solutions:** /services\n`;
     response += `🔗 **Get a custom quote:** /contact\n\n`;
-    response += `Want to discuss which solution fits your specific situation? Book a free consultation: ${this.knowledgeBase.company.contact.calendly}`;
+    response += `Want to discuss which solution fits your specific situation? ${bookingCta(this.business)}`;
 
     return response;
   }
@@ -390,14 +398,11 @@ class ChatbotService {
    */
   private generateDefaultResponse(): string {
     return `That's a great question! While I'm still learning, I'd be happy to connect you with our team who can provide detailed answers.\n\n` +
-      `🔗 **Explore our services:** /solutions\n` +
+      `🔗 **Explore our services:** /services\n` +
       `🔗 **Learn about us:** /about\n` +
-      `🔗 **View our projects:** /realisation\n` +
+      `🔗 **View our projects:** /our-work\n` +
       `🔗 **Get in touch:** /contact\n\n` +
-      `You can also reach us directly:\n` +
-      `📧 **Email:** ${this.knowledgeBase.company.contact.email}\n` +
-      `📍 **Address:** ${this.knowledgeBase.company.contact.address.city}, ${this.knowledgeBase.company.contact.address.state}\n` +
-      `📅 **Book a meeting:** ${this.knowledgeBase.company.contact.calendly}\n\n` +
+      `${reachUsBlock(this.business)}\n\n` +
       `What else would you like to know about SarayaTech?`;
   }
 
@@ -406,25 +411,26 @@ class ChatbotService {
    * Now supports both ChatGPT (natural responses) and intent-based (fallback)
    */
   public async getResponse(userMessage: string): Promise<string> {
-    // If OpenAI is enabled and available, use it for natural responses
+    // AI answers come from our backend (/api/chat); the browser holds no provider key.
     if (this.useOpenAI && openAIService.isAvailable()) {
       try {
         const response = await openAIService.chat(userMessage);
-
-        if (!response.error) {
-          console.log(`[Chatbot] ChatGPT response (${response.tokensUsed} tokens)`);
-          return response.message;
-        }
-
-        // If there's an error, fall back to intent-based
-        console.warn('[Chatbot] ChatGPT error, falling back to intent-based:', response.error);
-      } catch (error) {
-        console.error('[Chatbot] ChatGPT exception, falling back to intent-based:', error);
+        if (!response.error) return response.message;
+        // Log the failure class only, never the visitor's message.
+        console.warn('[Chatbot] AI backend unavailable, using local answers:', response.error);
+      } catch {
+        console.warn('[Chatbot] AI backend call failed, using local answers');
       }
     }
 
-    // Fallback to intent-based response system
-    return this.getIntentBasedResponse(userMessage);
+    // Fallback: local rule-based answers.
+    try {
+      const local = this.getIntentBasedResponse(userMessage);
+      if (local && local.trim()) return local;
+    } catch {
+      // fall through to the unavailable message
+    }
+    return CHAT_UNAVAILABLE_MESSAGE;
   }
 
   /**
@@ -444,6 +450,9 @@ class ChatbotService {
     }
 
     const { intent } = intentMatch;
+
+    // Package bundles are a pricing question: never replay the canned price list.
+    if (intent.id === "packages") return this.generatePricingResponse();
 
     // Return direct response if available
     if (intent.responses && intent.responses.length > 0) {
@@ -468,6 +477,7 @@ class ChatbotService {
         return this.generatePricingResponse();
 
       case "contact":
+      case "contact_channels":
         return this.generateContactResponse();
 
       case "booking":
@@ -477,8 +487,10 @@ class ChatbotService {
       case "timeline":
         return this.generateProcessResponse();
 
-      case "portfolio":
       case "location":
+        return this.generateLocationResponse();
+
+      case "portfolio":
       case "company_info":
       case "experience":
         return this.generateCompanyResponse();
@@ -543,7 +555,7 @@ class ChatbotService {
   public getSuggestedQuestions(): string[] {
     return [
       "What services do you offer?",
-      "Tell me about AI automation",
+      "Tell me about local SEO",
       "How much does a website cost?",
       "How can I contact you?",
       "What is your development process?",
@@ -564,6 +576,8 @@ class ChatbotService {
   }
 }
 
-// Export singleton instance
+// Export singleton instance (reads the shared BUSINESS config). The class is exported so tests
+// can build an instance over a populated config.
+export { ChatbotService };
 export const chatbotService = new ChatbotService();
 export default chatbotService;

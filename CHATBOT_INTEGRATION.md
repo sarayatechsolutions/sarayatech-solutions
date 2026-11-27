@@ -1,3 +1,5 @@
+> **Obsolete (Sprint 1, STS-012):** the browser no longer calls OpenAI. Chat goes through the backend `POST /api/chat`; the provider key lives only in the backend environment. The steps below are kept for history.
+
 # Intégration ChatGPT avec encodage Toon
 
 ## Vue d'ensemble
@@ -99,7 +101,7 @@ Créez un fichier `.env` à la racine du projet :
 
 ```bash
 # Clé API OpenAI (obtenir sur https://platform.openai.com/api-keys)
-VITE_OPENAI_API_KEY=sk-proj-...
+OPENAI_API_KEY=<your-key>  # backend .env only
 ```
 
 ### 2. Sécurité en production
@@ -204,7 +206,7 @@ npm run dev
 ### Avec clé API (Mode ChatGPT)
 
 ```bash
-# 1. Créer .env avec VITE_OPENAI_API_KEY
+# 1. Créer .env avec OPENAI_API_KEY (backend only)
 # 2. Redémarrer le serveur
 npm run dev
 ```

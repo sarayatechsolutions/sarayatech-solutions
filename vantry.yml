@@ -1,0 +1,70 @@
+# vantry.yml — SarayaTech website frontend (adopted 2026-11-24, see ../docs/decisions/0001-program-structure.md)
+version: 2
+
+stack: "React 18 + Vite 6 + TypeScript + Tailwind 3 + shadcn/ui + react-router-dom 7, prerendered SPA on Cloudflare Pages; the contact and audit forms post to the separate Next.js 16 backend (saraya-backend) at VITE_API_URL"
+
+project_type: web
+
+# /adopt always starts relaxed; Sprint 1 (Stabilize & Harden) ends by raising this to standard.
+strictness: standard
+
+run:
+  install: npm ci
+  # Unit tests (vitest), type-check and lint. Added in Sprint 1 (S1 test harness issue).
+  test: npm test
+  build: npm run build:verify
+  # Serve the BUILT site (incl. prerendered HTML once that lands), not the dev server.
+  start: npx vite preview --port 4173 --strictPort
+  ready: curl -sf http://localhost:4173/
+  # Fetches every public route from the preview server and asserts real content,
+  # titles, sitemap and robots. Added in Sprint 1.
+  smoke: node tests/smoke/smoke.mjs http://localhost:4173
+  logs: .vantry/state/app.log
+
+timeouts:
+  default: 1800
+  idle: 300
+  test: 900
+  smoke: 600
+
+security:
+  fail_on: high
+
+gates:
+  verify_change: block
+  security_review: block_on_sensitive
+  code_review: warn
+  design_review: warn
+
+dispatch:
+  max_parallel: 2
+  confirm_before_fanout: true
+  batch_prs: 3
+
+merge:
+  authority: human
+  base: develop
+
+trivial_paths:
+  - "*.md"
+  - "docs/**"
+  - "LICENSE"
+  - ".gitignore"
+  - ".vscode/**"
+  - "**/*.snap"
+  - ".github/**"
+
+sensitive_paths:
+  - "vendor/**"
+  - "**/auth/**"
+  - "**/*auth*"
+  - "**/*Auth*"
+  - "src/services/**"
+  - "src/pages/Contact.tsx"
+  - "public/_headers"
+  - "public/_redirects"
+  - "index.html"
+  - "vite.config.ts"
+  - "package.json"
+  - "package-lock.json"
+  - ".github/workflows/**"
