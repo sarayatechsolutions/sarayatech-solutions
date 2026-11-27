@@ -115,7 +115,8 @@ export const ABOUT_TEAM = {
 export const ABOUT_CTA = {
   // OWNER REVIEW: heading written for STS-036; copy from the home "How it works" step 1.
   heading: "Talk to the team",
-  copy: "Book a free consultation and we will review your website and Google profile with you.",
+  // Design audit B7 (FD-27): "Request", like the button, while booking is the contact form.
+  copy: "Request a free consultation and we will review your website and Google profile with you.",
   button: CONSULTATION_CTA_LABEL,
 } as const;
 

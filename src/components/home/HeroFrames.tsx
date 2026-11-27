@@ -69,7 +69,11 @@ const lift =
 
 /**
  * The home hero's right column (design audit B4, FD-05): a browser-framed ASTA screenshot with
- * the BMV app screens overlapping at the bottom left. Both link to Our Work. Hidden below lg.
+ * the BMV app screens overlapping its bottom-right corner. Both link to Our Work. Hidden below lg.
+ * Design audit B7: the phone used to sit at the bottom left, over the middle of the screenshot,
+ * and hid the ASTA headline. It now hangs below the frame's right edge (the column's bottom padding
+ * is the room it hangs into), so it covers only the corner of the screenshot's lowest strip; the
+ * extra height also brings the column level with the copy beside it at 1024 and 1440.
  * Entrance (A9): a 16 px rise and fade over 450 ms, the second frame 80 ms later; with reduced
  * motion the frames are simply there. `backwards` fill, so the hover lift still works afterwards.
  */
@@ -77,7 +81,7 @@ const HeroFrames = () => {
   const [site, app] = heroFrameProjects();
   if (!site) return null;
   return (
-    <div data-hero-frames aria-label={HERO_FRAMES.label} role="group" className="relative hidden lg:block pb-16 pl-12">
+    <div data-hero-frames aria-label={HERO_FRAMES.label} role="group" className="relative hidden lg:block pb-28 pr-10 xl:pb-32 xl:pr-12">
       <Link
         to={PROOF_PATH}
         className={`${lift} overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-white/20 motion-safe:animate-frame-rise`}
@@ -103,13 +107,13 @@ const HeroFrames = () => {
       {app ? (
         <Link
           to={PROOF_PATH}
-          className={`${lift} absolute bottom-0 left-0 w-40 xl:w-48 overflow-hidden rounded-lg bg-white shadow-lg ring-4 ring-white motion-safe:animate-frame-rise [animation-delay:80ms]`}
+          className={`${lift} absolute bottom-0 right-0 w-32 xl:w-40 overflow-hidden rounded-lg bg-white shadow-lg ring-4 ring-white motion-safe:animate-frame-rise [animation-delay:80ms]`}
         >
           <div className="aspect-[4/5] overflow-hidden bg-muted">
             <FrameImage
               entry={app.entry}
               alt={app.alt}
-              sizes="192px"
+              sizes="(min-width: 1280px) 160px, 128px"
               className="h-full w-full object-cover object-center"
             />
           </div>

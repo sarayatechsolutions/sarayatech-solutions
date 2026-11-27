@@ -30,7 +30,8 @@ describe("home page sections (STS-031, REQ-021)", () => {
   it("keeps REQ-021's five sections in its order: headline, services, proof, packages, booking CTA", () => {
     const five = ["hero", "services", "proof", "packages", "final-cta"];
     expect(order.filter((s) => five.includes(s as string))).toEqual(five);
-    expect(text(main.querySelector('[data-home-section="final-cta"]'))).toMatch(/Book a free consultation/);
+    // Design audit B7 (FD-27): the copy describes the primary button, the free audit.
+    expect(text(main.querySelector('[data-home-section="final-cta"]'))).toMatch(/Get a free audit\./);
   });
 
   it("has one h1, the source headline, and the source subheadline (REQ-050)", () => {

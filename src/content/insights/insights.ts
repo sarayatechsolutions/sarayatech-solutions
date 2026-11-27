@@ -69,6 +69,7 @@ export const INSIGHTS_TOPICS = {
 export const INSIGHTS_CTA = {
   // OWNER REVIEW: written for STS-040 from the About "Talk to the team" CTA.
   heading: "Have a question now?",
-  copy: "Book a free consultation and ask us directly. We will look at your website and Google profile with you.",
+  // Design audit B7 (FD-27): "Request", like the button, while booking is the contact form.
+  copy: "Request a free consultation and ask us directly. We will look at your website and Google profile with you.",
   button: CONSULTATION_CTA_LABEL,
 } as const;

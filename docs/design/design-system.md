@@ -139,7 +139,8 @@ Enforced by [`src/design/contrast.test.ts`](../../src/design/contrast.test.ts):
 | `text-white/80` on `--primary` | 8.54 | 4.5 |
 | `text-white/70` on `--primary` (lowest text opacity allowed on navy) | 6.91 | 4.5 |
 | `text-white/90` on `--primary-light` | 7.49 | 4.5 |
-| `text-white/70` on `--primary-dark` | 8.14 | 4.5 |
+| `text-white/70` on `--primary-dark` (footer copyright since B7) | 8.14 | 4.5 |
+| `text-white/80` on `--primary-dark` (footer links and address, B7) | 10.25 | 4.5 |
 | `--primary` on `--gold` | 7.78 | 4.5 |
 | `--foreground` on `--gold` | 9.89 | 4.5 |
 | White on every stop of `--gradient-primary` | 12.48 / 15.44 | 4.5 |
@@ -148,6 +149,7 @@ Enforced by [`src/design/contrast.test.ts`](../../src/design/contrast.test.ts):
 | `--input` boundary on `--muted` | 3.24 | 3 |
 | `--ring` on `--background` | 12.48 | 3 |
 | Footer focus ring (`--primary-foreground` on `--primary`) | 12.48 | 3 |
+| Footer focus ring on `--primary-dark` (B7) | 15.44 | 3 |
 | White focus-ring offset on `--primary-light` | 8.82 | 3 |
 | `--input` boundary on `--surface-subtle` | 3.39 | 3 |
 | `on-dark` button border (white/60) on `--primary` | 5.50 | 3 |
@@ -355,6 +357,34 @@ shape of both forms are the backend's wire contract and did not change; B6 is UX
   only; anything else is ignored. The value is never rendered or sent, only the matching option. The
   Free Audit form has no service field in its contract, so it takes no context.
 - **Contact info column.** Five flat 44 px navy `IconTile`s (no gradient), `text-h3` "Get in Touch".
+
+## 5d. Page end, 404 and navigation (design audit B7)
+
+- **FinalCta.** One offer per block: the copy describes the primary button's offer (the free audit on
+  the home page, a consultation on About, Insights and Pricing) and never names the secondary button's offer (guarded in `FinalCta.sitewide.test.tsx`).
+  The legal pages (`/privacy`, `/terms`) end on the document, with no closing block
+  (`NO_CLOSING_BLOCK_PATHS` in `src/content/trust/trust.ts`, mirrored by `NO_CLOSING_ROUTES` in the
+  smoke test, which asserts zero `data-final-cta` there).
+- **Footer.** `bg-primary-dark` with a `border-white/10` top border. One grid: 2 columns on mobile,
+  6 at `md`, 12 at `lg` with brand 5, Services 3, Company 2, Legal 2, so the right half is never empty
+  at 1440. The brand column holds the logo, one positioning line and the address. The bottom bar holds
+  the copyright line only. Text links are `min-h-11` (44 px) rows everywhere and shrink to `min-h-7`
+  (28 px, plus a 4 px list gap) only at `md` and up on a fine pointer, which meets WCAG 2.5.8 (24 px or
+  spacing). Social icons are 44 px `white/10` circles.
+- **404.** Start-aligned on `bg-background`, an eyebrow "Error 404", one `h1` "We can't find that
+  page", one helper sentence and three routed links: home (primary `lg`), services and contact
+  (outline `lg`), full width on mobile. `noindex` comes from `getSeo()`. A miss is not logged.
+- **Scroll (FF-8).** `ScrollToTop` sets `history.scrollRestoration = "manual"` and records each history
+  entry's position (sessionStorage, last 50). A new route starts at the top; Back and Forward restore
+  the saved position; a hash link calls `scrollIntoView({ block: "start" })` on its target, and the
+  `html { scroll-padding-top }` rule keeps it clear of the header. A `replace` that keeps the pathname
+  keeps the position. Every scroll is instant, never smooth.
+- **Route focus (FF-9).** `RouteAnnouncer` moves focus to `#main-content h1` (or `main`) with
+  `tabindex="-1"` and `preventScroll` after a pushed navigation, and says the new page title in a
+  polite, atomic, sr-only live region (no `role`, so each page keeps a single `role="status"`). Nothing
+  happens on the first load; on Back and Forward the title is announced and focus is left alone.
+- **Hero frames.** At `lg+` the BMV phone frame sits at the bottom right of the ASTA desktop frame
+  (`w-32`, `w-40` from `xl`), clear of the headline area.
 
 ## 6. Buttons and touch targets
 

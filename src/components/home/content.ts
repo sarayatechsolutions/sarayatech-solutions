@@ -211,6 +211,8 @@ export const PACKAGES = {
 /** Final call to action (REQ-063). "30-minute" is left out until confirmed (I-12). */
 export const FINAL_CTA = {
   heading: "Ready for more customers?",
-  copy: "Book a free consultation. We'll review your website and Google profile and show you three quick wins, whether you hire us or not.",
+  // Design audit B7 (FD-27, section 5): one offer per block, so the copy describes the primary
+  // button (the free audit), not the consultation beside it.
+  copy: "Get a free audit. We'll review your website and Google profile and show you three quick wins, whether you hire us or not.",
   button: "Get My Free Audit",
 } as const;

@@ -75,6 +75,8 @@ describe("design tokens meet WCAG 2.1 AA (STS-041)", () => {
     ["text-white/70 on --primary", composite(WHITE, t("primary"), 0.7), t("primary"), TEXT],
     ["text-white/90 on --primary-light", composite(WHITE, t("primary-light"), 0.9), t("primary-light"), TEXT],
     ["text-white/70 on --primary-dark (footer)", composite(WHITE, t("primary-dark"), 0.7), t("primary-dark"), TEXT],
+    // Design audit B7: the footer moved to --primary-dark; its links and address are white/80.
+    ["text-white/80 on --primary-dark (footer links, B7)", composite(WHITE, t("primary-dark"), 0.8), t("primary-dark"), TEXT],
     // --gold is the chat launcher only.
     ["--primary on --gold", t("primary"), t("gold"), TEXT],
     ["--foreground on --gold", t("foreground"), t("gold"), TEXT],
@@ -83,6 +85,7 @@ describe("design tokens meet WCAG 2.1 AA (STS-041)", () => {
     ["--input boundary on --muted", t("input"), t("muted"), NON_TEXT],
     ["--ring focus ring on --background", t("ring"), t("background"), NON_TEXT],
     ["footer focus ring (--primary-foreground on --primary)", t("primary-foreground"), t("primary"), NON_TEXT],
+    ["footer focus ring on --primary-dark (B7)", t("primary-foreground"), t("primary-dark"), NON_TEXT],
     ["white focus-ring offset band on --primary-light (navy bands)", WHITE, t("primary-light"), NON_TEXT],
     ["--input boundary on --surface-subtle", t("input"), t("surface-subtle"), NON_TEXT],
     // on-dark button outline (white/60 border on navy) and the white focus outline on navy.

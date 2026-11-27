@@ -98,8 +98,18 @@ export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compl
  */
 export const TRUST_ONLY_ROUTES = ["/contact", "/free-audit", "/careers"];
 
-/** The closing block a public page must serve: "full" (CTA + trust slot) or "trust-only". */
-export const closingBlockFor = (path) => (TRUST_ONLY_ROUTES.includes(path) ? "trust-only" : "full");
+/**
+ * Design audit B7: the legal pages end with the document itself, with no closing block at all.
+ * Kept in step with NO_CLOSING_BLOCK_PATHS in src/content/trust/trust.ts by FinalCta.sitewide.test.
+ */
+export const NO_CLOSING_ROUTES = ["/privacy", "/terms"];
+
+/**
+ * The closing block a public page must serve: "full" (CTA + trust slot), "trust-only", or "none"
+ * (no closing block may be present).
+ */
+export const closingBlockFor = (path) =>
+  NO_CLOSING_ROUTES.includes(path) ? "none" : TRUST_ONLY_ROUTES.includes(path) ? "trust-only" : "full";
 
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
@@ -116,7 +126,7 @@ export const SERVICE_ROUTES = [
  * in step with getPublicPaths().
  * `noindex: true` (STS-037 legal drafts): the page must carry a robots noindex meta and no
  * canonical, and must NOT be in the sitemap.
- * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean, closingBlock?: "full" | "trust-only" }[]}
+ * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean, closingBlock?: "full" | "trust-only" | "none" }[]}
  */
 export function buildRoutes() {
   const pages = [
@@ -166,7 +176,8 @@ export function buildRoutes() {
   ].map((r) => ({ ...r, closingBlock: closingBlockFor(r.path) }));
   return [
     ...pages,
-    { path: "/404.html", expectH1: "404" },
+    // Design audit B7 (section 5 copy): the 404 heading.
+    { path: "/404.html", expectH1: "We can't find that page" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];
 }
@@ -486,7 +497,10 @@ export function checkRouteBody(route, status, contentType, body) {
   for (const phrase of route.forbidText ?? []) {
     if (body.includes(phrase)) errors.push(`contains forbidden text ${JSON.stringify(phrase)}`);
   }
-  if (route.closingBlock) {
+  if (route.closingBlock === "none") {
+    const blocks = body.match(/data-final-cta="[^"]*"/g) ?? [];
+    if (blocks.length !== 0) errors.push(`expected no closing block, found ${JSON.stringify(blocks)} (design audit B7)`);
+  } else if (route.closingBlock) {
     const blocks = body.match(/data-final-cta="[^"]*"/g) ?? [];
     const want = `data-final-cta="${route.closingBlock}"`;
     if (blocks.length !== 1 || blocks[0] !== want) {

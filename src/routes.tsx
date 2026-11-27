@@ -11,6 +11,7 @@ import Realisation from "./pages/Realisation";
 import Insights from "./pages/Insights";
 import Careers from "./pages/Careers";
 import NotFound from "./pages/NotFound";
+import RouteAnnouncer from "@/components/RouteAnnouncer";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import ServicePage from "./pages/services/ServicePage";
@@ -100,6 +101,8 @@ export function getPublicPaths(): string[] {
 export const AppRoutes = () => (
   <>
     <Seo />
+    {/* FF-9: announces the new page's title and moves focus to its h1 on a route change. */}
+    <RouteAnnouncer />
     <Routes>
     {APP_ROUTES.map((r) => (
       <Route key={r.path} path={r.path} element={<Layout>{r.element}</Layout>} />

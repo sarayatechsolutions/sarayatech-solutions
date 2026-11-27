@@ -50,10 +50,21 @@ const LEGAL_LINKS = [
   { label: "Terms of Use", to: TERMS_PATH },
 ];
 
-const focusRing =
-  "rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary";
+// OWNER REVIEW: the positioning line, from the second sentence of the home subheadline.
+const POSITIONING = "One partner for your website, app, Google presence and social media.";
 
-const linkClass = `inline-flex min-h-11 items-center text-sm text-primary-foreground/80 transition-colors duration-fast ease-standard hover:text-primary-foreground md:min-h-0 md:py-1 ${focusRing}`;
+const focusRing =
+  "rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary-dark";
+
+/**
+ * Design audit B7 (FD-29). Touch targets: 44 px rows below md, and on any coarse pointer (a tablet
+ * at md+). Only a fine pointer at md+ gets the compact 28 px row; with the 4 px gap between rows
+ * that is a 32 px pitch, above the 24 px of WCAG 2.2 2.5.8.
+ */
+const linkClass = `inline-flex min-h-11 items-center text-small text-white/80 underline-offset-4 transition-colors duration-fast ease-standard hover:text-white hover:underline md:[@media(pointer:fine)]:min-h-7 ${focusRing}`;
+
+const headingClass = "text-eyebrow uppercase text-white mb-3 md:mb-4";
+const listClass = "md:space-y-1";
 
 const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterConfig; analyticsId?: string | null }) => {
   const social = socialLinks(config).flatMap(([network, url]) => {
@@ -65,12 +76,16 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
   const services = SERVICE_LINKS;
 
   return (
-    <footer className="bg-primary text-primary-foreground">
+    // Design audit B7 (FD-26): primary-dark (white 15.38:1) with a hairline top border, one step
+    // darker than the FinalCta's navy gradient, so the two blocks no longer merge into one slab.
+    <footer className="bg-primary-dark text-primary-foreground border-t border-white/10">
       {/* pb-28 below md keeps the last line clear of the floating chat launcher (bottom-right). */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-28 md:pb-8">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-12 mb-12 lg:grid-cols-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-28 md:pt-16 md:pb-8">
+        {/* FD-29: 12 columns at lg: brand 5, Services 3, Company 2, Legal 2. Two link columns side by
+            side below lg, Legal under them. */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 mb-10 md:grid-cols-6 lg:grid-cols-12 lg:gap-x-10 lg:mb-12">
           {/* Brand + NAP */}
-          <div className="col-span-2">
+          <div className="col-span-2 md:col-span-6 lg:col-span-5 lg:pr-8">
             <Link to="/" className={`inline-block transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
               {/* Design audit B2 (FD-02): logo-white.webp is transparent but carries wide empty
                   margins (mark at 16-295 x 40-143 of 300 x 200). Instead of a 125% scale, which grew
@@ -87,10 +102,11 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
                 className="h-14 w-[152px] object-cover object-[center_-18px]"
               />
             </Link>
-            {/* No tagline: the old "digital transformation" line is banned copy (REQ-012). */}
+            {/* The old "digital transformation" tagline is banned copy (REQ-012); this line is not. */}
+            <p className="mt-4 max-w-sm text-small text-white/80">{POSITIONING}</p>
 
-            <address className="not-italic mb-6 space-y-2 text-sm text-primary-foreground/80">
-              <p className="font-semibold text-primary-foreground">{config.name}</p>
+            <address className="not-italic mt-6 mb-6 space-y-1 text-small text-white/80">
+              <p className="font-semibold text-white">{config.name}</p>
               {hasAddress(config) ? (
                 <p>
                   {config.address?.lines.map((line) => (
@@ -131,7 +147,7 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`${config.name} on ${label} (opens in a new tab)`}
-                      className={`flex h-11 w-11 items-center justify-center rounded-full bg-primary-foreground/10 transition-colors duration-fast ease-standard hover:bg-primary-foreground/20 ${focusRing}`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-full bg-white/10 transition-colors duration-fast ease-standard hover:bg-white/20 ${focusRing}`}
                     >
                       <Icon aria-hidden="true" size={18} />
                     </a>
@@ -141,9 +157,9 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
             )}
           </div>
 
-          <nav aria-label="Services">
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-4 md:mb-6">Services</h2>
-            <ul className="space-y-1 md:space-y-2">
+          <nav aria-label="Services" className="md:col-span-2 lg:col-span-3">
+            <h2 className={headingClass}>Services</h2>
+            <ul className={listClass}>
               {services.map((link) => (
                 <li key={link.to}>
                   <Link to={link.to} className={linkClass}>
@@ -159,9 +175,9 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
             </ul>
           </nav>
 
-          <nav aria-label="Company">
-            <h2 className="text-sm font-bold uppercase tracking-wider mb-4 md:mb-6">Company</h2>
-            <ul className="space-y-1 md:space-y-2">
+          <nav aria-label="Company" className="md:col-span-2 lg:col-span-2">
+            <h2 className={headingClass}>Company</h2>
+            <ul className={listClass}>
               {COMPANY_LINKS.map((link) => (
                 <li key={link.to}>
                   <Link to={link.to} className={linkClass}>
@@ -171,15 +187,11 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
               ))}
             </ul>
           </nav>
-        </div>
 
-        <div className="pt-8 border-t border-primary-foreground/20 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm text-primary-foreground/70">
-            © <span suppressHydrationWarning>{COPYRIGHT_YEAR}</span> {config.name}. All rights reserved.
-          </p>
           {/* STS-037 (REQ-046): legal pages; drafts are noindex until C23, but the links always resolve. */}
-          <nav aria-label="Legal">
-            <ul className="flex flex-wrap gap-x-6">
+          <nav aria-label="Legal" className="col-span-2 md:col-span-2 lg:col-span-2">
+            <h2 className={headingClass}>Legal</h2>
+            <ul className={listClass}>
               {LEGAL_LINKS.map((link) => (
                 <li key={link.to}>
                   <Link to={link.to} className={linkClass}>
@@ -197,6 +209,12 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
               )}
             </ul>
           </nav>
+        </div>
+
+        <div className="border-t border-white/10 pt-6">
+          <p className="text-small text-white/70">
+            © <span suppressHydrationWarning>{COPYRIGHT_YEAR}</span> {config.name}. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
