@@ -63,7 +63,8 @@ describe.each(PAGES)("$path, prerendered (REQ-046)", ({ path, h1, doc }) => {
     expect(classes.some((c) => /amber|yellow|orange/.test(c))).toBe(false);
   });
 
-  it("caps every section body at the reading measure (design review)", () => {
+  it("caps the intro and every section body at the reading measure (design review)", () => {
+    expect((article.querySelector("[data-legal-intro]")?.getAttribute("class") ?? "").split(/\s+/)).toContain("max-w-measure");
     const bodies = [...article.querySelectorAll("section > h2 + div")];
     expect(bodies.length).toBeGreaterThan(0);
     for (const body of bodies) expect((body.getAttribute("class") ?? "").split(/\s+/)).toContain("max-w-measure");
