@@ -130,7 +130,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 h-20">
-          <Link to="/" className={`shrink-0 rounded-md transition-smooth hover:opacity-80 ${focusRing}`}>
+          <Link to="/" className={`shrink-0 rounded-md transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
             <img
               src="/logo.png"
               alt={`${config.name} home`}
@@ -150,14 +150,14 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                     <Link
                       to={item.path}
                       aria-current={ariaCurrent(item)}
-                      className={`relative group rounded-sm text-sm font-medium transition-smooth ${focusRing} ${
+                      className={`relative group rounded-sm text-sm font-medium transition-colors duration-fast ease-standard ${focusRing} ${
                         active ? "text-primary" : "text-secondary hover:text-primary"
                       }`}
                     >
                       {item.name}
                       <span
                         aria-hidden="true"
-                        className={`absolute -bottom-2 left-0 w-full h-0.5 bg-primary transform origin-left transition-smooth ${
+                        className={`absolute -bottom-2 left-0 w-full h-0.5 bg-primary transform origin-left transition-transform duration-base ease-standard ${
                           active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                         }`}
                       />
@@ -176,7 +176,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                 aria-label={callName}
                 data-cta="phone_click"
                 data-cta-location="header"
-                className={`inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-primary transition-smooth hover:bg-muted ${focusRing}`}
+                className={`inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-md px-2 text-primary transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
               >
                 <Phone aria-hidden="true" className="h-5 w-5" />
                 <span className="hidden xl:inline text-sm font-semibold">{phoneLabel}</span>
@@ -191,7 +191,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                 aria-label={textName}
                 data-cta="text_click"
                 data-cta-location="header"
-                className={`hidden sm:inline-flex lg:hidden h-11 w-11 items-center justify-center rounded-md text-primary transition-smooth hover:bg-muted ${focusRing}`}
+                className={`hidden sm:inline-flex lg:hidden h-11 w-11 items-center justify-center rounded-md text-primary transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
               >
                 <MessageSquare aria-hidden="true" className="h-5 w-5" />
               </a>
@@ -216,7 +216,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
               aria-expanded={isMenuOpen}
               aria-controls={MOBILE_MENU_ID}
               aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-              className={`lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-smooth hover:bg-muted ${focusRing}`}
+              className={`lg:hidden inline-flex h-11 w-11 items-center justify-center rounded-md text-foreground transition-colors duration-fast ease-standard hover:bg-muted ${focusRing}`}
             >
               {isMenuOpen ? <X aria-hidden="true" size={24} /> : <Menu aria-hidden="true" size={24} />}
             </button>
@@ -241,7 +241,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
                       to={item.path}
                       onClick={() => setIsMenuOpen(false)}
                       aria-current={ariaCurrent(item)}
-                      className={`flex min-h-11 items-center rounded-md border-l-4 px-4 font-medium transition-smooth ${focusRing} ${
+                      className={`flex min-h-11 items-center rounded-md border-l-4 px-4 font-medium transition-colors duration-fast ease-standard ${focusRing} ${
                         // Not colour alone: the active row also carries a left bar (WCAG 1.4.1).
                         isInSection(item)
                           ? "border-primary bg-primary/10 text-primary"

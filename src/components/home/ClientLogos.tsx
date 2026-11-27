@@ -30,9 +30,9 @@ const ClientLogos = () => {
             return (
               <div
                 key={client.name}
-                className="flex flex-col items-center justify-center p-6 hover:scale-110 transition-smooth group"
+                className="flex flex-col items-center justify-center p-6 group"
               >
-                <Icon className="w-12 h-12 text-secondary/60 group-hover:text-primary transition-smooth mb-2" />
+                <Icon className="w-12 h-12 text-secondary/60 group-hover:text-primary transition-colors duration-fast ease-standard mb-2" />
                 <span className="text-xs text-secondary/80 text-center font-medium">
                   {client.name}
                 </span>

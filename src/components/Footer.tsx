@@ -53,7 +53,7 @@ const LEGAL_LINKS = [
 const focusRing =
   "rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-primary";
 
-const linkClass = `inline-flex min-h-11 items-center text-sm text-primary-foreground/80 transition-smooth hover:text-primary-foreground md:min-h-0 md:py-1 ${focusRing}`;
+const linkClass = `inline-flex min-h-11 items-center text-sm text-primary-foreground/80 transition-colors duration-fast ease-standard hover:text-primary-foreground md:min-h-0 md:py-1 ${focusRing}`;
 
 const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterConfig; analyticsId?: string | null }) => {
   const social = socialLinks(config).flatMap(([network, url]) => {
@@ -71,7 +71,7 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 mb-12 lg:grid-cols-4">
           {/* Brand + NAP */}
           <div className="col-span-2">
-            <Link to="/" className={`inline-block transition-smooth hover:opacity-80 ${focusRing}`}>
+            <Link to="/" className={`inline-block transition-opacity duration-fast ease-standard hover:opacity-80 ${focusRing}`}>
               <img
                 src="/logo-white.webp"
                 width={300}
@@ -124,7 +124,7 @@ const Footer = ({ config = BUSINESS, analyticsId = GA4_ID }: { config?: FooterCo
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`${config.name} on ${label} (opens in a new tab)`}
-                      className={`flex h-11 w-11 items-center justify-center rounded-full bg-primary-foreground/10 transition-smooth hover:bg-primary-foreground/20 ${focusRing}`}
+                      className={`flex h-11 w-11 items-center justify-center rounded-full bg-primary-foreground/10 transition-colors duration-fast ease-standard hover:bg-primary-foreground/20 ${focusRing}`}
                     >
                       <Icon aria-hidden="true" size={18} />
                     </a>

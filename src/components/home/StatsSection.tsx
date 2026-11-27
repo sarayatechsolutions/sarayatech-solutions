@@ -107,7 +107,7 @@ const StatsSection = () => {
                   className="mb-6 flex justify-center"
                   whileHover={{ scale: 1.1 }}
                 >
-                  <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-smooth border border-white/20">
+                  <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors duration-fast ease-standard border border-white/20">
                     <Icon className="w-10 h-10 text-gold" />
                   </div>
                 </motion.div>

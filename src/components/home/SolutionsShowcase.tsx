@@ -109,7 +109,7 @@ const SolutionsShowcase = () => {
                     <Link to={solution.link}>
                       <Button className="bg-primary hover:bg-primary-light shadow-card group mt-4">
                         Learn More
-                        <ArrowRight className="ml-2 group-hover:translate-x-1 transition-smooth" />
+                        <ArrowRight className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
                       </Button>
                     </Link>
                   </motion.div>
@@ -126,7 +126,7 @@ const SolutionsShowcase = () => {
                   viewport={{ once: true }}
                 >
                   <motion.div
-                    className="relative rounded-2xl overflow-hidden shadow-elegant border border-border hover-lift"
+                    className="relative rounded-2xl overflow-hidden shadow-md border border-border transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5"
                     whileHover={{ y: -8 }}
                   >
                     <img

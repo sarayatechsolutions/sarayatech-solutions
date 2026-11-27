@@ -51,3 +51,30 @@ describe("base keyboard focus indicator (STS-041)", () => {
     expect(css).not.toMatch(/:focus(-visible)?\s*\{[^}]*outline:\s*(none|0)/);
   });
 });
+
+describe("fixed header scroll offset (design audit B1, FD-11)", () => {
+  const html = block(/\n\s*html\s*\{/);
+  const header = readFileSync(resolve(__dirname, "../components/Header.tsx"), "utf8");
+
+  it("keeps a focused field or an in-page target below the fixed header", () => {
+    expect(html).toMatch(/scroll-padding-top:\s*calc\(var\(--header-h\)\s*\+\s*1rem\)/);
+  });
+
+  it("--header-h matches the header bar height (h-20 = 5rem)", () => {
+    expect(css).toMatch(/--header-h:\s*5rem;/);
+    expect(header).toMatch(/\bh-20\b/);
+  });
+});
+
+describe("motion tokens (design audit B1, section 3.7)", () => {
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  it("never animates `all` and has no bounce curve", () => {
+    expect(code).not.toMatch(/transition:\s*all/);
+    expect(code).not.toMatch(/--transition-bounce|cubic-bezier\(0\.68,\s*-0\.55/);
+  });
+
+  it("dropped the 30-50 px entrance keyframes", () => {
+    for (const name of ["fadeInUp", "slideInRight", "scaleIn"]) expect(code).not.toContain(name);
+  });
+});

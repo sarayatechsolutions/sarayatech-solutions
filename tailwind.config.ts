@@ -48,11 +48,24 @@ export default {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
+        // Design audit B1: hover and pressed are darker steps of the CTA red. `light` is a
+        // temporary alias of `hover` (darker, not lighter) until B3 removes its last callers.
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
-          light: "hsl(var(--accent-light))",
+          hover: "hsl(var(--accent-hover))",
+          active: "hsl(var(--accent-active))",
+          light: "hsl(var(--accent-hover))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          surface: "hsl(var(--success-surface))",
+        },
+        "destructive-surface": "hsl(var(--destructive-surface))",
+        "surface-subtle": "hsl(var(--surface-subtle))",
+        "border-strong": "hsl(var(--border-strong))",
+        "brand-azure": "hsl(var(--brand-azure))",
         gold: {
           DEFAULT: "hsl(var(--gold))",
           foreground: "hsl(var(--gold-foreground))",
@@ -67,9 +80,41 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
+      },
+      boxShadow: {
+        xs: "var(--shadow-xs)",
+        sm: "var(--shadow-sm)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+      },
+      transitionDuration: {
+        instant: "75ms",
+        fast: "120ms",
+        base: "200ms",
+        slow: "320ms",
+        page: "450ms",
+      },
+      transitionTimingFunction: {
+        standard: "cubic-bezier(0.2,0,0,1)",
+        enter: "cubic-bezier(0,0,0.2,1)",
+        exit: "cubic-bezier(0.4,0,1,1)",
+      },
+      // Design audit B1, section 3.1 type scale. Not used inside the Button cva: tailwind-merge
+      // cannot tell these custom keys from text colours.
+      fontSize: {
+        display: ["clamp(2.5rem, 1.6rem + 3.6vw, 4rem)", { lineHeight: "1.05", letterSpacing: "-0.02em", fontWeight: "800" }],
+        h1: ["clamp(2.25rem, 1.7rem + 2.2vw, 3.25rem)", { lineHeight: "1.1", letterSpacing: "-0.015em", fontWeight: "800" }],
+        h2: ["clamp(1.75rem, 1.45rem + 1.2vw, 2.5rem)", { lineHeight: "1.15", letterSpacing: "-0.01em", fontWeight: "700" }],
+        h3: ["1.375rem", { lineHeight: "1.3", fontWeight: "700" }],
+        h4: ["1.125rem", { lineHeight: "1.4", fontWeight: "600" }],
+        "body-lg": ["1.125rem", { lineHeight: "1.7" }],
+        body: ["1rem", { lineHeight: "1.65" }],
+        small: ["0.875rem", { lineHeight: "1.5" }],
+        eyebrow: ["0.8125rem", { lineHeight: "1.2", letterSpacing: "0.08em", fontWeight: "600" }],
       },
       keyframes: {
         "accordion-down": {
@@ -83,21 +128,14 @@ export default {
           },
           to: { height: "0", opacity: "0" },
         },
-        "fade-in": {
-          from: { opacity: "0", transform: "translateY(20px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
+        // Design audit B1 (A8, A6): short, decelerating entrances; the old 30-50 px slides are gone.
+        reveal: {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "none" },
         },
-        "fade-in-up": {
-          from: { opacity: "0", transform: "translateY(30px)" },
-          to: { opacity: "1", transform: "translateY(0)" },
-        },
-        "slide-in-right": {
-          from: { opacity: "0", transform: "translateX(50px)" },
-          to: { opacity: "1", transform: "translateX(0)" },
-        },
-        "scale-in": {
-          from: { opacity: "0", transform: "scale(0.95)" },
-          to: { opacity: "1", transform: "scale(1)" },
+        "panel-in": {
+          from: { opacity: "0", transform: "translateY(-8px)" },
+          to: { opacity: "1", transform: "none" },
         },
         "count-up": {
           from: { opacity: "0" },
@@ -107,10 +145,8 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.3s ease-out",
         "accordion-up": "accordion-up 0.3s ease-out",
-        "fade-in": "fade-in 0.6s ease-out",
-        "fade-in-up": "fade-in-up 0.6s ease-out",
-        "slide-in-right": "slide-in-right 0.5s ease-out",
-        "scale-in": "scale-in 0.4s ease-out",
+        reveal: "reveal 320ms cubic-bezier(0,0,0.2,1) both",
+        "panel-in": "panel-in 200ms cubic-bezier(0,0,0.2,1) both",
       },
     },
   },

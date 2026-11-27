@@ -172,7 +172,7 @@ const FinalCta = ({ id, heading, copy, primary, secondary, sectionAttrs, items }
             >
               <CtaLink href={main.href} cta={ctaIdFor(main.href)}>
                 {main.label}
-                <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-1 transition-smooth" />
+                <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
               </CtaLink>
             </Button>
             <Button

@@ -148,7 +148,7 @@ const Solutions = () => {
                     key={solution.title}
                     variants={staggerItemVariants}
                     layout
-                    className="bg-card rounded-xl shadow-card border border-border hover-lift group overflow-hidden"
+                    className="bg-card rounded-xl shadow-sm border border-border transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5 group overflow-hidden"
                     whileHover={{ y: -8 }}
                   >
                     {/* Image */}

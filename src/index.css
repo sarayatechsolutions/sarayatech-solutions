@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Self-hosted Poppins (STS-048): Latin subset, woff2 only, the six weights the UI uses
-   (font-normal/default 400, medium 500, semibold 600, bold 700, extrabold 800, black 900).
-   300 (font-light) is unused. Files come from @fontsource/poppins (SIL OFL 1.1). */
+/* Self-hosted Poppins (STS-048): Latin subset, woff2 only, the five weights the UI uses
+   (font-normal/default 400, medium 500, semibold 600, bold 700, extrabold 800).
+   300 (font-light) is unused. 900 (font-black) was dropped by the design audit B1: no live page
+   uses it, the heaviest heading is 800. Files come from @fontsource/poppins (SIL OFL 1.1). */
 @font-face {
   font-family: "Poppins";
   font-style: normal;
@@ -40,13 +41,6 @@
   font-display: swap;
   src: url("../node_modules/@fontsource/poppins/files/poppins-latin-800-normal.woff2") format("woff2");
 }
-@font-face {
-  font-family: "Poppins";
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src: url("../node_modules/@fontsource/poppins/files/poppins-latin-900-normal.woff2") format("woff2");
-}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
@@ -71,11 +65,13 @@ All colors MUST be HSL.
 
     /* Energetic Red - CTA Color.
        STS-041: darkened from 0 85% 55% (white label 4.20:1, fails WCAG 1.4.3) to 47% (5.01:1).
-       --accent-light is the hover state: still lighter than --accent, still >= 4.5:1 (4.66:1).
+       Design audit B1: hover and pressed states get darker, never lighter (#BD0F0F 6.50:1,
+       #A50D0D 7.87:1); the old lighter --accent-light hover is gone.
        src/design/contrast.test.ts holds every pair the live pages use. */
     --accent: 0 85% 47%;
     --accent-foreground: 0 0% 100%;
-    --accent-light: 0 80% 50%;
+    --accent-hover: 0 85% 40%;
+    --accent-active: 0 85% 35%;
 
     /* Golden - Premium Touches */
     --gold: 45 90% 60%;
@@ -89,17 +85,38 @@ All colors MUST be HSL.
     --muted: 220 15% 95%;
     --muted-foreground: 220 15% 40%;
 
+    /* Design audit B1: alternate section bands (replaces ad-hoc bg-muted/30). */
+    --surface-subtle: 220 20% 97%;
+
     /* STS-041: error text on white must reach 4.5:1 (0 85% 55% was 4.20:1). */
     --destructive: 0 85% 45%;
     --destructive-foreground: 0 0% 100%;
+    --destructive-surface: 0 85% 97%;
+
+    /* Design audit B1: confirmation states (text on white 6.34:1, on its surface 5.84:1). */
+    --success: 152 65% 26%;
+    --success-foreground: 0 0% 100%;
+    --success-surface: 152 45% 95%;
+
+    /* Design audit B1: decorative brand blue for icons, rules and illustration only.
+       4.14:1 on white, so never text under 24 px. */
+    --brand-azure: 211 93% 49%;
 
     --border: 220 15% 88%;
+    /* Design audit B1: card edges on --surface-subtle (decorative, 1.66:1). */
+    --border-strong: 220 15% 80%;
     /* STS-041: form control boundary, WCAG 1.4.11 needs 3:1 (88% was 1.34:1). --border stays light:
        it only separates decorative surfaces. */
     --input: 220 15% 55%;
     --ring: 220 70% 25%;
 
-    --radius: 0.75rem;
+    /* Design audit B1: the fixed header's height (Header h-20), used by scroll-padding-top. */
+    --header-h: 5rem;
+
+    --radius: 0.75rem; /* 12 px = radius-md: buttons, inputs */
+    --radius-sm: 0.5rem; /* 8 px: chips with text, small tags */
+    --radius-lg: 1rem; /* 16 px: cards */
+    --radius-xl: 1.5rem; /* 24 px: feature panels, hero visual frame */
 
     /* Gradients */
     --gradient-primary: linear-gradient(
@@ -107,32 +124,28 @@ All colors MUST be HSL.
       hsl(220, 70%, 25%),
       hsl(220, 80%, 18%)
     );
-    --gradient-accent: linear-gradient(
-      135deg,
-      hsl(0, 85%, 47%),
-      hsl(15, 85%, 40%)
-    );
     --gradient-hero: linear-gradient(
       135deg,
       hsl(220, 70%, 25%) 0%,
       hsl(220, 60%, 35%) 50%,
       hsl(220, 70%, 25%) 100%
     );
-    --gradient-gold: linear-gradient(
-      135deg,
-      hsl(45, 90%, 60%),
-      hsl(35, 85%, 55%)
-    );
 
-    /* Shadows */
-    --shadow-elegant: 0 10px 40px -10px hsl(220 70% 25% / 0.25);
-    --shadow-card: 0 4px 20px -2px hsl(220 70% 25% / 0.12);
-    --shadow-glow: 0 0 40px hsl(220 60% 35% / 0.3);
-    --shadow-accent: 0 8px 30px -5px hsl(0 85% 47% / 0.4);
+    /* Shadows (design audit B1): four steps, navy-tinted, no red glow. */
+    --shadow-xs: 0 1px 2px hsl(220 30% 15% / 0.06);
+    --shadow-sm: 0 1px 2px hsl(220 30% 15% / 0.04), 0 2px 8px -2px hsl(220 30% 15% / 0.08);
+    --shadow-md: 0 2px 4px hsl(220 30% 15% / 0.04), 0 12px 32px -12px hsl(220 70% 25% / 0.18);
+    --shadow-lg: 0 24px 64px -16px hsl(220 70% 25% / 0.28); /* overlays: menu, chat, dialog, consent */
 
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Motion (design audit B1): three easings and five durations; no `transition: all`, no bounce. */
+    --duration-instant: 75ms; /* press feedback */
+    --duration-fast: 120ms; /* hover / focus colour changes */
+    --duration-base: 200ms; /* menus, chips, accordions, small panels */
+    --duration-slow: 320ms; /* entrance reveals, chat panel */
+    --duration-page: 450ms; /* the hero visual only; never on a task path */
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-enter: cubic-bezier(0, 0, 0.2, 1); /* decelerate */
+    --ease-exit: cubic-bezier(0.4, 0, 1, 1); /* accelerate; exits use a duration one step shorter */
   }
 
   .dark {
@@ -174,6 +187,12 @@ All colors MUST be HSL.
 @layer base {
   * {
     @apply border-border;
+  }
+
+  /* Design audit B1 (FD-11): an in-page jump or a focused form field never lands under the
+     fixed header. */
+  html {
+    scroll-padding-top: calc(var(--header-h) + 1rem);
   }
 
   body {
@@ -222,73 +241,49 @@ All colors MUST be HSL.
     background: var(--gradient-primary);
   }
 
-  .gradient-accent {
-    background: var(--gradient-accent);
-  }
-
   .gradient-hero {
     background: var(--gradient-hero);
   }
 
-  .gradient-gold {
-    background: var(--gradient-gold);
-  }
-
+  /* Design audit B1: aliases kept for one batch, then removed. New code uses shadow-md / shadow-sm. */
   .shadow-elegant {
-    box-shadow: var(--shadow-elegant);
+    box-shadow: var(--shadow-md);
   }
 
   .shadow-card {
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-sm);
   }
 
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
-  }
-
+  /* Design audit B1: alias lines slated for removal in B3. No caller uses them any more; they no
+     longer animate `all` or scale. New code uses transition-colors duration-fast ease-standard,
+     and the interactive card hover (A5) spelled out. */
   .transition-smooth {
-    transition: var(--transition-smooth);
+    transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-standard);
   }
 
   .hover-lift {
-    @apply transition-smooth hover:scale-105 hover:shadow-elegant;
+    transition-property: transform, box-shadow;
+    transition-duration: var(--duration-base);
+    transition-timing-function: var(--ease-standard);
   }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.6s ease-out;
+  .hover-lift:hover {
+    box-shadow: var(--shadow-md);
   }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+  @media (prefers-reduced-motion: no-preference) {
+    .hover-lift:hover {
+      transform: translateY(-2px);
     }
   }
 
-  @keyframes slideInRight {
-    from {
-      opacity: 0;
-      transform: translateX(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  /* Design audit B1 (FD-44): the section rhythm. */
+  .section {
+    @apply py-16 lg:py-24;
   }
 
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+  .section-tight {
+    @apply py-12 lg:py-16;
   }
 }
 

@@ -146,7 +146,7 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
               >
                 <CtaLink href={bookingHref()}>
                   {L.primaryCta}
-                  <ArrowRight aria-hidden="true" className="ml-2 group-hover:translate-x-1 transition-smooth" />
+                  <ArrowRight aria-hidden="true" className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
                 </CtaLink>
               </Button>
             </div>

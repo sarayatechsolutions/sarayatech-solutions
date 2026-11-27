@@ -28,24 +28,53 @@ scale inside the chat panel.
 | `--primary-dark` | `220 80% 18%` | Darkest navy (gradients) |
 | `--accent` | `0 85% 47%` | Red call to action (darkened from 55% in STS-041) |
 | `--accent-foreground` | `0 0% 100%` | CTA label |
-| `--accent-light` | `0 80% 50%` | CTA hover |
-| `--gold` | `45 90% 60%` | Premium highlight, chat user bubble, chat avatar and badge |
+| `--accent-hover` | `0 85% 40%` | CTA hover, `#BD0F0F` (design audit B1: darker, never lighter) |
+| `--accent-active` | `0 85% 35%` | CTA pressed, `#A50D0D` |
+| `--gold` | `45 90% 60%` | Chat launcher, chat user bubble, avatar and badge only |
 | `--gold-foreground` | `220 70% 25%` | Navy text on gold |
 | `--secondary` | `215 15% 42%` | Slate secondary text and secondary buttons (42% since STS-041) |
 | `--secondary-foreground` | `0 0% 100%` | Text on `--secondary` |
 | `--secondary-light` | `215 15% 55%` | Decorative slate only. Not tested as text: do not use it for text |
 | `--muted` | `220 15% 95%` | Quiet section backgrounds (`bg-muted`, `bg-muted/30`) |
 | `--muted-foreground` | `220 15% 40%` | Supporting text |
+| `--surface-subtle` | `220 20% 97%` | Alternate section bands (replaces ad-hoc `bg-muted/30`) |
 | `--destructive` / `--destructive-foreground` | `0 85% 45%` / `0 0% 100%` | Error text, destructive buttons |
+| `--destructive-surface` | `0 85% 97%` | Inline error panel background |
+| `--success` / `--success-foreground` | `152 65% 26%` / `0 0% 100%` | Success text and icons, confirmation states |
+| `--success-surface` | `152 45% 95%` | Success panel background |
+| `--brand-azure` | `211 93% 49%` | **Decorative only**: icons, rules, illustration. 4.18:1 on white, so never text under 24 px |
 | `--border` | `220 15% 88%` | Decorative dividers and card edges only (1.34:1, not a control boundary) |
+| `--border-strong` | `220 15% 80%` | Card edges on `--surface-subtle` (decorative, 1.54:1 there) |
 | `--input` | `220 15% 55%` | Form control boundary (3:1, WCAG 1.4.11) |
 | `--ring` | `220 70% 25%` | Focus ring |
-| `--radius` | `0.75rem` | Base radius (`rounded-lg` = 12 px, `rounded-md` = 10 px, `rounded-sm` = 8 px) |
+| `--header-h` | `5rem` | Fixed header height (Header `h-20`); drives `html { scroll-padding-top }` |
 
-Gradients: `--gradient-primary` (navy 25% to 18%), `--gradient-hero` (25% / 35% / 25%),
-`--gradient-accent` (`0 85% 47%` to `15 85% 40%`), `--gradient-gold` (`45 90% 60%` to `35 85% 55%`),
-used as `.gradient-*` classes. Shadows: `--shadow-elegant`, `--shadow-card`, `--shadow-glow`,
-`--shadow-accent` (navy or red at low alpha), used as `.shadow-*` classes.
+**Radius** (design audit B1): `--radius-sm` 8 px (`rounded-sm`: chips, small tags), `--radius` 12 px
+(`rounded-md`: buttons, inputs), `--radius-lg` 16 px (`rounded-lg`: cards), `--radius-xl` 24 px
+(`rounded-xl`: feature panels, the hero visual frame).
+
+**Shadows** (design audit B1), navy-tinted, used as Tailwind `shadow-xs` / `shadow-sm` / `shadow-md` /
+`shadow-lg`:
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `--shadow-xs` | `0 1px 2px hsl(220 30% 15% / 0.06)` | Resting interactive card |
+| `--shadow-sm` | `0 1px 2px hsl(220 30% 15% / 0.04), 0 2px 8px -2px hsl(220 30% 15% / 0.08)` | Cards |
+| `--shadow-md` | `0 2px 4px hsl(220 30% 15% / 0.04), 0 12px 32px -12px hsl(220 70% 25% / 0.18)` | Card hover, raised panels |
+| `--shadow-lg` | `0 24px 64px -16px hsl(220 70% 25% / 0.28)` | Overlays: menu, chat, dialog, consent |
+
+`.shadow-elegant` (= `--shadow-md`) and `.shadow-card` (= `--shadow-sm`) are aliases kept for one batch;
+new code uses the Tailwind names. The red glow under CTAs (`--shadow-accent`) is gone.
+
+**Gradients:** `--gradient-primary` (navy 25% to 18%) and `--gradient-hero` (25% / 35% / 25%), used as
+`.gradient-*` classes. B1 deleted the unused `--gradient-accent` and `--gradient-gold`.
+
+**Section rhythm:** `.section` = `py-16 lg:py-24`, `.section-tight` = `py-12 lg:py-16`
+(`@layer components`).
+
+Removed by the design audit B1: `--accent-light` (hover now goes darker), `--gradient-accent`,
+`--gradient-gold`, `--shadow-glow`, `--shadow-accent`, `--transition-smooth`, `--transition-bounce`.
+Tailwind's `accent-light` colour is a temporary alias of `--accent-hover` until B3 removes its callers.
 
 ### Dark (`.dark`)
 
@@ -65,7 +94,8 @@ pairs are tested in dark. Test the rest before enabling it.
 | `--accent` / `--accent-foreground` | `0 85% 47%` / `0 0% 100%` | | `--ring` | `220 60% 35%` |
 | `--gold` / `--gold-foreground` | `45 90% 60%` / `220 70% 25%` | | | |
 
-`--accent-light`, `--secondary-light`, gradients and shadows have no dark value and inherit the light ones.
+`--accent-hover`, `--accent-active`, the surface, success and azure tokens, `--secondary-light`,
+gradients and shadows have no dark value and inherit the light ones.
 
 ## 2. Contrast
 
@@ -78,10 +108,19 @@ Enforced by [`src/design/contrast.test.ts`](../../src/design/contrast.test.ts):
 | Pair (foreground on background) | Ratio | Minimum |
 | --- | --- | --- |
 | CTA label on `--accent` | 5.01 | 4.5 |
-| CTA label on `--accent-light` (hover) | 4.66 | 4.5 |
+| CTA label on `--accent-hover` (hover) | 6.50 | 4.5 |
+| CTA label on `--accent-active` (pressed) | 7.87 | 4.5 |
 | `--accent` as text on `--background` | 5.01 | 4.5 |
 | `--destructive` on `--background` | 5.39 | 4.5 |
 | `--destructive-foreground` on `--destructive` | 5.39 | 4.5 |
+| `--destructive` on `--destructive-surface` | 4.89 | 4.5 |
+| `--success` on `--background` | 6.31 | 4.5 |
+| `--success` on `--success-surface` | 5.80 | 4.5 |
+| `--success-foreground` on `--success` | 6.31 | 4.5 |
+| `--foreground` on `--surface-subtle` | 14.76 | 4.5 |
+| `--secondary` on `--surface-subtle` | 5.25 | 4.5 |
+| `--muted-foreground` on `--surface-subtle` | 5.81 | 4.5 |
+| `--primary` on `--surface-subtle` | 11.62 | 4.5 |
 | `--foreground` on `--background` | 15.85 | 4.5 |
 | `--card-foreground` on `--card` | 15.85 | 4.5 |
 | `--primary` on `--background` | 12.48 | 4.5 |
@@ -97,20 +136,31 @@ Enforced by [`src/design/contrast.test.ts`](../../src/design/contrast.test.ts):
 | `--primary-foreground` on `--primary-dark` | 15.44 | 4.5 |
 | `text-white/85` on `--primary-light` (hero midpoint) | 6.88 | 4.5 |
 | `text-primary-foreground/70` on `--primary` (footer copyright) | 6.91 | 4.5 |
+| `text-white/80` on `--primary` | 8.54 | 4.5 |
+| `text-white/70` on `--primary` (lowest text opacity allowed on navy) | 6.91 | 4.5 |
+| `text-white/90` on `--primary-light` | 7.49 | 4.5 |
+| `text-white/70` on `--primary-dark` | 8.14 | 4.5 |
+| `--primary` on `--gold` | 7.78 | 4.5 |
+| `--foreground` on `--gold` | 9.89 | 4.5 |
 | White on every stop of `--gradient-primary` | 12.48 / 15.44 | 4.5 |
 | White on every stop of `--gradient-hero` | 12.48 / 8.82 / 12.48 | 4.5 |
-| White on every stop of `--gradient-accent` | 5.01 / 5.55 | 4.5 |
 | `--input` boundary on `--background` | 3.64 | 3 |
 | `--input` boundary on `--muted` | 3.24 | 3 |
 | `--ring` on `--background` | 12.48 | 3 |
 | Footer focus ring (`--primary-foreground` on `--primary`) | 12.48 | 3 |
 | White focus-ring offset on `--primary-light` | 8.82 | 3 |
+| `--input` boundary on `--surface-subtle` | 3.39 | 3 |
+| `on-dark` button border (white/60) on `--primary` | 5.50 | 3 |
+| White focus outline on `--primary-dark` | 15.44 | 3 |
 | Dark: CTA label on `--accent` | 5.01 | 4.5 |
 | Dark: `--destructive-foreground` on `--destructive` | 5.39 | 4.5 |
 
-The test also pins `--accent` as a saturated red (hue 0, saturation >= 80%, lightness >= 40%).
-The comment in `src/index.css` gives the hover pair as 4.65:1. The helper computes 4.6605, which
-rounds to 4.66.
+The test also pins `--accent` as a saturated red (hue 0, saturation >= 80%, lightness >= 40%), checks
+that hover and pressed are darker red steps (never lighter), and that the retired tokens are gone.
+Decorative tokens are measured but never used as small text: `--brand-azure` is 4.18:1 on white (3:1
+non-text passes, 4.5:1 text does not) and 2.98:1 on `--primary`; `--border-strong` is 1.54:1 on
+`--surface-subtle`. The audit's own figures (6.48, 6.34, 4.90, "7.9 or higher") were computed from rounded
+hex codes; the table above is the helper's result from the exact HSL.
 
 Chat panel pairs, enforced by
 [`src/components/chatbot/AminaChatbot.palette.test.tsx`](../../src/components/chatbot/AminaChatbot.palette.test.tsx)
@@ -157,7 +207,21 @@ Chat panel pairs, enforced by
   element that carries a CSS animation, give the transition its timing with an arbitrary property,
   e.g. `[transition-duration:300ms]`. (`duration-300` once cut the launcher sweep from 4 s to 0.3 s.)
 - **Animate `transform` and `opacity`**. The launcher sweep (`background-position` on a 64 px button)
-  is the one existing exception.
+  is the one existing exception. Colour changes on hover use `transition-colors`, never `transition-all`.
+- **Motion tokens (design audit B1).** Durations `--duration-instant` 75 ms (press), `-fast` 120 ms
+  (hover and focus colour), `-base` 200 ms (menus, chips, accordions, card hover), `-slow` 320 ms
+  (entrance reveals, chat panel), `-page` 450 ms (the hero visual only). Easings `--ease-standard`
+  `cubic-bezier(0.2,0,0,1)`, `--ease-enter` `cubic-bezier(0,0,0.2,1)`, `--ease-exit`
+  `cubic-bezier(0.4,0,1,1)`. In Tailwind: `duration-instant|fast|base|slow|page` and
+  `ease-standard|enter|exit`. Exits run one duration step faster than entrances.
+- **Keyframes:** `animate-reveal` (12 px rise and fade, 320 ms, enter easing) and `animate-panel-in`
+  (8 px drop and fade, 200 ms). The old `fade-in`, `fade-in-up` (30 px), `slide-in-right` (50 px) and
+  `scale-in` are gone, and so are `hover-lift`'s `scale(1.05)` and the bounce curve.
+- **Interactive card hover (A5):** `transition-[transform,box-shadow] duration-base ease-standard
+  hover:shadow-md motion-safe:hover:-translate-y-0.5`. Under reduced motion only the shadow changes.
+- **Fixed header offset:** `html { scroll-padding-top: calc(var(--header-h) + 1rem) }`, so a focused
+  field (an empty form submit) or an in-page anchor lands below the header. Tested in
+  `motion-focus.test.ts`.
 - Enforced by [`src/design/motion-focus.test.ts`](../../src/design/motion-focus.test.ts) (the
   reduced-motion block) and
   [`src/components/chatbot/AminaChatbot.motion.test.tsx`](../../src/components/chatbot/AminaChatbot.motion.test.tsx)
@@ -169,8 +233,16 @@ Chat panel pairs, enforced by
 
 ## 5. Type and spacing
 
-Font: Poppins for headings and body (`font-heading`, `font-body`), self-hosted woff2, weights 400 to 900.
-Sizes are Tailwind's default scale. This is what the pages use:
+Font: Poppins for headings and body (`font-heading`, `font-body`), self-hosted woff2, weights 400 to 800
+(the 900 file was dropped in B1; no live page uses `font-black`). Running text is capped at `max-w-[65ch]`.
+
+Type scale tokens (design audit B1, Tailwind `text-*`): `display` clamp(40-64 px) 800, `h1` clamp(36-52 px)
+800, `h2` clamp(28-40 px) 700, `h3` 22 px 700, `h4` 18 px 600, `body-lg` 18 px, `body` 16 px, `small`
+14 px, `eyebrow` 13 px 600 tracked 0.08em. Pages adopt them from B4 on. Do not put these keys inside a
+`cn()` / `cva` string next to a text colour: tailwind-merge cannot tell `text-small` from a colour and
+drops one of them.
+
+Sizes the pages use today (Tailwind's default scale):
 
 | Role | Classes | Size (px) |
 | --- | --- | --- |
@@ -182,7 +254,8 @@ Sizes are Tailwind's default scale. This is what the pages use:
 | Fine print, timestamps, chips | `text-xs` | 12 |
 
 Spacing: page gutter `container mx-auto px-4` (the container centres and caps at 1400 px at `2xl`).
-Section rhythm `py-20` or `py-24` (`py-16` for small bands). Prose width `max-w-3xl`. Card padding
+Section rhythm today `py-20` or `py-24` (`py-16` for small bands); the target is `.section` /
+`.section-tight` (section 1), adopted from B4. Prose width `max-w-3xl`. Card padding
 `p-6` or `p-8`. Stacks use `space-y-4`, `space-y-6` and `gap-4` to `gap-8`. One heading per level,
 no skipped levels (enforced by [`src/a11y.test.tsx`](../../src/a11y.test.tsx)).
 

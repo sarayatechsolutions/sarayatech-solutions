@@ -107,7 +107,7 @@ const Industries = () => {
                     variants={staggerItemVariants}
                     whileHover={{ y: -8 }}
                   >
-                    <div className="h-full bg-foreground rounded-2xl p-8 text-primary-foreground flex flex-col justify-between hover:shadow-lg transition-all duration-300 group hover-lift">
+                    <div className="h-full bg-foreground rounded-2xl p-8 text-primary-foreground flex flex-col justify-between group transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5">
                       <div>
                         <Icon className="w-10 h-10 mb-6 text-gold opacity-80" />
                         <h3 className="text-2xl font-bold mb-2">
@@ -146,7 +146,7 @@ const Industries = () => {
                     variants={staggerItemVariants}
                     whileHover={{ y: -8 }}
                   >
-                    <div className="bg-card rounded-2xl p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300 h-full flex flex-col hover-lift">
+                    <div className="bg-card rounded-2xl p-6 border border-border hover:border-primary/30 h-full flex flex-col transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5">
                       {/* Header with Icon */}
                       <div className="flex items-start justify-between mb-6">
                         <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
