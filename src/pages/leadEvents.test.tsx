@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import Contact from "./Contact";
 import FreeAudit from "./FreeAudit";
 import { AUDIT_FORM } from "@/content/audit/audit";
+import { CONTACT_FORM } from "@/content/forms/contact-form";
 import { resetAnalyticsForTests, setConsent } from "@/lib/analytics";
 
 // STS-050 (REQ-043): generate_lead fires on a successful submit only, with the form id and the
@@ -31,6 +32,12 @@ afterEach(() => {
   resetAnalyticsForTests();
 });
 
+// Design audit B6: the contact form's success is a panel that replaces the form (was a dialog).
+const contactSuccess = async () => {
+  await screen.findByRole("heading", { name: CONTACT_FORM.success.heading });
+  return screen.getByRole("status");
+};
+
 async function fillContact(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
   await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
@@ -54,7 +61,7 @@ describe("contact form", { timeout: FORM_TEST_TIMEOUT_MS }, () => {
     await fillContact(user);
     await user.selectOptions(screen.getByLabelText(/How did you hear about us/i), "google");
     await user.click(screen.getByRole("button", { name: /send message/i }));
-    await screen.findByRole("dialog");
+    await contactSuccess();
     expect(leads()).toEqual([["event", "generate_lead", { form: "contact", lead_source: "google" }]]);
     const sent = JSON.stringify(window.dataLayer);
     for (const v of TYPED) expect(sent).not.toContain(v);
@@ -66,7 +73,7 @@ describe("contact form", { timeout: FORM_TEST_TIMEOUT_MS }, () => {
     render(<Contact />);
     await fillContact(user);
     await user.click(screen.getByRole("button", { name: /send message/i }));
-    await screen.findByRole("dialog");
+    await contactSuccess();
     expect(leads()).toEqual([["event", "generate_lead", { form: "contact" }]]);
   });
 
@@ -76,7 +83,7 @@ describe("contact form", { timeout: FORM_TEST_TIMEOUT_MS }, () => {
     render(<Contact />);
     await fillContact(user);
     await user.click(screen.getByRole("button", { name: /send message/i }));
-    expect(await screen.findByRole("dialog")).toHaveTextContent("REF-7K3QX9PM");
+    expect(await contactSuccess()).toHaveTextContent("REF-7K3QX9PM");
     expect(leads()).toEqual([["event", "generate_lead", { form: "contact" }]]);
     const sent = JSON.stringify(window.dataLayer);
     expect(sent).not.toContain("REF-7K3QX9PM");

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { BUSINESS, bookingHref } from "@/config/business";
 import { HERO, PROOF_PATH } from "@/components/home/content";
 import FinalCta from "@/components/FinalCta";
+import { contactHrefFor } from "@/content/forms/contact-context";
 import PageHero from "@/components/PageHero";
 import SectionHeader from "@/components/SectionHeader";
 import Steps from "@/components/Steps";
@@ -138,6 +139,9 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
 const ServicePage = ({ page }: { page: ServicePageContent }) => {
   const others = SERVICE_PAGES.filter((p) => p.slug !== page.slug);
   const headingId = `service-${page.slug}-heading`;
+  // FF-10: while booking is unverified the consultation CTAs open the contact form with this
+  // service preselected (/contact?service=<slug>); a verified booking URL is used as it is.
+  const consultHref = contactHrefFor({ service: page.slug }, bookingHref());
 
   return (
     <>
@@ -146,7 +150,7 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
         eyebrow={page.eyebrow}
         title={page.h1}
         intro={page.intro}
-        primaryCta={{ label: L.primaryCta, href: bookingHref() }}
+        primaryCta={{ label: L.primaryCta, href: consultHref }}
         secondaryCta={{ label: HERO.secondaryCta, href: PROOF_PATH }}
         meta={BUSINESS.serviceAreaText}
         sectionAttrs={{ "data-service-section": "hero" }}
@@ -215,7 +219,11 @@ const ServicePage = ({ page }: { page: ServicePageContent }) => {
       </nav>
 
       {/* STS-046: the sitewide closing block (free audit, consultation, trust slot). */}
-      <FinalCta id={`service-${page.slug}`} sectionAttrs={{ "data-service-section": "final-cta" }} />
+      <FinalCta
+        id={`service-${page.slug}`}
+        secondary={{ label: HERO.primaryCta, href: consultHref }}
+        sectionAttrs={{ "data-service-section": "final-cta" }}
+      />
     </>
   );
 };

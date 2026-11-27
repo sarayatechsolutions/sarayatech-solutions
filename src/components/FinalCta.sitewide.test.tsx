@@ -45,7 +45,9 @@ describe("sitewide closing block (STS-046)", () => {
     expect(text(block)).not.toMatch(/\bstars?\b|\breviews\b|Google reviews?\b|\brating\b|★|\(0\)/i);
     expect(text(slot)).not.toMatch(/\d/);
 
-    const hrefs = [...block.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+    // FF-10 (design audit B6): a service page's consultation link carries `?service=<slug>`, so hrefs
+    // are compared without their query.
+    const hrefs = [...block.querySelectorAll("a")].map((a) => (a.getAttribute("href") ?? "").split(/[?#]/)[0]);
     if (closingBlockFor(path) === "full") {
       expect(hrefs).toContain(FREE_AUDIT_PATH);
       expect(hrefs).toContain(bookingHref());

@@ -7,6 +7,7 @@ import { SERVICES } from "@/components/home/content";
 import { SERVICE_PAGES, servicePath, serviceProjects, type ServiceSlug } from "@/content/services/services";
 import { SERVICE_ROUTES } from "../../../tests/smoke/smoke.mjs";
 import { CONSULTATION_CTA_LABEL } from "@/content/cta";
+import { contactHrefFor } from "@/content/forms/contact-context";
 
 // STS-032. Each page is rendered exactly as the build prerenders it (entry-server), then read as
 // a document, so these assertions hold for the HTML a crawler or a no-JS visitor gets.
@@ -74,12 +75,14 @@ describe.each(SERVICE_PAGES)("service page /services/$slug (STS-032)", (page) =>
   it("sends every internal link to an existing route", () => {
     const internal = [...main.querySelectorAll("a")].map((a) => a.getAttribute("href") ?? "").filter((h) => h.startsWith("/"));
     expect(internal.length).toBeGreaterThan(0);
-    for (const href of internal) expect(routed, `link ${href}`).toContain(href);
+    // FF-10 (design audit B6): the consultation link may carry `?service=<slug>`; the route is the path.
+    for (const href of internal) expect(routed, `link ${href}`).toContain(href.split(/[?#]/)[0]);
   });
 
   it("books through the business config and sends the free-audit CTA to an existing route", () => {
     const byText = (label: string) => [...main.querySelectorAll("a")].find((a) => text(a) === label);
-    expect(byText(CONSULTATION_CTA_LABEL)?.getAttribute("href")).toBe(bookingHref());
+    // FF-10 (design audit B6): the consultation CTA names this service, so the form preselects it.
+    expect(byText(CONSULTATION_CTA_LABEL)?.getAttribute("href")).toBe(contactHrefFor({ service: page.slug }, bookingHref()));
     expect(main.querySelector('a[href*="calendly"]')).toBeNull();
     expect(byText("Get My Free Audit")?.getAttribute("href")).toBe("/free-audit");
   });

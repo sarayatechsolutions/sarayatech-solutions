@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import Steps from "@/components/Steps";
 import CtaLink from "@/components/home/CtaLink";
 import FinalCta from "@/components/FinalCta";
+import { contactHrefFor } from "@/content/forms/contact-context";
 import PageHero from "@/components/PageHero";
 import SectionHeader from "@/components/SectionHeader";
 import { FREE_AUDIT_PATH, HERO, PROOF_PATH } from "@/components/home/content";
@@ -91,7 +92,14 @@ const Pricing = () => {
           <SectionHeader id="pricing-packages-heading" title={PRICING_PACKAGES.heading} />
           <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {PRICING_PACKAGES.packages.map((p, i, all) => (
-              <PriceCard key={p.id} card={p} kind="package" href={booking} emphasis={i === all.length - 1} />
+              <PriceCard
+                key={p.id}
+                card={p}
+                kind="package"
+                // FF-10: the contact form opens with this package named (unverified booking only).
+                href={contactHrefFor({ package: p.id }, booking)}
+                emphasis={i === all.length - 1}
+              />
             ))}
           </ul>
         </div>
@@ -101,7 +109,7 @@ const Pricing = () => {
         <div className={container}>
           <SectionHeader id="pricing-custom-heading" title={PRICING_CUSTOM.heading} />
           <ul className="max-w-3xl">
-            <PriceCard card={PRICING_CUSTOM.card} kind="custom" href={booking} />
+            <PriceCard card={PRICING_CUSTOM.card} kind="custom" href={contactHrefFor({ package: PRICING_CUSTOM.card.id }, booking)} />
           </ul>
         </div>
       </section>

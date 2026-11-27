@@ -54,13 +54,14 @@ describe("free audit page, prerendered (REQ-044)", () => {
     expect(text(main.querySelector("#audit-source option"))).toBe("Choose one (optional)");
   });
 
-  it("ties the source hint by aria-describedby, 44 px tall, on the input border token (STS-041/054)", () => {
+  // Design audit B6: every control is 48 px (h-12), up from 44 px (h-11).
+  it("ties the source hint by aria-describedby, 48 px tall, on the input border token (STS-041/054, B6)", () => {
     const select = main.querySelector("#audit-source") as HTMLSelectElement;
     expect(select.tagName).toBe("SELECT");
     expect(select.hasAttribute("required")).toBe(false);
     const hint = doc.getElementById(select.getAttribute("aria-describedby") ?? "");
     expect(text(hint)).toBe("This helps us learn how people find us.");
-    expect((select.getAttribute("class") ?? "").split(/\s+/)).toEqual(expect.arrayContaining(["h-11", "border-input"]));
+    expect((select.getAttribute("class") ?? "").split(/\s+/)).toEqual(expect.arrayContaining(["h-12", "border-input"]));
   });
 
   it("promises no reply time and states no price", () => {
@@ -241,7 +242,9 @@ describe("free audit form behaviour", () => {
     const btn = await screen.findByRole("button", { name: AUDIT_FORM.sending });
     expect(btn).toBeDisabled();
     release(json(200, { success: true, message: "ok" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: AUDIT_FORM.submit })).toBeEnabled());
+    // Design audit B6 / FF-1: once sent, the success panel replaces the form (and its button).
+    expect(await screen.findByRole("heading", { name: AUDIT_FORM.success.heading })).toHaveFocus();
+    expect(screen.queryByRole("button", { name: AUDIT_FORM.submit })).not.toBeInTheDocument();
   });
 });
 
@@ -285,5 +288,41 @@ describe("free audit lead reference (STS-084, ADR 0003)", () => {
     expect(status.querySelector("[data-lead-reference-note]")).toBeNull();
     expect(status.querySelector("b")).toBeNull();
     expect(status.textContent).not.toMatch(/REF-/);
+  });
+});
+
+// Design audit B6 / FF-1: focus goes where the visitor has to act next.
+describe("free audit form focus (design audit B6, FF-1)", () => {
+  it("an empty submit focuses the first invalid field", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+    const user = userEvent.setup();
+    rtl(<FreeAudit />);
+    await user.click(screen.getByRole("button", { name: AUDIT_FORM.submit }));
+    expect(document.getElementById("audit-name")).toHaveFocus();
+  });
+
+  it("a failed send focuses the alert, which sits in an assertive live region", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(500, { success: false })));
+    const user = userEvent.setup();
+    rtl(<FreeAudit />);
+    await fill(user);
+    await user.click(screen.getByRole("button", { name: AUDIT_FORM.submit }));
+    const alert = await screen.findByRole("alert");
+    await waitFor(() => expect(alert).toHaveFocus());
+    expect(alert).toHaveAttribute("data-audit-failure");
+    expect(alert.parentElement).toHaveAttribute("aria-live", "assertive");
+  });
+
+  it("success replaces the form inside the status region and focuses its heading", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, { success: true, message: "ok" })));
+    const user = userEvent.setup();
+    const { container } = rtl(<FreeAudit />);
+    await fill(user);
+    await user.click(screen.getByRole("button", { name: AUDIT_FORM.submit }));
+    const heading = await screen.findByRole("heading", { name: AUDIT_FORM.success.heading });
+    expect(heading).toHaveFocus();
+    expect(screen.getByRole("status")).toContainElement(heading);
+    expect(container.querySelector("form")).toBeNull();
+    expect(heading.closest("[data-audit-section]")).toHaveAttribute("aria-labelledby", "audit-success-heading");
   });
 });

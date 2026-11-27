@@ -143,7 +143,9 @@ interface FinalCtaProps {
 }
 
 /** STS-050: pages swap the two actions, so the event id follows the destination, not the slot. */
-const ctaIdFor = (href: string): CtaId => (href === FREE_AUDIT_PATH ? "final_audit" : "final_consultation");
+const ctaIdFor = (href: string): CtaId =>
+  // FF-10: a CTA may carry a context query (/contact?service=...); the id follows the path only.
+  href.split(/[?#]/)[0] === FREE_AUDIT_PATH ? "final_audit" : "final_consultation";
 
 const FinalCta = ({ id, heading, copy, primary, secondary, sectionAttrs, items }: FinalCtaProps) => {
   const headingId = `${id}-final-cta-heading`;

@@ -299,8 +299,8 @@ Spacing: page gutter `container mx-auto px-4 sm:px-6 lg:px-8` (the container cen
   link takes `STRETCHED_LINK` (an `::after` covering the card), so the whole card is clickable while
   the link's visible text stays its only accessible name. No `aria-label` on the card, no second
   link inside it.
-- **Icon tile.** 44 px, `rounded-md bg-primary`, 22 px lucide icon, `aria-hidden`. Replaces the
-  `gradient-primary` tiles (Contact still has five; they move in B6 with the form).
+- **Icon tile.** [`IconTile`](../../src/components/ui/icon-tile.tsx): 44 px, `rounded-md bg-primary`,
+  22 px lucide icon, `aria-hidden`. Replaces every `gradient-primary` tile (Contact's five moved in B6).
 - **Service grid (FD-19).** A 6-column bento at lg: Websites and Apps span 3 each (large: icon,
   pillar `h3`, offering `h4`); Marketing's heading leads row 2 and its three offerings span 2 each.
   One column on mobile, 2 at md. `/services` renders the same component with `variant="index"`:
@@ -321,6 +321,40 @@ Spacing: page gutter `container mx-auto px-4 sm:px-6 lg:px-8` (the container cen
   No "Most chosen" badge until the owner names one.
 - **About (FD-24).** Team cards are start-aligned: a 96 px portrait or initials beside the name and
   role, the bio below at the measure. 1 / 2 (md) / 3 (lg) columns.
+
+## 5c. Forms (design audit B6)
+
+One form system for the Free Audit and Contact forms, in
+[`src/components/form/`](../../src/components/form/). The validation, the honeypot and the request
+shape of both forms are the backend's wire contract and did not change; B6 is UX only.
+
+- **Field.** `FormField` wires a label, an optional hint and an inline error to one control: it passes
+  `id`, `aria-invalid` and `aria-describedby` (error id, then hint id) to the child. Label `text-small`
+  semibold, required fields marked by an `aria-hidden` red `*` plus a visible
+  required-fields note the form is described by. Hint above the error; the error is `text-destructive`
+  with an `AlertCircle` (icon and text, never colour alone).
+- **Controls.** `Input` and `NativeSelect` are 48 px (`h-12`), `Textarea` starts at 140 px; all share
+  `FIELD_CONTROL` (`border-input`, `bg-background`, hover border, the focus ring, a destructive border
+  when `aria-invalid`). Selects are native (`appearance-none` with a `ChevronDown`), never Radix: the
+  mobile picker is the platform's, and the value is a real form value.
+- **Scroll margin.** Every field, the error box and the success panel carry
+  `scroll-mt-[calc(var(--header-h)+2.5rem)]`, so focusing one never hides it under the sticky header.
+- **Invalid submit.** Forms are `noValidate`; the first invalid field takes focus (in visual order)
+  and a single sr-only `role="alert"` summary is announced. No error box above the fields.
+- **Send failure (FF-1).** `FormError` sits directly above the submit button, inside an always-mounted
+  `aria-live="assertive"` region; the `role="alert"` box takes focus (`tabIndex=-1`, no ring) and what
+  the visitor typed is kept. On Contact it carries the booking link only when booking is verified.
+- **Success (FF-1).** `FormSuccess` replaces the form inside an always-mounted `role="status"`
+  region: a success-surface panel with a 40 px check, an `h2` that takes focus, the body, the lead
+  reference (monospace chip with a Copy button whose result is said in a polite live region) and two
+  next steps, "See our work" and "Back to home". The section's `aria-labelledby` follows the heading
+  shown. No modal.
+- **Context (FF-10).** A service page's consultation CTA links to `/contact?service=<slug>` and a
+  pricing card to `/contact?package=<id>` (only while booking is the contact form; a verified booking
+  URL is used untouched). `contactContext()` reads them through an allow-list: exact, single values
+  only; anything else is ignored. The value is never rendered or sent, only the matching option. The
+  Free Audit form has no service field in its contract, so it takes no context.
+- **Contact info column.** Five flat 44 px navy `IconTile`s (no gradient), `text-h3` "Get in Touch".
 
 ## 6. Buttons and touch targets
 

@@ -2,6 +2,7 @@ import { ArrowRight, Check, Globe, Megaphone, Smartphone, type LucideIcon } from
 import { Link } from "react-router-dom";
 import SectionHeader from "@/components/SectionHeader";
 import { Card } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { STRETCHED_LINK } from "@/components/ui/card-variants";
 import { SERVICE_HIGHLIGHTS } from "@/content/services/servicesIndex";
 import { SERVICES, type Offering, type Pillar } from "./content";
@@ -12,12 +13,6 @@ const ICONS: Record<Pillar["id"], LucideIcon> = {
   marketing: Megaphone,
 };
 
-/** The 44 px flat icon tile (spec 3.3), replacing the gradient tiles. */
-const IconTile = ({ icon: Icon }: { icon: LucideIcon }) => (
-  <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-    <Icon className="h-[22px] w-[22px]" />
-  </span>
-);
 
 // Inline, not flex: a label that wraps keeps its arrow after the last word (390 and 768).
 const link = `${STRETCHED_LINK} mt-auto block min-h-11 pt-3 font-semibold text-primary underline-offset-4 group-hover:underline focus-visible:underline`;
