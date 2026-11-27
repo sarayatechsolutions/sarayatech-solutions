@@ -29,13 +29,25 @@ const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : us
 
 type Positions = Map<string, number>;
 
-function load(): Positions {
+/**
+ * A stored key is `<history key>|<pathname>`: never the query string or the hash, which can carry
+ * personal data from an inbound link (`/contact?email=...`) and are not needed to tell entries
+ * apart. Older builds stored the full URL; such entries fail this check and are dropped.
+ */
+const STORED_KEY = /^[^|?#]*\|\/[^?#]*$/;
+
+/** The stored positions, current format only. `stale` is true when anything was dropped. */
+function load(): { positions: Positions; stale: boolean } {
   try {
-    const raw = JSON.parse(window.sessionStorage.getItem(SCROLL_STORAGE_KEY) ?? "[]");
-    if (!Array.isArray(raw)) return new Map();
-    return new Map(raw.filter((e): e is [string, number] => Array.isArray(e) && typeof e[0] === "string" && Number.isFinite(e[1])));
+    const raw: unknown = JSON.parse(window.sessionStorage.getItem(SCROLL_STORAGE_KEY) ?? "[]");
+    if (!Array.isArray(raw)) return { positions: new Map(), stale: true };
+    const valid = raw.filter(
+      (e): e is [string, number] =>
+        Array.isArray(e) && typeof e[0] === "string" && STORED_KEY.test(e[0]) && Number.isFinite(e[1]),
+    );
+    return { positions: new Map(valid), stale: valid.length !== raw.length };
   } catch {
-    return new Map();
+    return { positions: new Map(), stale: true };
   }
 }
 
@@ -46,6 +58,14 @@ function save(positions: Positions) {
   } catch {
     // Storage full or blocked (private mode): restoration then works for this page view only.
   }
+}
+
+/** Loads the positions; rewrites storage at once if older-format or corrupt data was dropped, so it
+ * does not linger in the tab until the next pagehide. */
+function loadAndClean(): Positions {
+  const { positions, stale } = load();
+  if (stale) save(positions);
+  return positions;
 }
 
 /** The element a hash points at, or null. `#top` and an empty hash mean the top of the page. */
@@ -60,19 +80,23 @@ export function hashTarget(hash: string): HTMLElement | null {
   return document.getElementById(id);
 }
 
-/** One key per history entry. Entries without router state share "default", so the URL is added. */
-const entryKey = (l: Location) => `${l.key}|${l.pathname}${l.search}${l.hash}`;
+/**
+ * One key per history entry: `location.key` is unique per entry the router created. Entries without
+ * router state (the first page load, a plain `#anchor` link) all have the key "default", so the
+ * pathname is added; the query and hash are deliberately left out (see STORED_KEY).
+ */
+const entryKey = (l: Location) => `${l.key}|${l.pathname}`;
 
 const ScrollToTop = () => {
   const location = useLocation();
   const navigationType = useNavigationType();
   const positions = useRef<Positions | null>(null);
   const current = useRef<string>(entryKey(location));
-  const previousPath = useRef<string | null>(null);
+  const previous = useRef<{ pathname: string; hash: string } | null>(null);
 
   // Take scrolling over from the browser, and record the position of the entry being viewed.
   useEffect(() => {
-    positions.current = load();
+    positions.current ??= loadAndClean();
     const { history } = window;
     const before = history.scrollRestoration;
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -102,18 +126,23 @@ const ScrollToTop = () => {
   // Before paint, so the new page never flashes at the old page's scroll position.
   useIsomorphicLayoutEffect(() => {
     const key = entryKey(location);
-    const samePage = previousPath.current === location.pathname;
-    previousPath.current = location.pathname;
+    const samePage = previous.current?.pathname === location.pathname;
+    const hashChanged = previous.current !== null && previous.current.hash !== location.hash;
+    previous.current = { pathname: location.pathname, hash: location.hash };
     current.current = key;
 
-    if (!positions.current) positions.current = load();
+    positions.current ??= loadAndClean();
     const saved = positions.current.get(key);
     const target = hashTarget(location.hash);
 
     if (navigationType === "POP") {
+      // A plain `#anchor` link (the skip link) is a POP with no router state on the same page. It
+      // shares its key with the page, so its saved position is the page's: never restore that over
+      // the jump the visitor asked for.
+      const anchorJump = location.key === "default" && samePage && hashChanged;
       // Back/Forward, or a reload of this entry: where the visitor was. A first visit to a URL with
-      // a hash, or an in-page anchor (the skip link), goes to its target; otherwise leave it be.
-      if (saved !== undefined) window.scrollTo(0, saved);
+      // a hash, or an in-page anchor, goes to its target; otherwise leave it be.
+      if (saved !== undefined && !anchorJump) window.scrollTo(0, saved);
       else if (target) target.scrollIntoView({ block: "start" });
       return;
     }
