@@ -75,8 +75,11 @@ export const WORK_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Enterprise", 
 /** Insights (STS-040): the home list plus the retired article cards and "enterprise" in any form. */
 export const INSIGHTS_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Read Article", "Digital Transformation", "Enterprise", "enterprise"];
 
-/** Careers (STS-056, GAP-11): the "Apply Now" button that had no action. */
-export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now"];
+/**
+ * Careers (STS-056, GAP-11): the "Apply Now" button that had no action. Design audit B0 (FD-01):
+ * no role is confirmed (C20/C27), so no role link, job type or salary figure may come back either.
+ */
+export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now", "Ask about this role", "Full-time", "$90k", "Salary"];
 
 /**
  * REQ-011 (P0): no built page may contain these, whoever owns it. Matched case-insensitively.
@@ -145,8 +148,15 @@ export function buildRoutes() {
     { path: "/our-work", expectH1: "Our Work", forbidText: WORK_FORBIDDEN_PHRASES },
     // STS-040: no article is published yet, so the page is noindex and out of the sitemap (REQ-018).
     { path: "/insights", expectH1: "Plain-English guides for local business owners", noindex: true, forbidText: INSIGHTS_FORBIDDEN_PHRASES },
-    // STS-056: the dead "Apply Now" button is gone; each role links to /contact instead.
-    { path: "/careers", expectH1: "Join Our Team", forbidText: CAREERS_FORBIDDEN_PHRASES },
+    // STS-056 + design audit B0 (FD-01): no role is confirmed (C20/C27), so the page shows the owner's
+    // fallback sentence and a contact link, and is noindex and out of the sitemap.
+    {
+      path: "/careers",
+      expectH1: "Careers at SarayaTech",
+      noindex: true,
+      expectText: "not hiring for specific roles right now.",
+      forbidText: CAREERS_FORBIDDEN_PHRASES,
+    },
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
     { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
     ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),

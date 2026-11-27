@@ -90,6 +90,9 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
     title: "Careers at SarayaTech Solutions | Columbus, OH",
     description:
       "Join the SarayaTech Solutions team in Columbus, Ohio. See how we work and how to get in touch about working with a digital agency team.",
+    // Design audit B0 (FD-01): no role is confirmed (C20/C27), so the page is the owner's fallback
+    // and stays out of search results and the sitemap until a real role list exists.
+    noindex: true,
   },
   // STS-039: the hub that replaced the retired /solutions index. The retired /solutions/*,
   // /industries and /industry/* paths have no entry: they are 301s now (public/_redirects), and a
