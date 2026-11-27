@@ -14,7 +14,7 @@ import PageHero from "@/components/PageHero";
 import { AUDIT_FORM, AUDIT_HERO, AUDIT_INCLUDES } from "@/content/audit/audit";
 import { chosenLeadSource } from "@/content/forms/lead-source";
 import { trackLead } from "@/lib/analytics";
-import { CONTACT_LIMITS, submitAudit, type AuditPayload } from "@/lib/contact-submit";
+import { CONTACT_LIMITS, submitAudit, type AuditPayload, type ContactResult } from "@/lib/contact-submit";
 
 const container = "container mx-auto px-4 sm:px-6 lg:px-8";
 const E = AUDIT_FORM.errors;
@@ -58,6 +58,15 @@ export function normalizeWebsite(raw: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * What a failed send tells the visitor (FF-14), the same mapping as /contact: a 400's server
+ * message, the rate-limit and connection messages from contact-submit's CONTACT_MESSAGES (one copy
+ * source for both forms). Only an unexpected server failure keeps the audit's own wording.
+ */
+export function auditFailureMessage(result: Extract<ContactResult, { ok: false }>): string {
+  return result.kind === "server" ? AUDIT_FORM.failure : result.message;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -138,8 +147,8 @@ const FreeAudit = () => {
         setDone(true);
         setValues(EMPTY);
       } else {
-        // The server's own message is shown on a 400; anything else gets the generic one.
-        setFailure(result.kind === "validation" ? result.message : AUDIT_FORM.failure);
+        // What the visitor typed stays in the form, so a retry is one click.
+        setFailure(auditFailureMessage(result));
       }
     } finally {
       inFlight.current = false;

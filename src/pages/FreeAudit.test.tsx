@@ -7,6 +7,7 @@ import { getPublicPaths } from "@/routes";
 import FreeAudit, { WEBSITE_MAX, normalizeWebsite, websiteTooLong } from "./FreeAudit";
 import { AUDIT_FORM, AUDIT_HERO } from "@/content/audit/audit";
 import { LEAD_SOURCE_INVALID, LEAD_SOURCES } from "@/content/forms/lead-source";
+import { CONTACT_MESSAGES } from "@/lib/contact-submit";
 import { buildRoutes } from "../../tests/smoke/smoke.mjs";
 
 // STS-034. The static assertions read the HTML the build prerenders (entry-server); the form
@@ -229,6 +230,23 @@ describe("free audit form behaviour", () => {
     const alert = await screen.findByRole("alert");
     await waitFor(() => expect(alert).toHaveTextContent(AUDIT_FORM.failure));
     expect(alert).not.toHaveTextContent("stack trace");
+    expect(screen.getByLabelText(/Your name/)).toHaveValue("Ada Lovelace");
+  });
+
+  // FF-14: the same specific messages as /contact, from the same copy source, input kept.
+  it.each([
+    ["a 429", () => vi.fn().mockResolvedValue(json(429, { success: false })), CONTACT_MESSAGES.rateLimited],
+    ["a network failure", () => vi.fn().mockRejectedValue(new TypeError("Failed to fetch")), CONTACT_MESSAGES.network],
+  ])("shows the specific message on %s and keeps what the visitor typed", async (_case, makeFetch, message) => {
+    vi.stubGlobal("fetch", makeFetch());
+    const user = userEvent.setup();
+    rtl(<FreeAudit />);
+    await fill(user);
+    await user.click(screen.getByRole("button", { name: AUDIT_FORM.submit }));
+    const alert = await screen.findByRole("alert");
+    await waitFor(() => expect(alert).toHaveTextContent(message));
+    expect(alert).not.toHaveTextContent(AUDIT_FORM.failure);
+    expect(alert).not.toHaveTextContent("Failed to fetch");
     expect(screen.getByLabelText(/Your name/)).toHaveValue("Ada Lovelace");
   });
 
