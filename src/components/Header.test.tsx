@@ -269,17 +269,29 @@ describe("Header mobile menu scrim and scroll lock (FD-30, FF-16)", () => {
     expect(screen.getByRole("link", { name: "Contact Us" })).toBeVisible();
   });
 
-  it("a press on the scrim closes the menu and returns focus to the toggle", async () => {
+  it("a click on the scrim closes the menu and returns focus to the toggle", async () => {
     const user = userEvent.setup();
     renderAt("/");
     const toggle = screen.getByRole("button", { name: "Open menu" });
     await user.click(toggle);
     within(document.getElementById("mobile-menu") as HTMLElement).getByRole("link", { name: "Pricing" }).focus();
-    fireEvent.pointerDown(scrim() as HTMLElement);
+    fireEvent.click(scrim() as HTMLElement);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(toggle).toHaveFocus();
     await waitFor(() => expect(scrim()).toBeNull());
     await waitFor(() => expect(document.getElementById("mobile-menu")).toBeNull());
+  });
+
+  it("a real tap on the scrim, which first moves focus to the body, still lands focus on the toggle", async () => {
+    // Found in the browser: the press on the (non-focusable) scrim blurs the toggle to <body>.
+    const user = userEvent.setup();
+    renderAt("/");
+    const toggle = screen.getByRole("button", { name: "Open menu" });
+    await user.click(toggle);
+    expect(toggle).toHaveFocus();
+    await user.click(scrim() as HTMLElement);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
   });
 
   it("locks body scroll while open and restores it on close", async () => {
@@ -293,7 +305,7 @@ describe("Header mobile menu scrim and scroll lock (FD-30, FF-16)", () => {
     expect(document.body.style.overflow).toBe("auto");
     await user.click(toggle);
     expect(document.body.style.overflow).toBe("hidden");
-    fireEvent.pointerDown(scrim() as HTMLElement);
+    fireEvent.click(scrim() as HTMLElement);
     expect(document.body.style.overflow).toBe("auto");
   });
 
@@ -313,7 +325,7 @@ describe("Header mobile menu scrim and scroll lock (FD-30, FF-16)", () => {
     await userEvent.setup().click(toggle);
     expect(document.body.style.paddingRight).toBe("15px");
     expect(header.style.paddingRight).toBe("15px");
-    fireEvent.pointerDown(scrim() as HTMLElement);
+    fireEvent.click(scrim() as HTMLElement);
     expect(document.body.style.paddingRight).toBe("");
     expect(header.style.paddingRight).toBe("");
   });

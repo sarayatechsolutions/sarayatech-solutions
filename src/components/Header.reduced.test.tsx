@@ -33,7 +33,7 @@ describe("Header menu scrim under reduced motion (FD-30, FF-16)", () => {
     // No entrance: never painted at opacity 0 first.
     expect(scrim?.getAttribute("style") ?? "").not.toMatch(/opacity:\s*0(?![.\d])/);
 
-    fireEvent.pointerDown(scrim as HTMLElement);
+    fireEvent.click(scrim as HTMLElement);
     // A zero-length exit: gone within a frame or two, not after the 120 ms fade.
     await waitFor(() => expect(document.querySelector("[data-menu-scrim]")).toBeNull(), { timeout: 90, interval: 5 });
     // The first dynamic import of framer-motion can exceed the 5 s default on a cold machine.

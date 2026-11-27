@@ -337,7 +337,10 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
       </header>
 
       {/* FD-30 / FF-16: the scrim behind the open menu. Below the header (z-40 under z-50), so the bar,
-          its Contact Us CTA and the menu panel stay on top; a press anywhere on it closes the menu.
+          its Contact Us CTA and the menu panel stay on top; a tap or click anywhere on it closes the menu.
+          It closes on click, not on press: the scrim is still the click target when the click lands, so the
+          tap never falls through to a link behind it (it is removed at once under reduced motion), and a
+          browser that moved focus to the body on the press is caught by closeFromScrim.
           Decorative for assistive tech: Escape and the toggle are the keyboard way out. Under reduced
           motion it appears and disappears without a fade. */}
       <AnimatePresence>
@@ -346,7 +349,7 @@ const Header = ({ config = BUSINESS }: { config?: HeaderConfig }) => {
             key="menu-scrim"
             aria-hidden="true"
             data-menu-scrim=""
-            onPointerDown={closeFromScrim}
+            onClick={closeFromScrim}
             className="fixed inset-0 z-40 bg-foreground/40 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: reduceMotion ? { duration: 0 } : ENTER_BASE }}
