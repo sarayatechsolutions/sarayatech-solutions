@@ -23,6 +23,18 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
     expect(screen.queryByRole("list", { name: /social media/ })).toBeNull();
   });
 
+  it("shows the white logo cropped to its mark, with its box reserved and no scale hack (design audit B2)", () => {
+    renderFooter();
+    const logo = screen.getByRole("img", { name: "SarayaTech Solutions home" });
+    expect(logo).toHaveAttribute("width", "300");
+    expect(logo).toHaveAttribute("height", "200");
+    const cls = (logo.getAttribute("class") ?? "").split(/\s+/);
+    expect(cls).toEqual(expect.arrayContaining(["h-14", "w-[152px]", "object-cover", "object-[center_-18px]"]));
+    // No "%" in the markup: /our-work forbids it (unsourced percentage claims, smoke WORK_FORBIDDEN_PHRASES).
+    expect(cls.join(" ")).not.toContain("%");
+    expect(cls.filter((c) => c.startsWith("scale-"))).toEqual([]);
+  });
+
   it('has no href="#" and no empty href', () => {
     const { container } = renderFooter();
     for (const href of hrefs(container)) {
@@ -102,6 +114,66 @@ describe("Footer with the default (unconfirmed) business config (STS-038)", () =
     renderFooter();
     expect(screen.getByRole("navigation", { name: "Services" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Company" })).toBeInTheDocument();
+  });
+});
+
+// Design audit B7: a dark band with a hairline top border, one 12-column grid (brand 5, Services 3,
+// Company 2, Legal 2) so nothing sits in an empty half at 1440, and link rows sized for touch.
+describe("Footer layout and targets (design audit B7)", () => {
+  const span = (el: Element, bp: string) =>
+    (el.getAttribute("class") ?? "").split(/\s+/).find((c) => c.startsWith(`${bp}col-span-`));
+
+  it("sits on the primary-dark token with a top border", () => {
+    const { container } = renderFooter();
+    const footer = container.querySelector("footer") as HTMLElement;
+    const cls = footer.className.split(/\s+/);
+    expect(cls).toEqual(expect.arrayContaining(["bg-primary-dark", "border-t"]));
+    expect(footer.outerHTML).not.toMatch(/\b(?:bg|text)-gray-/);
+  });
+
+  it("puts brand, Services, Company and Legal in one 12-column grid that spans 5 + 3 + 2 + 2", () => {
+    renderFooter();
+    const services = screen.getByRole("navigation", { name: "Services" });
+    const grid = services.parentElement as HTMLElement;
+    expect(grid.className.split(/\s+/)).toContain("lg:grid-cols-12");
+    const columns = [...grid.children];
+    expect(columns).toHaveLength(4);
+    expect(columns.slice(1)).toEqual([
+      services,
+      screen.getByRole("navigation", { name: "Company" }),
+      screen.getByRole("navigation", { name: "Legal" }),
+    ]);
+    expect(columns.map((c) => span(c, "lg:"))).toEqual([
+      "lg:col-span-5",
+      "lg:col-span-3",
+      "lg:col-span-2",
+      "lg:col-span-2",
+    ]);
+  });
+
+  it("gives every text link a 44px row, shrinking only for a fine pointer at md+ (WCAG 2.5.8)", () => {
+    renderFooter(<Footer analyticsId="G-TEST1234" />);
+    const navs = ["Services", "Company", "Legal"].map((name) => screen.getByRole("navigation", { name }));
+    const targets = navs.flatMap((nav) => [...nav.querySelectorAll("a, button")]);
+    expect(targets.length).toBeGreaterThan(5);
+    for (const el of targets) {
+      const cls = (el.getAttribute("class") ?? "").split(/\s+/);
+      expect(cls).toContain("min-h-11");
+      expect(cls.filter((c) => c.startsWith("min-h-") || c.includes(":min-h-"))).toEqual([
+        "min-h-11",
+        "md:[@media(pointer:fine)]:min-h-7",
+      ]);
+    }
+  });
+
+  it("ends with the copyright line alone, under a divider", () => {
+    const { container } = renderFooter();
+    const year = String(new Date().getFullYear());
+    const line = screen.getByText((_, el) => el?.tagName === "P" && (el.textContent ?? "").includes(`© ${year}`));
+    const bar = line.parentElement as HTMLElement;
+    expect(bar.className.split(/\s+/)).toContain("border-t");
+    expect(bar.children).toHaveLength(1);
+    expect(container.innerHTML).not.toContain("%");
   });
 });
 

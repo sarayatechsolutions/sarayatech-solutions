@@ -1,32 +1,25 @@
+import { useEffect, useRef, useState } from "react";
+import { CalendarDays, Clock, Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useRef, useState } from "react";
 import FormPrivacyNote from "@/components/FormPrivacyNote";
 import LeadSourceSelect from "@/components/LeadSourceSelect";
-import LeadReferenceNote from "@/components/LeadReferenceNote";
 import { TrustSlot } from "@/components/FinalCta";
-import { MapPin, Phone, Mail, Clock, CheckCircle2, CalendarDays } from "lucide-react";
+import PageHero from "@/components/PageHero";
+import { FormField, NativeSelect } from "@/components/form/FormField";
+import FormError from "@/components/form/FormError";
+import FormSuccess from "@/components/form/FormSuccess";
 import {
   CONTACT_LIMITS,
   submitContact,
   type ContactPayload,
 } from "@/lib/contact-submit";
 import { chosenLeadSource } from "@/content/forms/lead-source";
+import { contactContext } from "@/content/forms/contact-context";
+import { CONTACT_FORM } from "@/content/forms/contact-form";
 import { trackLead } from "@/lib/analytics";
 import { SERVICE_INTERESTS, SERVICE_INTEREST_UNSURE } from "@/content/forms/service-interest";
 import {
@@ -38,6 +31,7 @@ import {
   hasVerifiedBooking,
   phoneHref,
 } from "@/config/business";
+import { consultationCtaLabel } from "@/content/cta";
 
 /**
  * The business facts this page reads. Production always uses BUSINESS; tests pass a populated
@@ -66,6 +60,32 @@ const EMPTY_FORM: ContactPayload = {
   nickname: "",
 };
 
+/** The same shape check as /free-audit; the backend's stricter one still has the last word. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type RequiredKey = "name" | "email" | "message";
+type Errors = Partial<Record<RequiredKey, string>>;
+const ORDER: RequiredKey[] = ["name", "email", "message"];
+const E = CONTACT_FORM.errors;
+
+/**
+ * Design audit B6: the form is `noValidate`, so the browser's bubbles are replaced by inline errors
+ * in the site's words. The rules are the ones the browser applied before (name, email and message
+ * required; an email address) and the backend applies (blank after trimming is missing). The
+ * payload itself is not changed: it is still exactly what the visitor typed.
+ */
+function validate(v: ContactPayload): Errors {
+  const e: Errors = {};
+  if (!v.name.trim()) e.name = E.name;
+  if (!v.email.trim()) e.email = E.emailRequired;
+  else if (!EMAIL_RE.test(v.email.trim())) e.email = E.emailInvalid;
+  if (!v.message.trim()) e.message = E.message;
+  return e;
+}
+
+const container = "container mx-auto px-4 sm:px-6 lg:px-8";
+const infoText = "text-small text-secondary";
+
 type ContactProps = { config?: ContactConfig };
 
 const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
@@ -81,19 +101,45 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
   // STS-054: the optional lead source; "" means not chosen, and then no `source` is sent.
   const [source, setSource] = useState("");
   const [loading, setLoading] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
   const [errorMessage, setErrorMessage] = useState("");
+  // Design audit B6 / FF-1: a sent form is replaced by the success panel.
+  const [done, setDone] = useState(false);
   // STS-084: the backend's lead reference, already checked by contact-submit; null when absent.
   const [reference, setReference] = useState<string | null>(null);
   // A ref, not state: it blocks a second submit even before React re-renders.
   const inFlight = useRef(false);
 
+  // FF-10: a CTA from a service page or a pricing card says what was asked for. Read after the
+  // first render (the prerendered HTML has no query string, so hydration matches) and only
+  // through the allow-list in contact-context.ts; an unknown value changes nothing.
+  useEffect(() => {
+    const ctx = contactContext(window.location.search);
+    if (!ctx.service && !ctx.message) return;
+    setFormData((p) => ({
+      ...p,
+      ...(ctx.service ? { service: ctx.service } : {}),
+      ...(ctx.message && !p.message ? { message: ctx.message } : {}),
+    }));
+  }, []);
+
+  const set = (k: keyof ContactPayload) => (e: { target: { value: string } }) =>
+    setFormData((p) => ({ ...p, [k]: e.target.value }));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inFlight.current) return;
+    setErrorMessage("");
+    const found = validate(formData);
+    setErrors(found);
+    const first = ORDER.find((k) => found[k]);
+    if (first) {
+      // The field has a header-aware scroll margin, so it lands below the fixed header.
+      document.getElementById(`contact-${first}`)?.focus();
+      return;
+    }
     inFlight.current = true;
     setLoading(true);
-    setErrorMessage("");
 
     try {
       const result = await submitContact({ ...formData, ...chosenLeadSource(source) });
@@ -104,7 +150,7 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
         // The reference is shown to the visitor only; it is never sent to analytics.
         trackLead("contact", source);
         setReference(result.reference ?? null);
-        setModalOpen(true);
+        setDone(true);
         setFormData(EMPTY_FORM);
         setSource("");
       }
@@ -114,33 +160,27 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
     }
   };
 
+  const hasErrors = Object.keys(errors).length > 0;
+
   return (
     <div className="min-h-screen">
       <div>
-        {/* Hero Section */}
-        <section className="pt-32 pb-20 gradient-primary text-primary-foreground">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center space-y-6 animate-fade-in-up">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">
-                Let's talk about your business
-              </h1>
-              <p className="text-xl md:text-2xl text-primary-foreground/90 leading-relaxed">
-                Tell us what you're working on and what you need help with.{" "}
-                {REPLY_COPY}
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* Design audit B4: the shared hero, start-aligned, no entrance animation. */}
+        <PageHero
+          id="contact-heading"
+          title="Let's talk about your business"
+          intro={<>Tell us what you're working on and what you need help with. {REPLY_COPY}</>}
+        />
 
         {/* Contact Form & Info */}
-        <section className="py-24 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-3 gap-12">
+        <section className="section bg-background">
+          <div className={container}>
+            <div className="grid gap-10 lg:grid-cols-3 lg:gap-12">
               {/* Contact Information: every block below renders only from confirmed config. */}
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-6">Get in Touch</h2>
-                  <p className="text-secondary leading-relaxed">
+                  <h2 className="text-h3 text-foreground mb-4">Get in Touch</h2>
+                  <p className="text-secondary leading-relaxed max-w-measure">
                     {booking
                       ? "Send us a message using the form, or book a free consultation at a time that suits you."
                       : "Send us a message using the form and tell us a little about your business."}
@@ -149,43 +189,33 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
 
                 {/* C15: shown only once the owner confirms the booking link; otherwise the form is the primary action. */}
                 {booking && (
-                  <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <CalendarDays className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
-                      </div>
+                  <Card padding="compact">
+                    <div className="flex items-start gap-4">
+                      <IconTile icon={CalendarDays} />
                       <div className="min-w-0">
-                        <h3 className="font-semibold mb-1">Prefer to talk?</h3>
-                        <p className="text-secondary text-sm mb-4">
-                          Pick a time for a free consultation.
-                        </p>
+                        <h3 className="font-semibold text-foreground mb-1">Prefer to talk?</h3>
+                        <p className={`${infoText} mb-4`}>Pick a time for a free consultation.</p>
                       </div>
                     </div>
-                    <Button
-                      asChild
-                      size="lg"
-                      className="w-full bg-accent hover:bg-accent-light"
-                    >
+                    <Button asChild variant="primary" size="lg" className="w-full">
                       <a href={booking} target="_blank" rel="noopener noreferrer">
-                        Book a Free Consultation
+                        {consultationCtaLabel(config)}
                         <span className="sr-only"> (opens in a new tab)</span>
                       </a>
                     </Button>
-                  </div>
+                  </Card>
                 )}
 
                 <div className="space-y-6">
                   {/* C4: the street address when confirmed, otherwise the service-area fallback. */}
-                  <div className="flex items-start space-x-4">
-                    <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
-                    </div>
+                  <div className="flex items-start gap-4">
+                    <IconTile icon={MapPin} />
                     <div className="min-w-0">
-                      <div className="font-semibold mb-1">
+                      <div className="font-semibold text-foreground mb-1">
                         {address ? "Office" : "Service area"}
                       </div>
                       {address ? (
-                        <address className="text-secondary text-sm not-italic">
+                        <address className={`${infoText} not-italic`}>
                           {address.lines.map((line, i) => (
                             <span key={line}>
                               {i > 0 && <br />}
@@ -194,21 +224,17 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                           ))}
                         </address>
                       ) : (
-                        <div className="text-secondary text-sm">
-                          {config.serviceAreaText}
-                        </div>
+                        <div className={infoText}>{config.serviceAreaText}</div>
                       )}
                     </div>
                   </div>
 
                   {phone && (
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <Phone className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
-                      </div>
+                    <div className="flex items-start gap-4">
+                      <IconTile icon={Phone} />
                       <div className="min-w-0">
-                        <div className="font-semibold mb-1">Phone</div>
-                        <div className="text-secondary text-sm">
+                        <div className="font-semibold text-foreground">Phone</div>
+                        <div className={infoText}>
                           <a
                             href={phone}
                             className="inline-flex min-h-[44px] items-center underline-offset-4 hover:underline"
@@ -221,13 +247,11 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                   )}
 
                   {email && (
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <Mail className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
-                      </div>
+                    <div className="flex items-start gap-4">
+                      <IconTile icon={Mail} />
                       <div className="min-w-0">
-                        <div className="font-semibold mb-1">Email</div>
-                        <div className="text-secondary text-sm">
+                        <div className="font-semibold text-foreground">Email</div>
+                        <div className={infoText}>
                           <a
                             href={email}
                             className="inline-flex min-h-[44px] items-center break-all underline-offset-4 hover:underline"
@@ -240,13 +264,11 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                   )}
 
                   {hours && (
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                        <Clock className="w-6 h-6 text-primary-foreground" aria-hidden="true" />
-                      </div>
+                    <div className="flex items-start gap-4">
+                      <IconTile icon={Clock} />
                       <div className="min-w-0">
-                        <div className="font-semibold mb-1">Business Hours</div>
-                        <div className="text-secondary text-sm">
+                        <div className="font-semibold text-foreground mb-1">Business Hours</div>
+                        <div className={infoText}>
                           {hours.map((line, i) => (
                             <span key={line}>
                               {i > 0 && <br />}
@@ -259,201 +281,177 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
                   )}
                 </div>
               </div>
-              {/* Contact Form */}
-              <div className="lg:col-span-2">
-                <div className="bg-card rounded-2xl p-8 shadow-elegant border border-border">
-                  <h2 id="contact-form-heading" className="text-2xl font-bold mb-2">Send us a Message</h2>
-                  {/* STS-041: the asterisk is explained in text; it is hidden from screen readers, which get
-                      "required" from the field itself. */}
-                  <p id="contact-required-note" className="text-sm text-secondary mb-6">Fields marked with * are required.</p>
 
-                  <form
-                    onSubmit={handleSubmit}
-                    className="space-y-6"
-                    aria-busy={loading}
-                    aria-labelledby="contact-form-heading"
-                    aria-describedby="contact-required-note"
-                  >
-                    {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
-                    <div
-                      aria-hidden="true"
-                      style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
-                    >
-                      <label htmlFor="contact-nickname">Nickname</label>
-                      <input
-                        id="contact-nickname"
-                        name="nickname"
-                        type="text"
-                        tabIndex={-1}
-                        autoComplete="off"
-                        value={formData.nickname}
-                        onChange={(e) =>
-                          setFormData({ ...formData, nickname: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="contact-name" className="block text-sm font-medium mb-2">
-                          Full Name <span aria-hidden="true">*</span>
-                        </label>
-                        <Input
-                          id="contact-name"
-                          name="name"
-                          autoComplete="name"
-                          maxLength={CONTACT_LIMITS.name}
-                          required
-                          value={formData.name}
-                          onChange={(e) =>
-                            setFormData({ ...formData, name: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="contact-email" className="block text-sm font-medium mb-2">
-                          Email <span aria-hidden="true">*</span>
-                        </label>
-                        <Input
-                          id="contact-email"
-                          name="email"
-                          autoComplete="email"
-                          maxLength={CONTACT_LIMITS.email}
-                          type="email"
-                          required
-                          value={formData.email}
-                          onChange={(e) =>
-                            setFormData({ ...formData, email: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="contact-phone" className="block text-sm font-medium mb-2">
-                          Phone Number
-                        </label>
-                        <Input
-                          id="contact-phone"
-                          name="phone"
-                          autoComplete="tel"
-                          maxLength={CONTACT_LIMITS.phone}
-                          type="tel"
-                          placeholder="Your phone number"
-                          value={formData.phone}
-                          onChange={(e) =>
-                            setFormData({ ...formData, phone: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="contact-company" className="block text-sm font-medium mb-2">
-                          Company
-                        </label>
-                        <Input
-                          id="contact-company"
-                          name="company"
-                          autoComplete="organization"
-                          maxLength={CONTACT_LIMITS.company}
-                          placeholder="Your company name"
-                          value={formData.company}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              company: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="contact-service" className="block text-sm font-medium mb-2">
-                        Service Interest <span aria-hidden="true">*</span>
-                      </label>
-                      <Select
-                        required
-                        value={formData.service}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, service: value })
-                        }
-                      >
-                        <SelectTrigger id="contact-service">
-                          <SelectValue placeholder="Select a service" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SERVICE_INTERESTS.map((option) => (
-                            <SelectItem key={option} value={option}>
-                              {option}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <LeadSourceSelect id="contact-source" value={source} onChange={(e) => setSource(e.target.value)} />
-
-                    <div>
-                      <label htmlFor="contact-message" className="block text-sm font-medium mb-2">
-                        Message <span aria-hidden="true">*</span>
-                      </label>
-                      <Textarea
-                        id="contact-message"
-                        name="message"
-                        maxLength={CONTACT_LIMITS.message}
-                        placeholder="Tell us about your project and how we can help..."
-                        rows={6}
-                        required
-                        value={formData.message}
-                        onChange={(e) =>
-                          setFormData({ ...formData, message: e.target.value })
-                        }
-                      />
-                    </div>
-
-                    {/* Always mounted so screen readers announce the error when it appears. */}
-                    <div aria-live="assertive" aria-atomic="true">
-                      {errorMessage && (
-                        <div
-                          id="contact-form-error"
-                          role="alert"
-                          className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800"
-                        >
-                          <p>{errorMessage}</p>
-                          {booking && (
-                            <p className="mt-1">
-                              You can also{" "}
-                              <a
-                                href={booking}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-semibold underline"
-                              >
-                                book a call
-                                <span className="sr-only"> (opens in a new tab)</span>
-                              </a>
-                              .
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full bg-accent hover:bg-accent-light shadow-card"
-                      disabled={loading}
-                    >
-                      {loading ? "Sending..." : "Send Message"}
-                    </Button>
-
-                    {/* REQ-173: replaces "Your information will never be shared.", which /privacy contradicts. */}
-                    <FormPrivacyNote className="text-center" />
-                  </form>
+              {/* Contact Form. FF-1: the status region is always mounted, so the success panel that
+                  replaces the form is announced; the panel takes focus itself. */}
+              <section
+                className="lg:col-span-2"
+                aria-labelledby={done ? "contact-success-heading" : "contact-form-heading"}
+              >
+                <div role="status">
+                  {done && (
+                    <FormSuccess
+                      headingId="contact-success-heading"
+                      heading={CONTACT_FORM.success.heading}
+                      body={`${CONTACT_FORM.success.body} ${REPLY_COPY}`}
+                      reference={reference}
+                      textAttrs={{ "data-contact-success": "" }}
+                    />
+                  )}
                 </div>
-              </div>
+
+                {!done && (
+                  <Card>
+                    <h2 id="contact-form-heading" className="text-h3 text-foreground mb-2">Send us a Message</h2>
+                    {/* STS-041: the asterisk is explained in text; it is hidden from screen readers, which get
+                        "required" from the field itself. */}
+                    <p id="contact-required-note" className="text-small text-secondary mb-6">Fields marked with * are required.</p>
+
+                    <form
+                      onSubmit={handleSubmit}
+                      noValidate
+                      className="space-y-6"
+                      aria-busy={loading}
+                      aria-labelledby="contact-form-heading"
+                      aria-describedby="contact-required-note"
+                    >
+                      {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
+                      <div
+                        aria-hidden="true"
+                        style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
+                      >
+                        <label htmlFor="contact-nickname">Nickname</label>
+                        <input
+                          id="contact-nickname"
+                          name="nickname"
+                          type="text"
+                          tabIndex={-1}
+                          autoComplete="off"
+                          value={formData.nickname}
+                          onChange={set("nickname")}
+                        />
+                      </div>
+
+                      <div className="grid gap-6 md:grid-cols-2">
+                        <FormField id="contact-name" label="Full Name" required error={errors.name}>
+                          {(a11y) => (
+                            <Input
+                              {...a11y}
+                              name="name"
+                              autoComplete="name"
+                              maxLength={CONTACT_LIMITS.name}
+                              required
+                              value={formData.name}
+                              onChange={set("name")}
+                            />
+                          )}
+                        </FormField>
+                        <FormField id="contact-email" label="Email" required error={errors.email}>
+                          {(a11y) => (
+                            <Input
+                              {...a11y}
+                              name="email"
+                              autoComplete="email"
+                              maxLength={CONTACT_LIMITS.email}
+                              type="email"
+                              required
+                              value={formData.email}
+                              onChange={set("email")}
+                            />
+                          )}
+                        </FormField>
+                      </div>
+
+                      <div className="grid gap-6 md:grid-cols-2">
+                        <FormField id="contact-phone" label="Phone Number">
+                          {(a11y) => (
+                            <Input
+                              {...a11y}
+                              name="phone"
+                              autoComplete="tel"
+                              maxLength={CONTACT_LIMITS.phone}
+                              type="tel"
+                              value={formData.phone}
+                              onChange={set("phone")}
+                            />
+                          )}
+                        </FormField>
+                        <FormField id="contact-company" label="Company">
+                          {(a11y) => (
+                            <Input
+                              {...a11y}
+                              name="company"
+                              autoComplete="organization"
+                              maxLength={CONTACT_LIMITS.company}
+                              value={formData.company}
+                              onChange={set("company")}
+                            />
+                          )}
+                        </FormField>
+                      </div>
+
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {/* Design audit B6: a native select (was Radix), 48 px like the inputs. */}
+                        <FormField id="contact-service" label="Service Interest" required>
+                          {(a11y) => (
+                            <NativeSelect {...a11y} name="service" required value={formData.service} onChange={set("service")}>
+                              {SERVICE_INTERESTS.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </NativeSelect>
+                          )}
+                        </FormField>
+
+                        <LeadSourceSelect id="contact-source" value={source} onChange={(e) => setSource(e.target.value)} />
+                      </div>
+
+                      <FormField id="contact-message" label="Message" required error={errors.message}>
+                        {(a11y) => (
+                          <Textarea
+                            {...a11y}
+                            name="message"
+                            maxLength={CONTACT_LIMITS.message}
+                            rows={6}
+                            required
+                            value={formData.message}
+                            onChange={set("message")}
+                          />
+                        )}
+                      </FormField>
+
+                      {/* FF-1: next to the submit button, announced, and focused when it appears. */}
+                      <FormError id="contact-form-error" message={errorMessage} summary={hasErrors ? E.summary : undefined}>
+                        {booking && (
+                          <p>
+                            You can also{" "}
+                            <a
+                              href={booking}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold text-primary underline underline-offset-2"
+                            >
+                              book a call
+                              <span className="sr-only"> (opens in a new tab)</span>
+                            </a>
+                            .
+                          </p>
+                        )}
+                      </FormError>
+
+                      <div className="space-y-4">
+                        <Button type="submit" variant="primary" size="xl" className="w-full sm:w-auto" loading={loading}>
+                          Send Message
+                        </Button>
+
+                        {/* REQ-173: replaces "Your information will never be shared.", which /privacy contradicts. */}
+                        <FormPrivacyNote />
+                      </div>
+                    </form>
+                  </Card>
+                )}
+              </section>
             </div>
           </div>
         </section>
@@ -474,46 +472,12 @@ const Contact = ({ config = DEFAULT_CONFIG }: ContactProps) => {
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
           </section>
-          )}
+        )}
       </div>
 
-      {/* Success Modal (errors are shown inline, next to the form) */}
       {/* STS-046: this page is the conversion step, so the closing block is the trust slot only.
           The service area is already listed in the contact details above, so it is not repeated. */}
       <TrustSlot id="contact" standalone omit={["service-area"]} />
-
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="mx-auto mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-green-600" aria-hidden="true" />
-              </div>
-            </div>
-            <DialogTitle className="text-center text-2xl">
-              Message Sent Successfully!
-            </DialogTitle>
-            <DialogDescription className="text-center text-base pt-2">
-              Thank you for contacting us! We've received your message. {REPLY_COPY}
-              {/* STS-084: inside the description, so the dialog announces it on open. */}
-              {reference && (
-                <>
-                  {" "}
-                  <LeadReferenceNote as="span" reference={reference} className="mt-2 block" />
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-center mt-4">
-            <Button
-              onClick={() => setModalOpen(false)}
-              className="min-h-11 h-auto w-full sm:w-auto bg-accent hover:bg-accent-light"
-            >
-              Great, Thanks!
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

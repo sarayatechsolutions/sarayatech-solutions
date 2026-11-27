@@ -1,3 +1,11 @@
+/**
+ * RETIRED (design audit B9 / FD-36). DO NOT IMPORT.
+ * This component holds retired enterprise copy and generic imagery.
+ * It is not true of SarayaTech and must never be shown on the site. No page renders it; the
+ * file is kept only because front-end code files are never deleted (owner rule).
+ * Guarded by src/content/retiredComponents.test.tsx (import graph and server render) and by
+ * RETIRED_FAKE_CONTENT_PHRASES in tests/smoke/smoke.mjs (built HTML).
+ */
 import { responsiveImage } from "@/lib/responsiveImage";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Cloud, Database, Cpu, Globe, Server, Shield, Zap, Lightbulb, Bot, LucideIcon } from "lucide-react";
@@ -109,7 +117,7 @@ const SolutionsShowcase = () => {
                     <Link to={solution.link}>
                       <Button className="bg-primary hover:bg-primary-light shadow-card group mt-4">
                         Learn More
-                        <ArrowRight className="ml-2 group-hover:translate-x-1 transition-smooth" />
+                        <ArrowRight className="ml-2 motion-safe:group-hover:translate-x-0.5 transition-transform duration-fast ease-standard" />
                       </Button>
                     </Link>
                   </motion.div>
@@ -126,7 +134,7 @@ const SolutionsShowcase = () => {
                   viewport={{ once: true }}
                 >
                   <motion.div
-                    className="relative rounded-2xl overflow-hidden shadow-elegant border border-border hover-lift"
+                    className="relative rounded-2xl overflow-hidden shadow-md border border-border transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5"
                     whileHover={{ y: -8 }}
                   >
                     <img

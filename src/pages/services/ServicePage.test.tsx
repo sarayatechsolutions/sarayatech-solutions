@@ -6,6 +6,8 @@ import { bookingHref } from "@/config/business";
 import { SERVICES } from "@/components/home/content";
 import { SERVICE_PAGES, servicePath, serviceProjects, type ServiceSlug } from "@/content/services/services";
 import { SERVICE_ROUTES } from "../../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
+import { contactHrefFor } from "@/content/forms/contact-context";
 
 // STS-032. Each page is rendered exactly as the build prerenders it (entry-server), then read as
 // a document, so these assertions hold for the HTML a crawler or a no-JS visitor gets.
@@ -73,12 +75,14 @@ describe.each(SERVICE_PAGES)("service page /services/$slug (STS-032)", (page) =>
   it("sends every internal link to an existing route", () => {
     const internal = [...main.querySelectorAll("a")].map((a) => a.getAttribute("href") ?? "").filter((h) => h.startsWith("/"));
     expect(internal.length).toBeGreaterThan(0);
-    for (const href of internal) expect(routed, `link ${href}`).toContain(href);
+    // FF-10 (design audit B6): the consultation link may carry `?service=<slug>`; the route is the path.
+    for (const href of internal) expect(routed, `link ${href}`).toContain(href.split(/[?#]/)[0]);
   });
 
   it("books through the business config and sends the free-audit CTA to an existing route", () => {
     const byText = (label: string) => [...main.querySelectorAll("a")].find((a) => text(a) === label);
-    expect(byText("Book a Free Consultation")?.getAttribute("href")).toBe(bookingHref());
+    // FF-10 (design audit B6): the consultation CTA names this service, so the form preselects it.
+    expect(byText(CONSULTATION_CTA_LABEL)?.getAttribute("href")).toBe(contactHrefFor({ service: page.slug }, bookingHref()));
     expect(main.querySelector('a[href*="calendly"]')).toBeNull();
     expect(byText("Get My Free Audit")?.getAttribute("href")).toBe("/free-audit");
   });
@@ -104,6 +108,14 @@ describe.each(SERVICE_PAGES)("service page /services/$slug (STS-032)", (page) =>
     expect(levels[0]).toBe(1);
     levels.slice(1).forEach((l, i) => expect(l - levels[i]).toBeLessThanOrEqual(1));
     for (const a of main.querySelectorAll("a")) expect(a.getAttribute("aria-label") || text(a)).not.toBe("");
+  });
+
+  it("gives the standalone 'See all our work' link a 44 px touch target", () => {
+    const proof = main.querySelector("[data-service-proof-link]");
+    if (!page.sections.some((s) => s.kind === "projects")) return expect(proof).toBeNull();
+    expect(text(proof)).toBe("See all our work");
+    const classes = (proof?.className ?? "").split(/\s+/);
+    for (const cls of ["inline-flex", "items-center", "min-h-11"]) expect(classes).toContain(cls);
   });
 
   it("renders no image, so no stock photo can read as team or client (REQ-015)", () => {

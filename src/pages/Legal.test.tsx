@@ -57,6 +57,19 @@ describe.each(PAGES)("$path, prerendered (REQ-046)", ({ path, h1, doc }) => {
     expect(article.querySelector("h1")?.nextElementSibling).toBe(note);
   });
 
+  it("styles the draft notice with the warning tokens, not raw palette colours (design review)", () => {
+    const classes = (article.querySelector("[data-legal-draft]")?.getAttribute("class") ?? "").split(/\s+/);
+    expect(classes).toEqual(expect.arrayContaining(["text-warning", "bg-warning-surface", "border-warning-border"]));
+    expect(classes.some((c) => /amber|yellow|orange/.test(c))).toBe(false);
+  });
+
+  it("caps the intro and every section body at the reading measure (design review)", () => {
+    expect((article.querySelector("[data-legal-intro]")?.getAttribute("class") ?? "").split(/\s+/)).toContain("max-w-measure");
+    const bodies = [...article.querySelectorAll("section > h2 + div")];
+    expect(bodies.length).toBeGreaterThan(0);
+    for (const body of bodies) expect((body.getAttribute("class") ?? "").split(/\s+/)).toContain("max-w-measure");
+  });
+
   it("carries a robots noindex meta and no canonical", () => {
     const seo = getSeo(path);
     expect(seo.noindex).toBe(true);

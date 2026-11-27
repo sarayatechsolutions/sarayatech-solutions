@@ -107,3 +107,9 @@ export function proofItems(config?: ReviewsCfg, projects: string[] = launchedPro
  * action and gets the trust slot only, so the page does not end with two CTA bands.
  */
 export const TRUST_ONLY_PATHS = ["/contact", "/free-audit", "/careers"] as const;
+
+/**
+ * Design audit B7: the legal drafts end with the document, with no closing block at all (no sales
+ * call to action under a policy). Kept in step with NO_CLOSING_ROUTES in tests/smoke/smoke.mjs.
+ */
+export const NO_CLOSING_BLOCK_PATHS = ["/privacy", "/terms"] as const;

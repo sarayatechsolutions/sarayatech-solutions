@@ -1,3 +1,11 @@
+/**
+ * RETIRED (design audit B9 / FD-36). DO NOT IMPORT.
+ * This component holds unsupported trust claims ("Why Businesses Trust Us", "Trusted Partner").
+ * It is not true of SarayaTech and must never be shown on the site. No page renders it; the
+ * file is kept only because front-end code files are never deleted (owner rule).
+ * Guarded by src/content/retiredComponents.test.tsx (import graph and server render) and by
+ * RETIRED_FAKE_CONTENT_PHRASES in tests/smoke/smoke.mjs (built HTML).
+ */
 import { Users, Target, Code, Award } from "lucide-react";
 import { motion } from "@/components/motion";
 import {
@@ -66,7 +74,7 @@ const ValueProposition = () => {
               <motion.div
                 key={value.title}
                 variants={staggerItemVariants}
-                className="group relative bg-card rounded-2xl p-8 shadow-card border border-border hover-lift"
+                className="group relative bg-card rounded-2xl p-8 shadow-sm border border-border transition-[transform,box-shadow] duration-base ease-standard hover:shadow-md motion-safe:hover:-translate-y-0.5"
                 whileHover={{
                   y: -8,
                   boxShadow: "0 10px 40px -10px rgba(220, 70%, 25%, 0.25)",
@@ -82,7 +90,7 @@ const ValueProposition = () => {
                 </motion.div>
 
                 {/* Content */}
-                <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-smooth">
+                <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors duration-fast ease-standard">
                   {value.title}
                 </h3>
                 <p className="text-secondary leading-relaxed">

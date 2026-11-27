@@ -15,3 +15,9 @@ export function responsiveImage(path: string, sizes: string) {
   const srcSet = e.variants.length > 1 ? e.variants.map((v) => `${v.src} ${v.w}w`).join(", ") : undefined;
   return { src: path, srcSet, sizes: srcSet ? sizes : undefined, width: e.width, height: e.height };
 }
+
+/**
+ * `fetchpriority="high"` for the one LCP image of a page (FF-12). React 18 does not know the
+ * camel-case `fetchPriority` prop and warns, so the lowercase HTML attribute is spread as is.
+ */
+export const HIGH_FETCH_PRIORITY = { fetchpriority: "high" } as Record<string, string>;

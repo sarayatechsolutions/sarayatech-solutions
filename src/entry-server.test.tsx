@@ -31,8 +31,9 @@ describe("prerender entry (STS-020)", () => {
 
   it("renders the 404 page for a path that matches no route", () => {
     const html = render(NOT_FOUND_PATH);
-    expect(h1Of(html)).toBe("404");
-    expect(html).toContain("Page not found");
+    // Design audit B7 (section 5 copy): the h1 was "404" and the text "Oops! Page not found".
+    expect(h1Of(html)).toBe("We can&#x27;t find that page"); // h1Of reads raw HTML: React escapes the apostrophe
+    expect(html).toContain("Error 404");
   });
 
   it("does not render the client-only chatbot into the HTML", () => {

@@ -1,3 +1,11 @@
+/**
+ * RETIRED (design audit B9 / FD-36). DO NOT IMPORT.
+ * This component holds invented client testimonials: made-up names, companies and results.
+ * It is not true of SarayaTech and must never be shown on the site. No page renders it; the
+ * file is kept only because front-end code files are never deleted (owner rule).
+ * Guarded by src/content/retiredComponents.test.tsx (import graph and server render) and by
+ * RETIRED_FAKE_CONTENT_PHRASES in tests/smoke/smoke.mjs (built HTML).
+ */
 import { Quote } from "lucide-react";
 
 const TestimonialsSection = () => {
@@ -28,7 +36,7 @@ const TestimonialsSection = () => {
   return (
     <section className="py-24 bg-background">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16 animate-fade-in-up">
+        <div className="text-center max-w-3xl mx-auto mb-16 animate-reveal">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Trusted by Industry Leaders
           </h2>

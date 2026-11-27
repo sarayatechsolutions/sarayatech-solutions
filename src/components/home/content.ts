@@ -21,6 +21,7 @@
  */
 
 import { WORK_PATH } from "@/content/work/work";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 /** Service pages (STS-032). Literal paths: content/services imports this module for PROOF. */
 const SERVICE_PAGE_PATH = {
@@ -47,8 +48,22 @@ export const HERO = {
   headline: "We build your website. Then we bring you customers.",
   subheadline:
     "SarayaTech is a Columbus web design and marketing team for local and small businesses. One partner for your website, app, Google presence and social media, with results you can see every month.",
-  primaryCta: "Book a Free Consultation",
+  primaryCta: CONSULTATION_CTA_LABEL,
   secondaryCta: "See Our Work",
+} as const;
+
+/**
+ * Hero frames (design audit B4, FD-05): real shipped work already on the Our Work page, shown at
+ * lg and up. Not MIMAP (its screenshot shows a stock person and a design-tool toolbar, REQ-015 and
+ * FD-35) and not iSaraya (ownership open, C11). Each frame links to Our Work, so the alt text names
+ * the image and says it is one of our projects.
+ */
+export const HERO_FRAMES = {
+  label: "Two of our recent projects",
+  frames: [
+    { company: "ASTA", alt: "Screenshot of the ASTA website, one of our projects" },
+    { company: "BMV INSPECTION", alt: "Screens from the BMV INSPECTION booking app, one of our projects" },
+  ],
 } as const;
 
 export const PROBLEM = {
@@ -126,18 +141,21 @@ export const SERVICES: { heading: string; pillars: Pillar[] } = {
   ],
 };
 
-/** Four steps, in the source order (REQ-059). Steps 1 and 2 drop the I-12 promises. */
+/**
+ * Four steps, in the source order (REQ-059). Steps 1 and 2 drop the I-12 promises. Step titles
+ * carry no trailing period (design audit section 3.4, Steps).
+ */
 export const HOW_IT_WORKS = {
   heading: "How it works",
   steps: [
     {
-      title: "Free consultation.",
+      title: "Free consultation",
       copy: "We review your website, Google profile and competitors with you on a call.",
     },
-    { title: "Clear plan and price.", copy: "You get a written plan with a clear price." },
-    { title: "We build and launch.", copy: "Your site or app goes live, set up to rank and convert." },
+    { title: "Clear plan and price", copy: "You get a written plan with a clear price." },
+    { title: "We build and launch", copy: "Your site or app goes live, set up to rank and convert." },
     {
-      title: "We grow it every month.",
+      title: "We grow it every month",
       copy: "Marketing, updates and a simple report showing calls, leads and traffic.",
     },
   ],
@@ -193,6 +211,8 @@ export const PACKAGES = {
 /** Final call to action (REQ-063). "30-minute" is left out until confirmed (I-12). */
 export const FINAL_CTA = {
   heading: "Ready for more customers?",
-  copy: "Book a free consultation. We'll review your website and Google profile and show you three quick wins, whether you hire us or not.",
+  // Design audit B7 (FD-27, section 5): one offer per block, so the copy describes the primary
+  // button (the free audit), not the consultation beside it.
+  copy: "Get a free audit. We'll review your website and Google profile and show you three quick wins, whether you hire us or not.",
   button: "Get My Free Audit",
 } as const;

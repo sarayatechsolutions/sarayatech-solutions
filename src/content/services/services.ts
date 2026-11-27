@@ -26,6 +26,7 @@
  */
 import realisations from "../../../data/realisations.json";
 import { PROOF } from "@/components/home/content";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 export type ServiceSlug = "website-design" | "app-development" | "local-seo" | "social-media-marketing" | "paid-ads";
 
@@ -58,7 +59,7 @@ export const servicePath = (slug: ServiceSlug) => `${SERVICES_BASE_PATH}/${slug}
 
 /** Labels shared by every service page. */
 export const SERVICE_PAGE_LABELS = {
-  primaryCta: "Book a Free Consultation",
+  primaryCta: CONSULTATION_CTA_LABEL,
   otherServicesHeading: "Other services",
   visitLabel: PROOF.visitLabel,
   opensInNewTab: "(opens in a new tab)",

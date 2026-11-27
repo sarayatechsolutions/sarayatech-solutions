@@ -59,7 +59,7 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
     // STS-033: the h1 is "Packages & Pricing"; the title adds the place and the brand (<=60 chars).
     title: "Website & Marketing Packages in Columbus | SarayaTech",
     description:
-      "Three packages for Columbus small businesses, from a 5-page site to full local marketing, plus custom apps. Book a free consultation for a clear, written quote.",
+      "Three packages for Columbus small businesses, from a 5-page site to full local marketing, plus custom apps. Request a free consultation for a written quote.",
   },
   "/contact": {
     title: "Contact SarayaTech Solutions | Columbus, Ohio",
@@ -90,6 +90,9 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
     title: "Careers at SarayaTech Solutions | Columbus, OH",
     description:
       "Join the SarayaTech Solutions team in Columbus, Ohio. See how we work and how to get in touch about working with a digital agency team.",
+    // Design audit B0 (FD-01): no role is confirmed (C20/C27), so the page is the owner's fallback
+    // and stays out of search results and the sitemap until a real role list exists.
+    noindex: true,
   },
   // STS-039: the hub that replaced the retired /solutions index. The retired /solutions/*,
   // /industries and /industry/* paths have no entry: they are 301s now (public/_redirects), and a
@@ -119,7 +122,7 @@ const STATIC_SEO: Record<string, { title: string; description: string; noindex?:
   "/services/social-media-marketing": {
     title: "Social Media Marketing in Columbus, OH | SarayaTech",
     description:
-      "Social media for Columbus small businesses, planned, posted and reported every month. You always own your accounts. Book a free consultation to start.",
+      "Social media for Columbus small businesses, planned, posted and reported every month. You always own your accounts. Request a free consultation to start.",
   },
   "/services/paid-ads": {
     title: "Google & Meta Ads Management in Columbus, OH | SarayaTech",

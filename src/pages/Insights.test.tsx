@@ -5,6 +5,7 @@ import { getSeo, buildSitemapXml, renderHeadTags } from "@/seo/seo";
 import { getPublicPaths } from "@/routes";
 import { ARTICLES, INSIGHTS_HERO } from "@/content/insights/insights";
 import { INSIGHTS_FORBIDDEN_PHRASES, buildRoutes, checkNoindexHead } from "../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-040. /insights is rendered exactly as the build prerenders it (entry-server), then read as a document.
 const html = render("/insights");
@@ -39,7 +40,7 @@ describe("Insights page (STS-040, REQ-018, REQ-031)", () => {
   });
 
   it("sends its one call to action to bookingHref()", () => {
-    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a).startsWith("Book a Free Consultation"));
+    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a).startsWith(CONSULTATION_CTA_LABEL));
     expect(ctas).toHaveLength(1);
     expect(ctas[0].getAttribute("href")).toBe(bookingHref());
   });

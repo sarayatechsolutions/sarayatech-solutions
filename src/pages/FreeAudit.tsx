@@ -1,19 +1,22 @@
 import { useRef, useState, type FormEvent } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import FormPrivacyNote from "@/components/FormPrivacyNote";
 import LeadSourceSelect from "@/components/LeadSourceSelect";
-import LeadReferenceNote from "@/components/LeadReferenceNote";
+import { FormField } from "@/components/form/FormField";
+import FormError from "@/components/form/FormError";
+import FormSuccess from "@/components/form/FormSuccess";
 import { TrustSlot } from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
 import { AUDIT_FORM, AUDIT_HERO, AUDIT_INCLUDES } from "@/content/audit/audit";
 import { chosenLeadSource } from "@/content/forms/lead-source";
 import { trackLead } from "@/lib/analytics";
-import { CONTACT_LIMITS, submitAudit, type AuditPayload } from "@/lib/contact-submit";
+import { CONTACT_LIMITS, submitAudit, type AuditPayload, type ContactResult } from "@/lib/contact-submit";
 
 const container = "container mx-auto px-4 sm:px-6 lg:px-8";
-const labelCls = "block text-sm font-medium mb-2";
-const errCls = "mt-2 text-sm text-destructive";
 const E = AUDIT_FORM.errors;
 
 /**
@@ -55,6 +58,15 @@ export function normalizeWebsite(raw: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * What a failed send tells the visitor (FF-14), the same mapping as /contact: a 400's server
+ * message, the rate-limit and connection messages from contact-submit's CONTACT_MESSAGES (one copy
+ * source for both forms). Only an unexpected server failure keeps the audit's own wording.
+ */
+export function auditFailureMessage(result: Extract<ContactResult, { ok: false }>): string {
+  return result.kind === "server" ? AUDIT_FORM.failure : result.message;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -135,8 +147,8 @@ const FreeAudit = () => {
         setDone(true);
         setValues(EMPTY);
       } else {
-        // The server's own message is shown on a 400; anything else gets the generic one.
-        setFailure(result.kind === "validation" ? result.message : AUDIT_FORM.failure);
+        // What the visitor typed stays in the form, so a retry is one click.
+        setFailure(auditFailureMessage(result));
       }
     } finally {
       inFlight.current = false;
@@ -144,194 +156,182 @@ const FreeAudit = () => {
     }
   };
 
+
   const f = AUDIT_FORM.fields;
+  // The required fields share their wiring; FormField adds the ids, aria-invalid and aria-describedby.
   const common = (id: RequiredKey) => ({
-    id: `audit-${id}`,
     name: id,
     value: values[id],
     onChange: set(id),
     required: true,
     "aria-required": true as const,
-    "aria-invalid": errors[id] ? (true as const) : undefined,
-    "aria-describedby": errors[id] ? `audit-${id}-error` : undefined,
-    // STS-041: the invalid state is also drawn (border), never only announced; the message stays the cue.
-    className: "aria-[invalid=true]:border-destructive",
   });
-  const fieldError = (id: RequiredKey) =>
-    errors[id] ? (
-      <p id={`audit-${id}-error`} data-field-error className={errCls}>
-        {errors[id]}
-      </p>
-    ) : null;
   const hasErrors = Object.keys(errors).length > 0;
 
   return (
     <div className="min-h-screen">
-      <section data-audit-section="hero" className="pt-32 pb-16 gradient-primary text-primary-foreground">
-        <div className={container}>
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight">{AUDIT_HERO.headline}</h1>
-            <p className="text-xl md:text-2xl text-primary-foreground/90 leading-relaxed">{AUDIT_HERO.intro}</p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        id="audit-heading"
+        title={AUDIT_HERO.headline}
+        intro={AUDIT_HERO.intro}
+        sectionAttrs={{ "data-audit-section": "hero" }}
+      />
 
-      <section data-audit-section="includes" aria-labelledby="audit-includes-heading" className="py-12 bg-background">
-        <div className={`${container} max-w-3xl`}>
-          <h2 id="audit-includes-heading" className="text-2xl font-bold mb-4">
+      {/* Design audit B4: one rhythm. The includes list and the form are one step, so they share
+          one band (`section`) instead of two paddings of their own. */}
+      <div className={`section bg-background ${container}`}>
+        <section data-audit-section="includes" aria-labelledby="audit-includes-heading" className="mb-10 lg:mb-12">
+          <h2 id="audit-includes-heading" className="text-h3 text-foreground mb-4">
             {AUDIT_INCLUDES.heading}
           </h2>
-          <ul className="list-disc pl-6 space-y-2 text-foreground/80">
+          {/* Design audit B6: a checklist (icon + text), the same pattern as the service cards. */}
+          <ul className="space-y-3 max-w-measure">
             {AUDIT_INCLUDES.items.map((i) => (
-              <li key={i}>{i}</li>
+              <li key={i} className="flex items-start gap-3 text-foreground/80">
+                <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <span>{i}</span>
+              </li>
             ))}
           </ul>
-        </div>
-      </section>
+        </section>
 
-      <section data-audit-section="form" aria-labelledby="audit-form-heading" className="pb-24 bg-background">
-        <div className={`${container} max-w-3xl`}>
-          <div className="bg-card rounded-2xl p-6 sm:p-8 shadow-elegant border border-border">
-            <h2 id="audit-form-heading" className="text-2xl font-bold mb-2">
-              {AUDIT_FORM.heading}
-            </h2>
-            <p id="audit-required-note" className="text-sm text-secondary mb-6">{AUDIT_FORM.requiredNote}</p>
-
-            <div role="status">
-              {done && (
-                <div data-audit-success className="rounded-xl border border-border bg-muted p-4 mb-6">
-                  <p className="font-semibold">{AUDIT_FORM.success.heading}</p>
-                  <p>{AUDIT_FORM.success.body}</p>
-                  {reference && <LeadReferenceNote reference={reference} className="mt-2" />}
-                </div>
-              )}
-            </div>
-            <div role="alert">
-              {failure && (
-                <p data-audit-failure className="rounded-xl border border-destructive p-4 mb-6 text-destructive">
-                  {failure}
-                </p>
-              )}
-              {!failure && hasErrors && <p className="sr-only">{E.summary}</p>}
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              noValidate
-              className="space-y-6"
-              aria-busy={loading}
-              aria-labelledby="audit-form-heading"
-              aria-describedby="audit-required-note"
-            >
-              {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
-              <div
-                data-audit-honeypot
-                aria-hidden="true"
-                style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
-              >
-                <label htmlFor="audit-nickname">Nickname</label>
-                <input
-                  id="audit-nickname"
-                  name="nickname"
-                  type="text"
-                  tabIndex={-1}
-                  autoComplete="off"
-                  value={values.nickname}
-                  onChange={set("nickname")}
-                />
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="audit-name" className={labelCls}>
-                    {f.name.label} <span aria-hidden="true">*</span>
-                  </label>
-                  <Input {...common("name")} autoComplete={f.name.autoComplete} maxLength={CONTACT_LIMITS.name} />
-                  {fieldError("name")}
-                </div>
-                <div>
-                  <label htmlFor="audit-company" className={labelCls}>
-                    {f.company.label} <span aria-hidden="true">*</span>
-                  </label>
-                  <Input {...common("company")} autoComplete={f.company.autoComplete} maxLength={CONTACT_LIMITS.company} />
-                  {fieldError("company")}
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="audit-email" className={labelCls}>
-                    {f.email.label} <span aria-hidden="true">*</span>
-                  </label>
-                  <Input {...common("email")} type="email" autoComplete={f.email.autoComplete} maxLength={CONTACT_LIMITS.email} />
-                  {fieldError("email")}
-                </div>
-                <div>
-                  <label htmlFor="audit-website" className={labelCls}>
-                    {f.website.label} <span aria-hidden="true">*</span>
-                  </label>
-                  <Input
-                    {...common("website")}
-                    aria-describedby={[errors.website ? "audit-website-error" : null, "audit-website-hint"].filter(Boolean).join(" ")}
-                    type="text"
-                    inputMode="url"
-                    autoComplete="url"
-                    placeholder={f.website.placeholder}
-                    maxLength={WEBSITE_MAX}
-                  />
-                  <p id="audit-website-hint" className="mt-2 text-sm text-secondary">
-                    {f.website.hint}
-                  </p>
-                  {fieldError("website")}
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="audit-phone" className={labelCls}>
-                    {f.phone.label}
-                  </label>
-                  <Input
-                    id="audit-phone"
-                    name="phone"
-                    type="tel"
-                    autoComplete={f.phone.autoComplete}
-                    maxLength={CONTACT_LIMITS.phone}
-                    value={values.phone}
-                    onChange={set("phone")}
-                  />
-                </div>
-                <LeadSourceSelect id="audit-source" value={values.source} onChange={set("source")} labelClassName={labelCls} />
-              </div>
-
-              <div>
-                <label htmlFor="audit-message" className={labelCls}>
-                  {f.message.label}
-                </label>
-                <Textarea
-                  id="audit-message"
-                  name="message"
-                  rows={4}
-                  maxLength={CONTACT_LIMITS.message}
-                  value={values.message}
-                  onChange={set("message")}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                disabled={loading}
-                className="w-full sm:w-auto min-h-[44px] bg-accent hover:bg-accent-light"
-              >
-                {loading ? AUDIT_FORM.sending : AUDIT_FORM.submit}
-              </Button>
-              {/* REQ-173: privacy link next to the submit button, worded to agree with /privacy. */}
-              <FormPrivacyNote />
-            </form>
+        <section
+          data-audit-section="form"
+          aria-labelledby={done ? "audit-success-heading" : "audit-form-heading"}
+          className="max-w-3xl"
+        >
+          {/* FF-1: always mounted, so the success panel that replaces the form is announced; the
+              panel's heading takes focus and the panel scrolls into view. */}
+          <div role="status">
+            {done && (
+              <FormSuccess
+                headingId="audit-success-heading"
+                heading={AUDIT_FORM.success.heading}
+                body={AUDIT_FORM.success.body}
+                reference={reference}
+                textAttrs={{ "data-audit-success": "" }}
+              />
+            )}
           </div>
-        </div>
-      </section>
+
+          {!done && (
+            <Card>
+              <h2 id="audit-form-heading" className="text-h3 text-foreground mb-2">
+                {AUDIT_FORM.heading}
+              </h2>
+              <p id="audit-required-note" className="text-small text-secondary mb-6">{AUDIT_FORM.requiredNote}</p>
+
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className="space-y-6"
+                aria-busy={loading}
+                aria-labelledby="audit-form-heading"
+                aria-describedby="audit-required-note"
+              >
+                {/* Honeypot: hidden from people and assistive tech; bots fill it. */}
+                <div
+                  data-audit-honeypot
+                  aria-hidden="true"
+                  style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}
+                >
+                  <label htmlFor="audit-nickname">Nickname</label>
+                  <input
+                    id="audit-nickname"
+                    name="nickname"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={values.nickname}
+                    onChange={set("nickname")}
+                  />
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <FormField id="audit-name" label={f.name.label} required error={errors.name}>
+                    {(a11y) => <Input {...a11y} {...common("name")} autoComplete={f.name.autoComplete} maxLength={CONTACT_LIMITS.name} />}
+                  </FormField>
+                  <FormField id="audit-company" label={f.company.label} required error={errors.company}>
+                    {(a11y) => (
+                      <Input {...a11y} {...common("company")} autoComplete={f.company.autoComplete} maxLength={CONTACT_LIMITS.company} />
+                    )}
+                  </FormField>
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <FormField id="audit-email" label={f.email.label} required error={errors.email}>
+                    {(a11y) => (
+                      <Input {...a11y} {...common("email")} type="email" autoComplete={f.email.autoComplete} maxLength={CONTACT_LIMITS.email} />
+                    )}
+                  </FormField>
+                  <FormField id="audit-website" label={f.website.label} required hint={f.website.hint} error={errors.website}>
+                    {(a11y) => (
+                      <Input
+                        {...a11y}
+                        {...common("website")}
+                        type="text"
+                        inputMode="url"
+                        autoComplete="url"
+                        placeholder={f.website.placeholder}
+                        maxLength={WEBSITE_MAX}
+                      />
+                    )}
+                  </FormField>
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <FormField id="audit-phone" label={f.phone.label}>
+                    {(a11y) => (
+                      <Input
+                        {...a11y}
+                        name="phone"
+                        type="tel"
+                        autoComplete={f.phone.autoComplete}
+                        maxLength={CONTACT_LIMITS.phone}
+                        value={values.phone}
+                        onChange={set("phone")}
+                      />
+                    )}
+                  </FormField>
+                  <LeadSourceSelect id="audit-source" value={values.source} onChange={set("source")} />
+                </div>
+
+                <FormField id="audit-message" label={f.message.label}>
+                  {(a11y) => (
+                    <Textarea
+                      {...a11y}
+                      name="message"
+                      rows={4}
+                      maxLength={CONTACT_LIMITS.message}
+                      value={values.message}
+                      onChange={set("message")}
+                    />
+                  )}
+                </FormField>
+
+                {/* FF-1: the failure sits next to the button, is announced and takes focus; what the
+                    visitor typed is kept. */}
+                <FormError message={failure} summary={hasErrors ? E.summary : undefined} attrs={{ "data-audit-failure": "" }} />
+
+                <div className="space-y-4">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="xl"
+                    className="w-full sm:w-auto"
+                    loading={loading}
+                    loadingLabel={AUDIT_FORM.sending}
+                  >
+                    {AUDIT_FORM.submit}
+                  </Button>
+                  {/* REQ-173: privacy link next to the submit button, worded to agree with /privacy. */}
+                  <FormPrivacyNote />
+                </div>
+              </form>
+            </Card>
+          )}
+        </section>
+      </div>
       {/* STS-046: this page is the conversion step, so the closing block is the trust slot only. */}
       <TrustSlot id="free-audit" standalone />
     </div>

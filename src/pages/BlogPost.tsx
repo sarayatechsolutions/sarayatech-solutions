@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import FinalCta from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
 import { Block } from "@/components/blog/PostBody";
 import NotFound from "@/pages/NotFound";
 import { PUBLISHED_POSTS } from "@/content/insights/posts";
@@ -21,8 +22,16 @@ const BlogPost = () => {
 
   return (
     <>
-      <section data-post-section="hero" className="pt-28 pb-12 gradient-primary text-primary-foreground">
-        <div className={`${container} max-w-3xl space-y-5`}>
+      <PageHero
+        id={`post-${post.slug}-heading`}
+        title={post.title}
+        sectionAttrs={{ "data-post-section": "hero" }}
+        meta={
+          <>
+            <span>{post.author.name}</span> · <time dateTime={post.date}>{formatPostDate(post.date)}</time>
+          </>
+        }
+        breadcrumb={
           <nav aria-label={L.breadcrumbAria}>
             <ol className="flex flex-wrap items-center gap-2 text-sm text-white/90">
               <li>
@@ -38,23 +47,21 @@ const BlogPost = () => {
               </li>
             </ol>
           </nav>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">{post.title}</h1>
-          <p className="text-sm text-white/90">
-            <span>{post.author.name}</span> · <time dateTime={post.date}>{formatPostDate(post.date)}</time>
-          </p>
-        </div>
-      </section>
+        }
+      />
 
-      <article data-post-section="body" className="py-14 bg-background">
-        <div className={`${container} max-w-3xl space-y-12`}>
+      <article data-post-section="body" className="section bg-background">
+        <div className={container}>
+          <div className="max-w-measure space-y-12">
           {sections.map((s, i) => (
             <section key={s.heading ?? `intro-${i}`} className="space-y-4">
-              {s.heading && <h2 className="text-2xl md:text-3xl font-bold">{s.heading}</h2>}
+              {s.heading && <h2 className="text-h2 text-foreground">{s.heading}</h2>}
               {s.blocks.map((b, j) => (
                 <Block key={j} block={b} />
               ))}
             </section>
           ))}
+          </div>
         </div>
       </article>
 

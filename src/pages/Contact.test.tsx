@@ -1,11 +1,20 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Contact, { type ContactConfig } from "./Contact";
 import { CONTACT_MESSAGES, submitAudit, submitContact, type ContactPayload } from "@/lib/contact-submit";
 import { LEAD_SOURCE_INVALID, LEAD_SOURCES, type LeadSource } from "@/content/forms/lead-source";
 import { render as renderStatic } from "@/entry-server";
 import { SERVICE_INTERESTS, SERVICE_INTEREST_UNSURE } from "@/content/forms/service-interest";
+import { CONTACT_FORM } from "@/content/forms/contact-form";
+
+// Design audit B6: the success dialog became a panel that replaces the form, inside an always-mounted
+// role="status" region; its heading takes focus (FF-1).
+const SUCCESS_HEADING = CONTACT_FORM.success.heading;
+const successPanel = async () => {
+  await screen.findByRole("heading", { name: SUCCESS_HEADING });
+  return screen.getByRole("status");
+};
 
 const PAYLOAD: ContactPayload = {
   name: "Ada",
@@ -173,7 +182,7 @@ describe("Contact page", () => {
     expect(screen.queryByRole("link", { name: /book a call/i })).not.toBeInTheDocument();
     expect(alert.querySelector("a")).toBeNull();
     expect(alert.closest("[aria-live]")).not.toBeNull();
-    expect(screen.queryByText(/message sent successfully/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(SUCCESS_HEADING)).not.toBeInTheDocument();
   });
 
   it("never reports success for an HTML error page", async () => {
@@ -183,18 +192,25 @@ describe("Contact page", () => {
     await fillAndSubmit(user);
 
     expect(await screen.findByRole("alert")).toHaveTextContent(CONTACT_MESSAGES.server);
-    expect(screen.queryByText(/message sent successfully/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(SUCCESS_HEADING)).not.toBeInTheDocument();
     expect(screen.queryByText(/unexpected token/i)).not.toBeInTheDocument();
   });
 
-  it("shows the success dialog on success", async () => {
+  it("replaces the form with the success panel, announced and focused (B6, FF-1)", async () => {
     const user = userEvent.setup();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, { success: true })));
-    render(<Contact />);
+    const { container } = render(<Contact />);
     await fillAndSubmit(user);
 
-    expect(await screen.findByText(/message sent successfully/i)).toBeInTheDocument();
+    const status = await successPanel();
+    const heading = screen.getByRole("heading", { name: SUCCESS_HEADING });
+    expect(status).toContainElement(heading);
+    expect(heading).toHaveFocus();
+    expect(container.querySelector("form")).toBeNull();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(within(status).getByRole("link", { name: "See our work" })).toHaveAttribute("href", "/our-work");
+    expect(within(status).getByRole("link", { name: "Back to home" })).toHaveAttribute("href", "/");
   });
 
   it("sends one request even if submit is triggered twice", async () => {
@@ -211,7 +227,7 @@ describe("Contact page", () => {
     expect(screen.getByRole("button", { name: /sending/i })).toBeDisabled();
 
     resolve(json(200, { success: true }));
-    await waitFor(() => expect(screen.getByText(/message sent successfully/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(SUCCESS_HEADING)).toBeInTheDocument());
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
@@ -329,7 +345,7 @@ describe("Contact page content (STS-044, GAP-03)", () => {
     expect(alert.querySelector("a")).toHaveAttribute("href", "https://calendly.com/example-booking");
   });
 
-  it("the success dialog promises no response time", async () => {
+  it("the success panel promises no response time", async () => {
     const user = userEvent.setup();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, { success: true })));
     render(<Contact />);
@@ -338,9 +354,9 @@ describe("Contact page content (STS-044, GAP-03)", () => {
     await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
     await user.click(screen.getByRole("button", { name: /send message/i }));
 
-    const dialog = await screen.findByRole("dialog");
-    expect(dialog).toHaveTextContent(/message sent successfully/i);
-    expect(dialog.textContent).not.toMatch(/24|48|hours|business day/i);
+    const panel = await successPanel();
+    expect(panel).toHaveTextContent(SUCCESS_HEADING);
+    expect(panel.textContent).not.toMatch(/24|48|hours|business day/i);
   });
 });
 
@@ -353,7 +369,8 @@ describe("Contact page lead source (STS-054, GAP-09)", () => {
     await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
   }
 
-  it("is a labelled, optional native select with a hint, 44 px tall, on the input border token", () => {
+  // Design audit B6: 48 px (h-12), up from 44 px (h-11), like every control.
+  it("is a labelled, optional native select with a hint, 48 px tall, on the input border token (B6)", () => {
     render(<Contact />);
     const select = sourceSelect();
     expect(select.tagName).toBe("SELECT");
@@ -361,7 +378,7 @@ describe("Contact page lead source (STS-054, GAP-09)", () => {
     expect(select).not.toBeRequired();
     expect(select).toHaveValue("");
     expect(select).toHaveAccessibleDescription("This helps us learn how people find us.");
-    expect(select.className.split(/\s+/)).toEqual(expect.arrayContaining(["h-11", "border", "border-input"]));
+    expect(select.className.split(/\s+/)).toEqual(expect.arrayContaining(["h-12", "border", "border-input"]));
     expect(select.options[0]).toHaveTextContent("Choose one (optional)");
   });
 
@@ -387,7 +404,7 @@ describe("Contact page lead source (STS-054, GAP-09)", () => {
     expect(Object.keys(body).sort()).toEqual(["company", "email", "message", "name", "nickname", "phone", "service"]);
   });
 
-  it("includes `source` when chosen, and clears the choice after a successful send", async () => {
+  it("includes `source` when chosen, and the success panel then replaces the form", async () => {
     const fetchMock = vi.fn().mockResolvedValue(json(200, { success: true }));
     vi.stubGlobal("fetch", fetchMock);
     const user = userEvent.setup();
@@ -406,8 +423,9 @@ describe("Contact page lead source (STS-054, GAP-09)", () => {
       source: "social",
       nickname: "",
     });
-    expect(await screen.findByText(/message sent successfully/i)).toBeInTheDocument();
-    expect(sourceSelect()).toHaveValue("");
+    // B6: the form (and so the choice) is gone once sent; the panel stands in its place.
+    expect(await screen.findByText(SUCCESS_HEADING)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/How did you hear about us/i)).not.toBeInTheDocument();
   });
 
   it("a value injected into the select is refused in the page's alert and never sent", async () => {
@@ -428,7 +446,8 @@ describe("Contact page lead source (STS-054, GAP-09)", () => {
 });
 
 describe("Contact page lead reference (STS-084, ADR 0003)", () => {
-  const SUCCESS_TEXT = "Thank you for contacting us! We've received your message. We'll reply as soon as we can.";
+  // B6: the panel's text block (heading, body, reference) carries data-contact-success.
+  const SUCCESS_BODY = `${CONTACT_FORM.success.body} We'll reply as soon as we can.`;
 
   async function submitWith(body: unknown) {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(200, body)));
@@ -438,36 +457,164 @@ describe("Contact page lead reference (STS-084, ADR 0003)", () => {
     await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
     await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
     await user.click(screen.getByRole("button", { name: /send message/i }));
-    return screen.findByRole("dialog");
+    const status = await successPanel();
+    return status.querySelector("[data-contact-success]") as HTMLElement;
   }
 
-  it("shows the reference in the dialog's description, in monospace, announced with the message", async () => {
-    const dialog = await submitWith({ success: true, message: "ok", reference: "REF-7K3QX9PM" });
-    // The dialog's accessible description is what a screen reader reads when it opens.
-    // (jsdom's name computation pads the inline code span with a space; browsers do not, hence \s?.)
-    expect(dialog).toHaveAccessibleDescription(
-      /^Thank you for contacting us! We've received your message\. We'll reply as soon as we can\. Your reference: REF-7K3QX9PM\s?\. Mention it if you contact us about this request\.$/,
-    );
-    const code = dialog.querySelector("[data-lead-reference]") as HTMLElement;
+  it("shows the reference inside the status live region, in monospace, with a copy button", async () => {
+    const text = await submitWith({ success: true, message: "ok", reference: "REF-7K3QX9PM" });
+    expect([...text.children].map((c) => c.textContent)).toEqual([
+      SUCCESS_HEADING,
+      SUCCESS_BODY,
+      "Your reference: REF-7K3QX9PM. Mention it if you contact us about this request.",
+    ]);
+    const code = text.querySelector("[data-lead-reference]") as HTMLElement;
     expect(code).toHaveTextContent(/^REF-7K3QX9PM$/);
     expect(code.className.split(/\s+/)).toContain("font-mono");
     // Text, not colour, carries the meaning: the label sits right next to the code.
     expect(code.closest("[data-lead-reference-note]")).toHaveTextContent(/^Your reference: REF-7K3QX9PM\./);
+    expect(screen.getByRole("button", { name: "Copy reference" })).toBeInTheDocument();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
-  it("without a reference the dialog is exactly as before", async () => {
-    const dialog = await submitWith({ success: true, message: "ok" });
-    expect(dialog).toHaveAccessibleDescription(SUCCESS_TEXT);
-    expect(dialog.querySelector("[data-lead-reference-note]")).toBeNull();
-    expect(dialog.textContent).not.toMatch(/reference/i);
+  it("copies the reference and says so in a polite live region", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    const text = await submitWith({ success: true, reference: "REF-7K3QX9PM" });
+    // userEvent.setup() installs its own clipboard stub, so ours goes in after it.
+    const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    try {
+      await user.click(screen.getByRole("button", { name: "Copy reference" }));
+      expect(writeText).toHaveBeenCalledWith("REF-7K3QX9PM");
+      const said = text.querySelector("[data-copy-status]") as HTMLElement;
+      expect(said).toHaveAttribute("aria-live", "polite");
+      await waitFor(() => expect(said).toHaveTextContent("Copied"));
+    } finally {
+      // @ts-expect-error test cleanup of the stub
+      delete navigator.clipboard;
+    }
+  });
+
+  it("without a reference the panel says only the heading and the body", async () => {
+    const text = await submitWith({ success: true, message: "ok" });
+    expect([...text.children].map((c) => c.textContent)).toEqual([SUCCESS_HEADING, SUCCESS_BODY]);
+    expect(text.querySelector("[data-lead-reference-note]")).toBeNull();
+    expect(text.textContent).not.toMatch(/reference/i);
   });
 
   it("an invalid or HTML-looking reference is never rendered", async () => {
-    const dialog = await submitWith({ success: true, reference: '<img src=x onerror="alert(1)">REF-7K3QX9PM' });
-    expect(dialog).toHaveAccessibleDescription(SUCCESS_TEXT);
-    expect(dialog.querySelector("[data-lead-reference-note]")).toBeNull();
-    expect(dialog.querySelector("img")).toBeNull();
-    expect(dialog.textContent).not.toMatch(/onerror|REF-/);
+    const text = await submitWith({ success: true, reference: '<img src=x onerror="alert(1)">REF-7K3QX9PM' });
+    expect([...text.children].map((c) => c.textContent)).toEqual([SUCCESS_HEADING, SUCCESS_BODY]);
+    expect(text.querySelector("[data-lead-reference-note]")).toBeNull();
+    expect(document.querySelector("[data-form-success] img")).toBeNull();
+    expect(text.textContent).not.toMatch(/onerror|REF-/);
+  });
+});
+
+// Design audit B6: inline validation, FF-1 (error focus) and FF-10 (context from the query string).
+describe("Contact form system (design audit B6, FF-1, FF-10)", () => {
+  const serviceSelect = () => document.querySelector('select[name="service"]') as HTMLSelectElement;
+  const at = (url: string) => window.history.replaceState({}, "", url);
+  afterEach(() => at("/"));
+
+  it("an empty submit shows inline errors tied by aria-describedby, focuses the first field, and sends nothing", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<Contact />);
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    for (const [id, message] of [
+      ["name", CONTACT_FORM.errors.name],
+      ["email", CONTACT_FORM.errors.emailRequired],
+      ["message", CONTACT_FORM.errors.message],
+    ] as const) {
+      const field = document.getElementById(`contact-${id}`) as HTMLElement;
+      expect(field).toHaveAttribute("aria-invalid", "true");
+      expect(field.getAttribute("aria-describedby")).toContain(`contact-${id}-error`);
+      expect(document.getElementById(`contact-${id}-error`)).toHaveTextContent(message);
+    }
+    expect(document.getElementById("contact-name")).toHaveFocus();
+    // One summary for assistive tech, not a visible box on top of the inline errors.
+    expect(screen.getByRole("alert")).toHaveTextContent(CONTACT_FORM.errors.summary);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a malformed email inline and focuses it", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const user = userEvent.setup();
+    render(<Contact />);
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@");
+    await user.type(screen.getByLabelText(/^message/i), "Hello");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    expect(document.getElementById("contact-email-error")).toHaveTextContent(CONTACT_FORM.errors.emailInvalid);
+    expect(document.getElementById("contact-email")).toHaveFocus();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("FF-1: a failed send is announced next to the button, takes focus, and keeps what was typed", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json(500, { success: false, message: "stack trace here" })));
+    const user = userEvent.setup();
+    render(<Contact />);
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
+    await user.type(screen.getByLabelText(/^message/i), "We need a new website.");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    const alert = await screen.findByRole("alert");
+    await waitFor(() => expect(alert).toHaveFocus());
+    expect(alert).not.toHaveTextContent("stack trace");
+    expect(alert.parentElement).toHaveAttribute("aria-live", "assertive");
+    expect(screen.getByLabelText(/full name/i)).toHaveValue("Ada Lovelace");
+    expect(screen.getByLabelText(/^message/i)).toHaveValue("We need a new website.");
+  });
+
+  it("the service select is a 48 px native select with a visible label", () => {
+    render(<Contact />);
+    expect(serviceSelect().className.split(/\s+/)).toEqual(expect.arrayContaining(["h-12", "appearance-none"]));
+    expect(screen.getByLabelText(/service interest/i)).toBe(serviceSelect());
+  });
+
+  it("FF-10: ?service=<slug> preselects that service", async () => {
+    at("/contact?service=local-seo");
+    render(<Contact />);
+    await waitFor(() => expect(serviceSelect()).toHaveValue("Local SEO"));
+    expect(screen.getByLabelText(/^message/i)).toHaveValue("");
+  });
+
+  it("FF-10: ?package=<id> opens an editable message naming the package, and it is sent as typed", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json(200, { success: true }));
+    vi.stubGlobal("fetch", fetchMock);
+    at("/contact?package=local-growth");
+    const user = userEvent.setup();
+    render(<Contact />);
+    const message = screen.getByLabelText(/^message/i);
+    await waitFor(() => expect(message).toHaveValue("I'd like a quote for the Local Growth package."));
+    expect(serviceSelect()).toHaveValue(SERVICE_INTEREST_UNSURE);
+    await user.type(message, " Two locations.");
+    await user.type(screen.getByLabelText(/full name/i), "Ada Lovelace");
+    await user.type(screen.getByLabelText(/^email/i), "ada@example.com");
+    await user.click(screen.getByRole("button", { name: /send message/i }));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(sent.message).toBe("I'd like a quote for the Local Growth package. Two locations.");
+    expect(sent.service).toBe(SERVICE_INTEREST_UNSURE);
+    // The query parameter itself is never part of the request.
+    expect(JSON.stringify(sent)).not.toContain("local-growth");
+  });
+
+  it.each([
+    "/contact?service=unknown",
+    "/contact?service=Local-SEO",
+    "/contact?service=local-seo&service=paid-ads",
+    "/contact?package=enterprise",
+    "/contact?service=%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E",
+  ])("FF-10 deny: %s is ignored and the form keeps its defaults", async (url) => {
+    at(url);
+    render(<Contact />);
+    // Give the mount effect its turn, then check nothing moved.
+    await waitFor(() => expect(serviceSelect()).toHaveValue(SERVICE_INTEREST_UNSURE));
+    expect(screen.getByLabelText(/^message/i)).toHaveValue("");
+    expect(document.body.innerHTML).not.toMatch(/onerror|enterprise|Local-SEO/);
   });
 });

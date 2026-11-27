@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import FinalCta from "@/components/FinalCta";
+import PageHero from "@/components/PageHero";
 import { INDUSTRIES_HUB as H, industryPath, PUBLISHED_INDUSTRIES } from "@/content/industries/industries";
 
 const container = "container mx-auto px-4 sm:px-6 lg:px-8";
@@ -12,13 +13,8 @@ const container = "container mx-auto px-4 sm:px-6 lg:px-8";
  */
 const IndustriesHub = () => (
   <>
-    <section data-local-section="hero" className="pt-32 pb-14 gradient-primary text-primary-foreground">
-      <div className={`${container} max-w-3xl space-y-6`}>
-        <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">{H.h1}</h1>
-        <p className="text-lg md:text-xl text-white/90 leading-relaxed">{H.intro}</p>
-      </div>
-    </section>
-    <section data-local-section="list" className="py-14 bg-background">
+    <PageHero id="industries-hub-heading" title={H.h1} intro={H.intro} sectionAttrs={{ "data-local-section": "hero" }} />
+    <section data-local-section="list" aria-label={H.h1} className="section bg-background">
       <div className={container}>
         <ul className="grid gap-6 md:grid-cols-2">
           {PUBLISHED_INDUSTRIES.map((e) => (

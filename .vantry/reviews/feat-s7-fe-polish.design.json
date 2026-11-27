@@ -1,0 +1,102 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "design",
+  "verdict": "pass",
+  "reviewer": "ui-ux-designer",
+  "at": "2026-11-27T19:06:06Z",
+  "head": "fc4657b02517a403e0adf58bb3c40b87eabdc8c5",
+  "checklist": [
+    "a11y-automated",
+    "a11y-manual",
+    "responsive",
+    "locales",
+    "tokens",
+    "states",
+    "originality"
+  ],
+  "evidence": {
+    "build": "npm run build with VITE_API_URL=http://localhost:3001, served by vite preview on :4181; the 404 route was also served Cloudflare-style (dist/404.html, HTTP 404)",
+    "browser": "headless Chrome over CDP; every API call stubbed, every other off-origin request blocked; 0 external requests",
+    "matrix": "17 routes x 390/768/1280/1440",
+    "axe": "axe-core 4.10.2, tags wcag2a/wcag2aa/wcag21a/wcag21aa/best-practice: 0 critical, 0 serious, 1 moderate (landmark-unique on /our-work)",
+    "contrast": "568 axe 'incomplete' nodes over gradients re-measured against the worst gradient stop: 0 failures",
+    "layout": "no horizontal overflow; one h1 per page; no skipped heading levels; CLS <= 0.003; every image has width/height",
+    "states": "contact and free-audit forms checked for empty submit, loading, 429, network failure and success; chat checked open, fallback reply and Esc; route focus and announcement; scroll restore on Back; 404",
+    "motion": "under reduced motion: 0 running animations and nothing stuck hidden; with normal motion every animation is finite and uses the duration tokens",
+    "locales": "the site is English-only; there are no other locales to check",
+    "originality": "no change to brand identity in this branch; layouts are composed from the project's own tokens and components",
+    "screenshots": "C:\\Users\\SOULEY~1\\AppData\\Local\\Temp\\claude\\333e4fc22ab9f4e4\\ea6ff956-db72-473a-96cd-448462fe9773\\scratchpad\\design-review-b10\\shots\\"
+  },
+  "findings": [
+    {
+      "severity": "minor",
+      "file": "src/pages/Realisation.tsx",
+      "line": 45,
+      "summary": "/our-work, all widths: axe landmark-unique (moderate). The projects section has aria-label={WORK_HERO.headline}, the same name as the hero section labelled by #work-heading (:39), so a screen reader lists two regions with the same name. Screenshot: shots/route-our-work-1440.png",
+      "fix": "Give the projects section its own name: aria-label=\"Projects\", or a visible h2 referenced with aria-labelledby."
+    },
+    {
+      "severity": "minor",
+      "file": "src/components/LegalDocument.tsx",
+      "line": 56,
+      "summary": "/privacy and /terms, 768-1440: body paragraphs run 81-93 characters per line. The container is max-w-3xl (:31) with no measure cap; every other page stays at or under 77 cpl. Screenshots: shots/route-privacy-1440.png, shots/route-terms-1440.png",
+      "fix": "Add max-w-measure (58ch) to the body wrapper at :56, or to its p and li elements."
+    },
+    {
+      "severity": "minor",
+      "file": "src/components/LegalDocument.tsx",
+      "line": 41,
+      "summary": "The draft notice uses raw Tailwind palette colours (border-amber-500 bg-amber-50 text-amber-950) instead of design tokens. Screenshot: shots/route-privacy-1440.png",
+      "fix": "Add a warning token pair to the design system (e.g. --warning / --warning-foreground / --warning-surface) and use it here."
+    },
+    {
+      "severity": "minor",
+      "file": "src/pages/Realisation.tsx",
+      "line": 82,
+      "summary": "/our-work at 390 (touch): the standalone 'Visit the ... website' links are only 24px tall (e.g. 295x24, 203x24). This is below the project's 44px touch-target rule. Screenshot: shots/route-our-work-390.png",
+      "fix": "Add min-h-11 to the link className (it is already inline-flex items-center)."
+    },
+    {
+      "severity": "minor",
+      "file": "src/pages/services/ServicePage.tsx",
+      "line": 110,
+      "summary": "Service pages at 390 (touch): the standalone 'See all our work' proof link is 147x24, below the 44px touch-target rule. Screenshot: shots/route-svc-website-design-390.png",
+      "fix": "Add inline-flex min-h-11 items-center to this Link, or give textLink (:21) a standalone-link variant."
+    },
+    {
+      "severity": "minor",
+      "file": "src/components/Header.tsx",
+      "line": 236,
+      "summary": "Mobile menu at 390 has no scrim, does not lock body scroll, and stays open on a tap outside the panel (audit FD-30 and FF-16 are still open). The page scrolls under the open menu. Esc, focus return, 44px rows and close-on-navigate all work. Screenshots: shots/state-menu-open-390.png, shots/state-menu-after-outside-tap-390.png",
+      "fix": "Render a fixed scrim (bg-foreground/40, motion-safe fade) under the nav that closes the menu on pointerdown, and lock body scroll while the menu is open. Keep the Esc handler and focus return."
+    },
+    {
+      "severity": "minor",
+      "file": "src/components/Header.tsx",
+      "line": 241,
+      "summary": "The menu's enter and exit transitions use inline values (0.2s / 0.15s and cubic-bezier arrays) rather than the motion tokens, so they will drift from --duration-base and --duration-fast if the tokens change.",
+      "fix": "Read the duration and easing from a shared motion-token module that mirrors the CSS variables (base 200ms decelerate, fast 120-150ms accelerate)."
+    },
+    {
+      "severity": "minor",
+      "file": "src/pages/FreeAudit.tsx",
+      "line": 142,
+      "summary": "/free-audit: a 429 or a network failure shows the generic 'We couldn't send your request right now. Please try again later.' Contact shows a specific message for each case (audit FF-14 is still open). Input is kept and the message is visible. Screenshots: shots/state-audit-error-network-390.png, shots/state-audit-error-network-1440.png",
+      "fix": "Map result.kind the same way Contact.tsx:147 does: rate-limited gives a 'wait a minute' message, network gives a 'check your connection' message."
+    },
+    {
+      "severity": "minor",
+      "file": "src/components/ScrollToTop.tsx",
+      "line": 153,
+      "summary": "Following a link to the page you are already on (e.g. footer 'Home' on /) leaves the page where it is: scrollY stayed at 4311. That same-page navigation arrives as a REPLACE, and this early return keeps the position (audit FF-17 is still open).",
+      "fix": "Keep the position only when location.search changed. When the pathname, search and hash are unchanged, scroll to the top."
+    },
+    {
+      "severity": "minor",
+      "file": "src/components/Header.tsx",
+      "line": 142,
+      "summary": "Owner-gated, carried over (FD-02 / FF-13): the logo is /logo.png, a JPEG with a grey backdrop box, visible on white in the header at every width. Not a regression from this branch. Screenshot: shots/viewport-home-hero-1440.png",
+      "fix": "The owner supplies a transparent SVG or PNG logo; then swap the asset and set its width and height."
+    }
+  ]
+}

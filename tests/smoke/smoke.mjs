@@ -75,8 +75,11 @@ export const WORK_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Enterprise", 
 /** Insights (STS-040): the home list plus the retired article cards and "enterprise" in any form. */
 export const INSIGHTS_FORBIDDEN_PHRASES = [...HOME_FORBIDDEN_PHRASES, "Read Article", "Digital Transformation", "Enterprise", "enterprise"];
 
-/** Careers (STS-056, GAP-11): the "Apply Now" button that had no action. */
-export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now"];
+/**
+ * Careers (STS-056, GAP-11): the "Apply Now" button that had no action. Design audit B0 (FD-01):
+ * no role is confirmed (C20/C27), so no role link, job type or salary figure may come back either.
+ */
+export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now", "Ask about this role", "Full-time", "$90k", "Salary"];
 
 /**
  * REQ-011 (P0): no built page may contain these, whoever owns it. Matched case-insensitively.
@@ -84,6 +87,43 @@ export const CAREERS_FORBIDDEN_PHRASES = ["Apply Now"];
  * prerender's own <head> replaces index.html's old title and description.
  */
 export const SITEWIDE_FORBIDDEN_PHRASES = ["Enterprise-grade", "Enterprise Technology Solutions"];
+
+/**
+ * Design audit B9 / FD-36: fabricated social proof held by five retired components in
+ * src/components/home/ (TestimonialsSection, StatsSection, ClientLogos, SolutionsShowcase,
+ * ValueProposition). The owner rule keeps the files; no page imports them. If one is ever imported
+ * again, its invented quotes, names, client "logos" and stats would reach the built HTML: this list
+ * fails the smoke run when they do. Matched case-insensitively. Each phrase is specific to those
+ * files, so no real copy trips it (StatsSection's "Enterprise Clients" label is left out: a live
+ * careers listing says "our enterprise clients"). src/content/retiredComponents.test.tsx checks the same list
+ * against the server render and the import graph.
+ */
+export const RETIRED_FAKE_CONTENT_PHRASES = [
+  "10x growth",
+  "40% cost reduction",
+  "60% faster deployment",
+  "315% efficiency",
+  "Michael Chen",
+  "Sarah Martinez",
+  "David Thompson",
+  "Global Finance Corp",
+  "Manufacturing Leader Inc",
+  "Healthcare Solutions Ltd",
+  "Fortune 500 Bank",
+  "Global Manufacturer",
+  "Healthcare Leader",
+  "Retail Giant",
+  "Aviation Corp",
+  "Trusted by Fortune 500 companies",
+  "Average ROI",
+  "Measured client growth in first year",
+  "Client Satisfaction",
+  "Industry-leading retention rate",
+  "Why Businesses Trust Us",
+  "Trusted Partner",
+  // SolutionsShowcase's heading copy; split over two JSX lines in source, one run of text in HTML.
+  "accelerate your digital transformation",
+];
 
 /** Legal drafts (STS-037): no compliance claim (C21) and no blanket "never shared" promise. */
 export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compliant", "never be shared", "never share"];
@@ -95,8 +135,18 @@ export const LEGAL_FORBIDDEN_PHRASES = ["GDPR", "CCPA", "HIPAA", "SOC 2", "compl
  */
 export const TRUST_ONLY_ROUTES = ["/contact", "/free-audit", "/careers"];
 
-/** The closing block a public page must serve: "full" (CTA + trust slot) or "trust-only". */
-export const closingBlockFor = (path) => (TRUST_ONLY_ROUTES.includes(path) ? "trust-only" : "full");
+/**
+ * Design audit B7: the legal pages end with the document itself, with no closing block at all.
+ * Kept in step with NO_CLOSING_BLOCK_PATHS in src/content/trust/trust.ts by FinalCta.sitewide.test.
+ */
+export const NO_CLOSING_ROUTES = ["/privacy", "/terms"];
+
+/**
+ * The closing block a public page must serve: "full" (CTA + trust slot), "trust-only", or "none"
+ * (no closing block may be present).
+ */
+export const closingBlockFor = (path) =>
+  NO_CLOSING_ROUTES.includes(path) ? "none" : TRUST_ONLY_ROUTES.includes(path) ? "trust-only" : "full";
 
 /** The five service pages and their <h1> (src/content/services/services.ts). */
 export const SERVICE_ROUTES = [
@@ -113,7 +163,7 @@ export const SERVICE_ROUTES = [
  * in step with getPublicPaths().
  * `noindex: true` (STS-037 legal drafts): the page must carry a robots noindex meta and no
  * canonical, and must NOT be in the sitemap.
- * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean, closingBlock?: "full" | "trust-only" }[]}
+ * @type {{ path: string, expectH1?: string, expectText?: string, forbidText?: string[], contentType?: string, shell?: boolean, noindex?: boolean, closingBlock?: "full" | "trust-only" | "none" }[]}
  */
 export function buildRoutes() {
   const pages = [
@@ -145,8 +195,15 @@ export function buildRoutes() {
     { path: "/our-work", expectH1: "Our Work", forbidText: WORK_FORBIDDEN_PHRASES },
     // STS-040: no article is published yet, so the page is noindex and out of the sitemap (REQ-018).
     { path: "/insights", expectH1: "Plain-English guides for local business owners", noindex: true, forbidText: INSIGHTS_FORBIDDEN_PHRASES },
-    // STS-056: the dead "Apply Now" button is gone; each role links to /contact instead.
-    { path: "/careers", expectH1: "Join Our Team", forbidText: CAREERS_FORBIDDEN_PHRASES },
+    // STS-056 + design audit B0 (FD-01): no role is confirmed (C20/C27), so the page shows the owner's
+    // fallback sentence and a contact link, and is noindex and out of the sitemap.
+    {
+      path: "/careers",
+      expectH1: "Careers at SarayaTech",
+      noindex: true,
+      expectText: "not hiring for specific roles right now.",
+      forbidText: CAREERS_FORBIDDEN_PHRASES,
+    },
     // STS-039: the hub that replaced /solutions. The retired pages are checked by checkRedirectsBuild.
     { path: "/services", expectH1: "Our services", forbidText: SERVICE_FORBIDDEN_PHRASES },
     ...SERVICE_ROUTES.map((r) => ({ ...r, forbidText: SERVICE_FORBIDDEN_PHRASES })),
@@ -156,7 +213,8 @@ export function buildRoutes() {
   ].map((r) => ({ ...r, closingBlock: closingBlockFor(r.path) }));
   return [
     ...pages,
-    { path: "/404.html", expectH1: "404" },
+    // Design audit B7 (section 5 copy): the 404 heading.
+    { path: "/404.html", expectH1: "We can't find that page" },
     { path: "/robots.txt", shell: false, expectText: "User-agent", contentType: "text/plain" },
   ];
 }
@@ -421,6 +479,12 @@ function checkSitewidePhrases(distDir) {
     ({ file, phrase }) => `${file.slice(distDir.length + 1)}: contains ${JSON.stringify(phrase)} (REQ-011)`,
   );
   if (!failures.length) console.log(`  ok   ${count} built HTML file(s) free of ${SITEWIDE_FORBIDDEN_PHRASES.join(" / ")}`);
+  // B9 / FD-36: none of the retired components' fabricated content may reach a built page.
+  const fake = findForbiddenInHtml(distDir, RETIRED_FAKE_CONTENT_PHRASES).map(
+    ({ file, phrase }) => `${file.slice(distDir.length + 1)}: contains ${JSON.stringify(phrase)} (retired fake content, FD-36)`,
+  );
+  if (!fake.length) console.log(`  ok   ${count} built HTML file(s) free of the retired components' fake content`);
+  failures.push(...fake);
   return { failures, count };
 }
 
@@ -476,7 +540,10 @@ export function checkRouteBody(route, status, contentType, body) {
   for (const phrase of route.forbidText ?? []) {
     if (body.includes(phrase)) errors.push(`contains forbidden text ${JSON.stringify(phrase)}`);
   }
-  if (route.closingBlock) {
+  if (route.closingBlock === "none") {
+    const blocks = body.match(/data-final-cta="[^"]*"/g) ?? [];
+    if (blocks.length !== 0) errors.push(`expected no closing block, found ${JSON.stringify(blocks)} (design audit B7)`);
+  } else if (route.closingBlock) {
     const blocks = body.match(/data-final-cta="[^"]*"/g) ?? [];
     const want = `data-final-cta="${route.closingBlock}"`;
     if (blocks.length !== 1 || blocks[0] !== want) {

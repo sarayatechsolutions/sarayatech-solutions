@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { render, paths, NOT_FOUND_PATH } from "@/entry-server";
 import { bookingHref } from "@/config/business";
+
+/** The href without its query or hash (FF-10 context parameters). */
+const pathOf = (href: string | null) => (href ?? "").split(/[?#]/)[0];
 import { FREE_AUDIT_PATH } from "@/components/home/content";
 import { CTA_IDS } from "@/lib/analytics";
 
@@ -22,12 +25,16 @@ describe("tracked CTAs (cta_click)", () => {
     for (const [id, href] of list) {
       expect(CTA_IDS).toContain(id);
       if (id === "final_audit") expect(href).toBe(FREE_AUDIT_PATH);
-      if (id === "final_consultation" || id === "hero_consultation") expect(href).toBe(bookingHref());
+      // FF-10 (design audit B6): a service page adds `?service=<slug>` while booking is the contact
+      // form, so the target is compared without the query; the query itself is tested in contact-context.
+      if (id === "final_consultation" || id === "hero_consultation") expect(pathOf(href)).toBe(bookingHref());
     }
   });
 
   it("pages that swap the closing actions (About puts the consultation first) keep the ids on the right link", () => {
     const list = tagged(parse("/about"));
-    expect(list).toEqual(expect.arrayContaining([["final_consultation", bookingHref()], ["final_audit", FREE_AUDIT_PATH]]));
+    expect(list.map(([id, href]) => [id, pathOf(href)])).toEqual(
+      expect.arrayContaining([["final_consultation", bookingHref()], ["final_audit", FREE_AUDIT_PATH]]),
+    );
   });
 });

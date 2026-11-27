@@ -1,28 +1,79 @@
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNavigate } from 'react-router-dom';
-import { classifyHref } from './links';
+import { BARE_PATH, classifyChatHref, type ChatLinkPolicy } from './chatLinks';
 
 interface MarkdownRendererProps {
   content: string;
   onLinkClick?: () => void; // Callback when internal link is clicked (e.g., to close chatbot)
+  /** The link policy. Default: the chat allow-list (./chatLinks). Tests pass their own. */
+  classifyLink?: ChatLinkPolicy;
+}
+
+/** The few mdast fields the text plugin reads. Everything else passes through untouched. */
+interface MdNode {
+  type: string;
+  value?: string;
+  url?: string;
+  children?: MdNode[];
+}
+
+/** Text inside these is never re-linked or re-broken. */
+const KEEP_AS_IS = new Set(['link', 'linkReference', 'inlineCode', 'code', 'html']);
+
+/**
+ * FF-5: a remark plugin over the parsed tree (never over HTML). In plain text only:
+ *  - a bare page path ("Details: /services/local-seo") that the link policy accepts as an internal
+ *    route becomes a link node, so it renders through the same `a` component and policy below;
+ *  - a single newline becomes a line break, so "• item" lines stay one per line instead of
+ *    collapsing into one paragraph.
+ * The text itself is kept verbatim, so nothing a reply says is lost.
+ */
+function remarkChatText(classify: ChatLinkPolicy) {
+  const splitText = (value: string): MdNode[] => {
+    const out: MdNode[] = [];
+    value.split('\n').forEach((line, i) => {
+      if (i > 0) out.push({ type: 'break' });
+      let last = 0;
+      for (const match of line.matchAll(BARE_PATH)) {
+        const path = match[0];
+        const at = match.index ?? 0;
+        if (classify(path).kind !== 'internal') continue;
+        if (at > last) out.push({ type: 'text', value: line.slice(last, at) });
+        out.push({ type: 'link', url: path, children: [{ type: 'text', value: path }] });
+        last = at + path.length;
+      }
+      if (last < line.length) out.push({ type: 'text', value: line.slice(last) });
+    });
+    return out;
+  };
+
+  const walk = (node: MdNode) => {
+    if (!node.children || KEEP_AS_IS.has(node.type)) return;
+    node.children = node.children.flatMap((child) => {
+      if (child.type === 'text' && typeof child.value === 'string') return splitText(child.value);
+      walk(child);
+      return [child];
+    });
+  };
+
+  return () => (tree: MdNode) => {
+    walk(tree);
+  };
 }
 
 /**
- * MarkdownRenderer Component
- * Renders markdown content with support for:
- * - Bold, italic, lists
- * - Links (internal navigation + external)
- * - Tables, strikethrough (GFM)
- * - Custom styling for chatbot messages
+ * MarkdownRenderer: the assistant's reply, parsed as Markdown (GFM) and rendered as React
+ * elements. No raw HTML (there is no rehype-raw), no images, no dangerouslySetInnerHTML. Styled
+ * for the --muted assistant bubble (B8 / FD-31): tokens only.
  */
-const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
+const MarkdownRenderer = ({ content, onLinkClick, classifyLink = classifyChatHref }: MarkdownRendererProps) => {
   const navigate = useNavigate();
 
   /**
-   * Internal links are routed in-app with the NORMALISED path from classifyHref. A modified
-   * or non-primary click keeps the browser default, which is safe because the href attribute
-   * is that same normalised same-origin path.
+   * Internal links are routed in-app with the NORMALISED path from the policy. A modified or
+   * non-primary click keeps the browser default, which is safe because the href attribute is that
+   * same normalised same-origin path.
    */
   const handleInternalClick = (path: string, e: React.MouseEvent<HTMLAnchorElement>) => {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -31,15 +82,16 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
     onLinkClick?.(); // Notify parent (e.g., to close chatbot)
   };
 
-  const linkClass = 'font-bold underline underline-offset-2 transition-colors text-gold hover:text-gold/80';
+  const linkClass =
+    'rounded-sm font-semibold text-primary underline underline-offset-2 transition-colors duration-fast ease-standard hover:text-primary-light focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1';
 
   return (
     <Markdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkChatText(classifyLink)]}
       components={{
-        // Links in bot text are untrusted (SEC-16): see ./links for the policy.
+        // Links in bot text are untrusted (SEC-16, FF-5): see ./chatLinks for the allow-list.
         a: ({ href, title, children }) => {
-          const target = classifyHref(href);
+          const target = classifyLink(href);
 
           if (target.kind === 'internal') {
             return (
@@ -64,13 +116,13 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
                 className={linkClass}
               >
                 {children}
-                <span aria-hidden="true" className="inline-block ml-1 text-xs opacity-90">↗</span>
+                <span aria-hidden="true" className="ml-1 inline-block text-xs">↗</span>
                 <span className="sr-only"> (opens in a new tab)</span>
               </a>
             );
           }
 
-          // Any other scheme (javascript:, data:, vbscript:, mailto:, ...) is shown as text.
+          // Any other scheme, host or path is shown as text.
           return <span data-unlinked="">{children}</span>;
         },
 
@@ -80,74 +132,69 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
         // escaped because there is no rehype-raw.)
         img: ({ alt }) => <span data-unlinked="">{alt}</span>,
 
-        // Bold text
         strong: ({ node, children, ...props }) => (
-          <strong className="font-extrabold text-white" {...props}>
+          <strong className="font-semibold text-foreground" {...props}>
             {children}
           </strong>
         ),
 
-        // Emphasis (italic)
         em: ({ node, children, ...props }) => (
           <em className="italic" {...props}>
             {children}
           </em>
         ),
 
-        // Lists
         ul: ({ node, children, ...props }) => (
-          <ul className="list-disc list-inside space-y-1.5 my-2 text-gray-100" {...props}>
+          <ul className="my-2 list-disc space-y-1 pl-5" {...props}>
             {children}
           </ul>
         ),
 
         ol: ({ node, children, ...props }) => (
-          <ol className="list-decimal list-inside space-y-1.5 my-2 text-gray-100" {...props}>
+          <ol className="my-2 list-decimal space-y-1 pl-5" {...props}>
             {children}
           </ol>
         ),
 
         li: ({ node, children, ...props }) => (
-          <li className="text-sm leading-relaxed text-gray-100 ml-1" {...props}>
+          <li className="leading-relaxed" {...props}>
             {children}
           </li>
         ),
 
-        // Paragraphs
         p: ({ node, children, ...props }) => (
-          <p className="mb-2 last:mb-0 leading-relaxed text-gray-100" {...props}>
+          <p className="mb-2 leading-relaxed last:mb-0" {...props}>
             {children}
           </p>
         ),
 
-        // Headings
+        // Headings inside a bubble stay small: the panel's own title is the dialog heading.
         h1: ({ node, children, ...props }) => (
-          <h1 className="text-xl font-extrabold mb-2 mt-3 first:mt-0 text-white" {...props}>
+          <p className="mb-1 mt-3 font-semibold text-foreground first:mt-0" {...props}>
             {children}
-          </h1>
+          </p>
         ),
 
         h2: ({ node, children, ...props }) => (
-          <h2 className="text-lg font-extrabold mb-2 mt-3 first:mt-0 text-white" {...props}>
+          <p className="mb-1 mt-3 font-semibold text-foreground first:mt-0" {...props}>
             {children}
-          </h2>
+          </p>
         ),
 
         h3: ({ node, children, ...props }) => (
-          <h3 className="text-base font-bold mb-1 mt-2 first:mt-0 text-white" {...props}>
+          <p className="mb-1 mt-2 font-semibold text-foreground first:mt-0" {...props}>
             {children}
-          </h3>
+          </p>
         ),
 
         // Fenced code blocks: react-markdown renders <pre><code>. Plain, unhighlighted
         // markup keeps a syntax highlighter (and its grammars) out of the bundle.
         pre: ({ node, children, ...props }) => (
-          <pre className="overflow-x-auto rounded-lg" {...props}>
+          <pre className="overflow-x-auto rounded-sm" {...props}>
             {children}
           </pre>
         ),
 
-        // Code (inline and blocks)
         code: ({ node, className, children, ...props }) => {
           const match = /language-(\w+)/.exec(className || '');
           // react-markdown v10 dropped the `inline` prop: fenced blocks carry a
@@ -157,12 +204,11 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
           return (
             <code
               data-language={match ? match[1] : undefined}
-              className={`
-                ${inline
-                  ? 'bg-gray-800 px-2 py-0.5 rounded text-sm font-mono text-gold border border-gold/30'
-                  : 'block bg-gray-800 p-3 rounded-lg text-sm font-mono overflow-x-auto my-2 text-gray-100 border border-gold/20'
-                }
-              `}
+              className={
+                inline
+                  ? 'rounded-sm border border-border bg-background px-1.5 py-0.5 font-mono text-[0.8125rem]'
+                  : 'my-2 block overflow-x-auto rounded-sm border border-border bg-background p-3 font-mono text-[0.8125rem]'
+              }
               {...props}
             >
               {children}
@@ -170,62 +216,47 @@ const MarkdownRenderer = ({ content, onLinkClick }: MarkdownRendererProps) => {
           );
         },
 
-        // Blockquotes
         blockquote: ({ node, children, ...props }) => (
-          <blockquote
-            className="border-l-4 border-gold pl-4 py-2 my-2 italic text-gray-200 bg-gray-800/30 rounded-r"
-            {...props}
-          >
+          <blockquote className="my-2 border-l-4 border-primary/30 py-1 pl-3 text-muted-foreground" {...props}>
             {children}
           </blockquote>
         ),
 
-        // Tables (GFM)
         table: ({ node, children, ...props }) => (
-          <div className="overflow-x-auto my-3 border border-gold/20 rounded-lg">
-            <table className="min-w-full divide-y divide-gold/20" {...props}>
+          <div className="my-3 overflow-x-auto rounded-sm border border-border">
+            <table className="min-w-full divide-y divide-border" {...props}>
               {children}
             </table>
           </div>
         ),
 
         thead: ({ node, children, ...props }) => (
-          <thead className="bg-gray-800/50" {...props}>
+          <thead className="bg-background" {...props}>
             {children}
           </thead>
         ),
 
         tbody: ({ node, children, ...props }) => (
-          <tbody className="divide-y divide-gold/10 bg-gray-900/20" {...props}>
+          <tbody className="divide-y divide-border" {...props}>
             {children}
           </tbody>
         ),
 
-        tr: ({ node, children, ...props }) => (
-          <tr className="hover:bg-gray-800/30 transition-colors" {...props}>
-            {children}
-          </tr>
-        ),
+        tr: ({ node, children, ...props }) => <tr {...props}>{children}</tr>,
 
         th: ({ node, children, ...props }) => (
-          <th
-            className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider text-gold"
-            {...props}
-          >
+          <th className="px-3 py-2 text-left text-xs font-semibold text-foreground" {...props}>
             {children}
           </th>
         ),
 
         td: ({ node, children, ...props }) => (
-          <td className="px-3 py-2 text-sm text-gray-100" {...props}>
+          <td className="px-3 py-2" {...props}>
             {children}
           </td>
         ),
 
-        // Horizontal rule
-        hr: ({ node, ...props }) => (
-          <hr className="my-4 border-border" {...props} />
-        ),
+        hr: ({ node, ...props }) => <hr className="my-3 border-border" {...props} />,
       }}
     >
       {content}

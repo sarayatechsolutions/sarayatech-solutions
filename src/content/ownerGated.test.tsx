@@ -14,6 +14,9 @@ import type { BlogPost } from "@/content/insights/blog";
 import type { IndustryPage } from "@/content/industries/industries";
 import type { ServiceAreaPage } from "@/content/locations/locations";
 
+// Design audit B7: the 404 page's h1 is "We can't find that page" (it was "404").
+const NOT_FOUND_H1 = "We can't find that page";
+
 // Every test calls load(), which resets the module graph and re-imports @/routes (every page),
 // SEO and the SSR entry inside the test body. That cold transform alone took 5.0-5.6 s on a loaded
 // run, over vitest's 5 s default, so the timeout is raised for this file only. No assertion changes.
@@ -217,7 +220,7 @@ describe("STS-055 blog: approved fixture posts", () => {
     const m = await load({ posts: [good, placeholder, unapproved] });
     for (const slug of ["fixture-placeholder", "fixture-unapproved", "no-such-post"]) {
       const path = `/insights/${slug}`;
-      expect(text(parse(m.server.render(path)).querySelector("h1")), path).toBe("404");
+      expect(text(parse(m.server.render(path)).querySelector("h1")), path).toBe(NOT_FOUND_H1);
       const seo = m.seo.getSeo(path);
       expect(seo.noindex, path).toBe(true);
       expect(m.seo.renderHeadTags(seo)).not.toContain("canonical");
@@ -264,7 +267,7 @@ describe("STS-055 blog: nothing approved (the shipped state)", () => {
 
   it("makes a draft's URL the 404 page", async () => {
     const m = await load({ posts: drafts });
-    expect(text(parse(m.server.render("/insights/fixture-guide-one")).querySelector("h1"))).toBe("404");
+    expect(text(parse(m.server.render("/insights/fixture-guide-one")).querySelector("h1"))).toBe(NOT_FOUND_H1);
     expect(m.seo.getSeo("/insights/fixture-guide-one").noindex).toBe(true);
   });
 });
@@ -318,7 +321,7 @@ describe("STS-042 industry pages", () => {
 
   it("serves the 404 page for an unlisted slug", async () => {
     const m = await load({ industries: [good, marker] });
-    expect(text(parse(m.server.render("/industries/fixture-marker")).querySelector("h1"))).toBe("404");
+    expect(text(parse(m.server.render("/industries/fixture-marker")).querySelector("h1"))).toBe(NOT_FOUND_H1);
     expect(m.seo.getSeo("/industries/fixture-marker").noindex).toBe(true);
   });
 
@@ -329,8 +332,8 @@ describe("STS-042 industry pages", () => {
     expect(m.routes.getPublicPaths().some((p: string) => p.startsWith("/industries"))).toBe(false);
     expect(m.seo.buildSitemapXml(m.server.sitemapPaths, SITE)).not.toContain("/industries");
     expect(m.seo.getSeo("/industries").noindex).toBe(true);
-    expect(text(parse(m.server.render("/industries")).querySelector("h1"))).toBe("404");
-    expect(text(parse(m.server.render("/industries/fixture-bakery")).querySelector("h1"))).toBe("404");
+    expect(text(parse(m.server.render("/industries")).querySelector("h1"))).toBe(NOT_FOUND_H1);
+    expect(text(parse(m.server.render("/industries/fixture-bakery")).querySelector("h1"))).toBe(NOT_FOUND_H1);
   });
 });
 
@@ -379,7 +382,7 @@ describe("STS-043 service-area pages", () => {
     const live = m.routes.getPublicPaths().filter((p: string) => p.startsWith("/locations/"));
     expect(live).toEqual(["/locations/fixture-dublin"]);
     for (const slug of ["fixture-unconfirmed", "fixture-short", "fixture-swapped", "fixture-hilliard"]) {
-      expect(text(parse(m.server.render(`/locations/${slug}`)).querySelector("h1")), slug).toBe("404");
+      expect(text(parse(m.server.render(`/locations/${slug}`)).querySelector("h1")), slug).toBe(NOT_FOUND_H1);
     }
   });
 
@@ -390,6 +393,6 @@ describe("STS-043 service-area pages", () => {
     expect(m.routes.getPublicPaths().some((p: string) => p.startsWith("/locations"))).toBe(false);
     expect(m.seo.buildSitemapXml(m.server.sitemapPaths, SITE)).not.toContain("/locations");
     expect(m.seo.getSeo("/locations/fixture-hilliard").noindex).toBe(true);
-    expect(text(parse(m.server.render("/locations/fixture-hilliard")).querySelector("h1"))).toBe("404");
+    expect(text(parse(m.server.render("/locations/fixture-hilliard")).querySelector("h1"))).toBe(NOT_FOUND_H1);
   });
 });

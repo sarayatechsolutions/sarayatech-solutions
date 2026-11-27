@@ -2,10 +2,11 @@ import { describe, it, expect } from "vitest";
 import { render } from "@/entry-server";
 import { bookingHref } from "@/config/business";
 import { getSeo } from "@/seo/seo";
-import { PROJECT_COPY, WORK_HERO } from "@/content/work/work";
+import { PROJECT_COPY, WORK_HERO, WORK_LABELS } from "@/content/work/work";
 import { workProjects } from "@/pages/Realisation";
 import realisations from "../../data/realisations.json";
 import { WORK_FORBIDDEN_PHRASES, buildRoutes } from "../../tests/smoke/smoke.mjs";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 // STS-035. /our-work (STS-057; formerly /realisation) is rendered exactly as the build prerenders it (entry-server), then read
 // as a document, so these assertions hold for the HTML a crawler or no-JS visitor gets.
@@ -45,7 +46,7 @@ describe("Our Work page (STS-035, REQ-007, REQ-028)", () => {
   });
 
   it("sends the call to action to bookingHref()", () => {
-    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a) === "Book a Free Consultation");
+    const ctas = [...main.querySelectorAll("a")].filter((a) => text(a) === CONSULTATION_CTA_LABEL);
     expect(ctas).toHaveLength(1);
     expect(ctas[0].getAttribute("href")).toBe(bookingHref());
   });
@@ -106,5 +107,36 @@ describe("Our Work has no banned copy or unverified claims (REQ-011, REQ-012, RE
 
   it("leaves no placeholder text", () => {
     expect(mainText).not.toMatch(/\[[^\]]*\]|lorem|TODO|placeholder/i);
+  });
+});
+
+describe("Our Work touch targets and landmarks (design review)", () => {
+  it("gives every 'Visit the ... website' link a 44 px touch target", () => {
+    const visits = projects.map((p) => p.querySelector('a[target="_blank"]')).filter(Boolean) as HTMLElement[];
+    expect(visits.length).toBeGreaterThan(0);
+    for (const a of visits) {
+      const classes = (a.getAttribute("class") ?? "").split(/\s+/);
+      for (const cls of ["inline-flex", "items-center", "min-h-11"]) expect(classes, text(a)).toContain(cls);
+    }
+  });
+
+  it("names the projects region apart from the hero region", () => {
+    const region = main.querySelector('[data-work-section="projects"]');
+    expect(region?.getAttribute("aria-label")).toBe(WORK_LABELS.projectsRegion);
+    expect(WORK_LABELS.projectsRegion).not.toBe(WORK_HERO.headline);
+  });
+});
+
+describe("Our Work LCP image (FF-12)", () => {
+  it("fetches the first screenshot eagerly at high priority and keeps the rest lazy", () => {
+    const imgs = projects.map((p) => p.querySelector("img") as HTMLImageElement);
+    expect(imgs.length).toBeGreaterThan(1);
+    const [first, ...rest] = imgs;
+    expect(first.getAttribute("loading")).toBe("eager");
+    expect(first.getAttribute("fetchpriority")).toBe("high");
+    for (const img of rest) {
+      expect(img.getAttribute("loading")).toBe("lazy");
+      expect(img.getAttribute("fetchpriority")).toBeNull();
+    }
   });
 });

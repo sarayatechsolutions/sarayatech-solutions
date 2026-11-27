@@ -1,8 +1,12 @@
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import Steps from "@/components/Steps";
 import CtaLink from "@/components/home/CtaLink";
 import FinalCta from "@/components/FinalCta";
-import { FREE_AUDIT_PATH } from "@/components/home/content";
+import { contactHrefFor } from "@/content/forms/contact-context";
+import PageHero from "@/components/PageHero";
+import SectionHeader from "@/components/SectionHeader";
+import { FREE_AUDIT_PATH, HERO, PROOF_PATH } from "@/components/home/content";
 import { BUSINESS, bookingHref } from "@/config/business";
 import {
   PRICING_CTA,
@@ -26,40 +30,42 @@ export const PriceCard = ({
   card,
   kind,
   href,
+  emphasis = false,
 }: {
   card: PackageDef | CustomDef;
   kind: "package" | "custom";
   href: string;
+  /** The last package's button is filled navy (FD-25). No badge: "Most chosen" waits for the owner. */
+  emphasis?: boolean;
 }) => {
   const price = formatPrice(card.priceKind, card.price);
   const fallback = kind === "custom" ? PRICING_LABELS.customQuoteWording : PRICING_LABELS.quoteWording;
   const note = "priceNote" in card ? card.priceNote : undefined;
   return (
-    <li
-      data-package-card={kind}
-      data-price-state={price ? "set" : "quote"}
-      className="bg-card rounded-2xl p-6 shadow-card border border-border flex flex-col gap-4"
-    >
-      <h3 className="text-xl font-bold text-foreground">{card.name}</h3>
-      <p className="text-foreground/80">
-        <span className="font-semibold text-foreground">{PRICING_PACKAGES.forLabel}</span> {card.for}
-      </p>
-      <div>
-        <p className="font-semibold text-foreground mb-2">{PRICING_PACKAGES.includesLabel}</p>
-        <ul className="list-disc pl-5 space-y-1 text-foreground/80">
-          {card.inclusions.map((i) => (
-            <li key={i}>{i}</li>
-          ))}
-        </ul>
-      </div>
-      <p data-price className="text-lg font-bold text-primary mt-auto">
-        {price ?? fallback}
-      </p>
-      {note && <p className="text-sm text-foreground/70 -mt-3">{note}</p>}
-      <Button asChild className="min-h-11 h-auto whitespace-normal bg-primary hover:bg-primary-light text-primary-foreground">
-        <CtaLink href={href}>{kind === "custom" ? PRICING_LABELS.customCta : PRICING_LABELS.packageCta}</CtaLink>
-      </Button>
-    </li>
+    <Card asChild className="h-full gap-4">
+      <li data-package-card={kind} data-price-state={price ? "set" : "quote"}>
+        <h3 className="text-h4 text-foreground">{card.name}</h3>
+        <p className="text-foreground/80">
+          <span className="font-semibold text-foreground">{PRICING_PACKAGES.forLabel}</span> {card.for}
+        </p>
+        <div>
+          <p className="font-semibold text-foreground mb-2">{PRICING_PACKAGES.includesLabel}</p>
+          <ul className="list-disc pl-5 space-y-1 text-foreground/80">
+            {card.inclusions.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+        <p data-price className="text-lg font-bold text-primary mt-auto pt-2">
+          {price ?? fallback}
+        </p>
+        {note && <p className="text-sm text-foreground/70 -mt-3">{note}</p>}
+        {/* One CTA, outline, 44 px and 16 px (FD-25); the label names the package. */}
+        <Button asChild variant={emphasis ? "secondary" : "outline"} size="lg" className="w-full whitespace-normal text-center">
+          <CtaLink href={href}>{kind === "custom" ? PRICING_LABELS.customCta : PRICING_LABELS.packageCta(card.name)}</CtaLink>
+        </Button>
+      </li>
+    </Card>
   );
 };
 
@@ -71,64 +77,47 @@ const Pricing = () => {
   const booking = bookingHref();
   return (
     <>
-      <section
-        data-pricing-section="hero"
-        aria-labelledby="pricing-heading"
-        className="bg-gradient-to-br from-primary via-primary-light to-primary text-white"
-      >
-        <div className={`${container} pt-28 pb-16 md:pt-36 md:pb-20`}>
-          <div className="max-w-3xl space-y-6">
-            <p className="text-sm font-semibold uppercase tracking-wider text-white/90">{BUSINESS.serviceAreaText}</p>
-            <h1 id="pricing-heading" className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
-              {PRICING_HERO.headline}
-            </h1>
-            <p className="text-lg md:text-xl text-white/90 leading-relaxed">{PRICING_HERO.intro}</p>
-            <div className="pt-2">
-              <Button asChild size="lg" className="bg-accent hover:bg-accent-light text-accent-foreground shadow-accent">
-                <CtaLink href={booking}>
-                  {PRICING_HERO.cta}
-                  <ArrowRight aria-hidden="true" className="w-5 h-5" />
-                </CtaLink>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        id="pricing-heading"
+        eyebrow={BUSINESS.serviceAreaText}
+        title={PRICING_HERO.headline}
+        intro={PRICING_HERO.intro}
+        primaryCta={{ label: PRICING_HERO.cta, href: booking }}
+        secondaryCta={{ label: HERO.secondaryCta, href: PROOF_PATH }}
+        sectionAttrs={{ "data-pricing-section": "hero" }}
+      />
 
-      <section data-pricing-section="packages" aria-labelledby="pricing-packages-heading" className="py-20 bg-background">
+      <section data-pricing-section="packages" aria-labelledby="pricing-packages-heading" className="section bg-background">
         <div className={container}>
-          <h2 id="pricing-packages-heading" className="text-3xl md:text-4xl font-bold mb-10">
-            {PRICING_PACKAGES.heading}
-          </h2>
-          <ul className="grid gap-6 md:grid-cols-3">
-            {PRICING_PACKAGES.packages.map((p) => (
-              <PriceCard key={p.id} card={p} kind="package" href={booking} />
+          <SectionHeader id="pricing-packages-heading" title={PRICING_PACKAGES.heading} />
+          <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {PRICING_PACKAGES.packages.map((p, i, all) => (
+              <PriceCard
+                key={p.id}
+                card={p}
+                kind="package"
+                // FF-10: the contact form opens with this package named (unverified booking only).
+                href={contactHrefFor({ package: p.id }, booking)}
+                emphasis={i === all.length - 1}
+              />
             ))}
           </ul>
         </div>
       </section>
 
-      <section data-pricing-section="custom" aria-labelledby="pricing-custom-heading" className="py-20 bg-muted/30">
-        <div className={`${container} max-w-3xl`}>
-          <h2 id="pricing-custom-heading" className="text-3xl md:text-4xl font-bold mb-10">
-            {PRICING_CUSTOM.heading}
-          </h2>
-          <ul>
-            <PriceCard card={PRICING_CUSTOM.card} kind="custom" href={booking} />
+      <section data-pricing-section="custom" aria-labelledby="pricing-custom-heading" className="section bg-surface-subtle">
+        <div className={container}>
+          <SectionHeader id="pricing-custom-heading" title={PRICING_CUSTOM.heading} />
+          <ul className="max-w-3xl">
+            <PriceCard card={PRICING_CUSTOM.card} kind="custom" href={contactHrefFor({ package: PRICING_CUSTOM.card.id }, booking)} />
           </ul>
         </div>
       </section>
 
-      <section data-pricing-section="how" aria-labelledby="pricing-how-heading" className="py-20 bg-background">
-        <div className={`${container} max-w-3xl space-y-4`}>
-          <h2 id="pricing-how-heading" className="text-3xl md:text-4xl font-bold">
-            {PRICING_HOW.heading}
-          </h2>
-          <ol className="list-decimal pl-6 space-y-2 text-lg text-foreground/80 leading-relaxed">
-            {PRICING_HOW.steps.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ol>
+      <section data-pricing-section="how" aria-labelledby="pricing-how-heading" className="section bg-background">
+        <div className={container}>
+          <SectionHeader id="pricing-how-heading" title={PRICING_HOW.heading} />
+          <Steps items={PRICING_HOW.steps.map((copy) => ({ copy }))} />
         </div>
       </section>
 

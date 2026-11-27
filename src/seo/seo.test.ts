@@ -23,8 +23,8 @@ describe("per-route SEO data (STS-021)", () => {
     const seo = getSeo(p);
     expect(seo.path).toBe(p);
     // Noindex only where intended: /insights until its first article (STS-040) and the
-    // STS-037 legal drafts until C23 approval.
-    const expectNoindex = p === "/insights" || (!LEGAL_PAGES_APPROVED && (p === "/privacy" || p === "/terms"));
+    // STS-037 legal drafts until C23 approval, and /careers while no role is confirmed (design audit B0).
+    const expectNoindex = p === "/insights" || p === "/careers" || (!LEGAL_PAGES_APPROVED && (p === "/privacy" || p === "/terms"));
     expect(seo.noindex).toBe(expectNoindex ? true : undefined);
     expect(seo.title.length).toBeGreaterThanOrEqual(35);
     expect(seo.title.length).toBeLessThanOrEqual(60);

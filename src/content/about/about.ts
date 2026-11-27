@@ -23,6 +23,7 @@
  * future translation layer would read from.
  */
 import leadershipTeam from "../../../data/leadership-team.json";
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
 
 export const ABOUT_HERO = {
   /** Source heading, word for word. */
@@ -30,7 +31,7 @@ export const ABOUT_HERO = {
   /** Source copy without the [year]/[founder] clause (C7) and the phone promise (C2). */
   intro:
     "SarayaTech gives Columbus small businesses the same quality of websites and marketing that big companies get, at a price that makes sense. We explain things in plain English and measure our work by your results.",
-  cta: "Book a Free Consultation",
+  cta: CONSULTATION_CTA_LABEL,
 } as const;
 
 /** Who the page is for. Neutral until the owner's own "why Columbus" (C7) replaces it. */
@@ -114,8 +115,9 @@ export const ABOUT_TEAM = {
 export const ABOUT_CTA = {
   // OWNER REVIEW: heading written for STS-036; copy from the home "How it works" step 1.
   heading: "Talk to the team",
-  copy: "Book a free consultation and we will review your website and Google profile with you.",
-  button: "Book a Free Consultation",
+  // Design audit B7 (FD-27): "Request", like the button, while booking is the contact form.
+  copy: "Request a free consultation and we will review your website and Google profile with you.",
+  button: CONSULTATION_CTA_LABEL,
 } as const;
 
 /** Initials for a member without a portrait, e.g. "Baye Lam" -> "BL". Decorative only. */

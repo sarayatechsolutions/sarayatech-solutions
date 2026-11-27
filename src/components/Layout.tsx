@@ -1,10 +1,9 @@
-import { ReactNode, Suspense, lazy, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Header, { MAIN_CONTENT_ID } from "@/components/Header";
 import Footer from "@/components/Footer";
-
-// The chatbot is not needed for first paint: load its chunk only once the
-// browser is idle, so it stays out of the main bundle and the critical path.
-const AminaChatbot = lazy(() => import("@/components/chatbot/AminaChatbot"));
+// FF-11: only the small launcher container ships in the main bundle; the panel (Markdown renderer,
+// chat service) is its own chunk, fetched on hover/focus of the launcher or on the first open.
+import AminaChatbot from "@/components/chatbot/AminaChatbot";
 
 interface LayoutProps {
   children: ReactNode;
@@ -36,11 +35,8 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
       <Footer />
-      {chatbotReady && (
-        <Suspense fallback={null}>
-          <AminaChatbot />
-        </Suspense>
-      )}
+      {/* Mounted once the browser is idle: not part of first paint, nor of the prerendered HTML. */}
+      {chatbotReady && <AminaChatbot />}
     </div>
   );
 };

@@ -12,3 +12,10 @@ export const LEAD_REFERENCE_COPY = {
   prefix: "Your reference: ",
   suffix: ". Mention it if you contact us about this request.",
 } as const;
+
+/** Design audit B6: the copy button next to the code in the success panel. */
+export const LEAD_REFERENCE_COPY_BUTTON = {
+  label: "Copy reference",
+  copied: "Copied",
+  failed: "Couldn't copy",
+} as const;

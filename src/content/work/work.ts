@@ -25,6 +25,8 @@
  * future translation layer would read from.
  */
 
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
+
 /** Route of the Our Work page (I-9, STS-057). The one place the URL is written; links import it. */
 export const WORK_PATH = "/our-work";
 
@@ -36,6 +38,9 @@ export const WORK_HERO = {
 } as const;
 
 export const WORK_LABELS = {
+  /** Name of the projects region. Not the page headline: the hero region already carries that name
+   * and two landmarks of one role must not share it (axe landmark-unique). */
+  projectsRegion: "Projects",
   whatItIs: "What it is",
   whatWeBuilt: "What we built",
   visit: (company: string) => `Visit the ${company} website`,
@@ -84,5 +89,5 @@ export const WORK_CTA = {
   // OWNER REVIEW: same call to action as the home and About pages.
   heading: "Have a project in mind?",
   copy: "Tell us what you need. We will talk it through in plain English.",
-  button: "Book a Free Consultation",
+  button: CONSULTATION_CTA_LABEL,
 } as const;

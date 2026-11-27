@@ -1,0 +1,82 @@
+{
+  "schema": "vantry.review/1",
+  "kind": "security",
+  "verdict": "pass",
+  "reviewer": "security-engineer",
+  "at": "2026-11-27T18:15:23Z",
+  "head": "bde572bb0f0baaad6ded173648ed48116754b516",
+  "base": "894ed25 (tip of integrate/s3, reviewed PASS on 3b1a2f0 in .vantry/reviews/integrate-s3.security.json)",
+  "scope": "git diff 894ed25..HEAD on feat/s7-fe-polish: 10 commits (5a37f68..bde572b), design audit B0-B9 plus functional fixes FF-1, FF-5, FF-6, FF-7, FF-8, FF-9, FF-10, FF-11, FF-12. 116 files. React 18 + Vite 6 prerendered static marketing site. It posts to the separate Next.js backend, which was read but is out of scope for this verdict.",
+  "reviewed_tree_digest": "f58bc2b1ff22497946f9d570b83832777378f5e2c02e62e4b7b13ec5491ca4fb",
+  "receipt_at_review": "pass @ 2026-11-27T17:51:09Z, freshness CURRENT (scripts/verify.sh --status before and after the review)",
+  "precondition": "scripts/verify.sh --status: receipt pass, CURRENT, at the start of the review. The working tree was clean before and after every probe and mutation.",
+  "sensitive_paths_hit": [
+    "src/pages/Contact.tsx",
+    "src/services/chatbot.service.ts",
+    "src/services/openai.service.ts",
+    "src/services/chatbot.service.test.ts",
+    "src/services/chatbot.matching.test.ts"
+  ],
+  "sensitive_paths_not_hit_in_range": "vendor/**, auth globs, public/_headers, public/_redirects, index.html, vite.config.ts, package.json, package-lock.json, .github/workflows/**. The package-lock delta reported by scan-vulns against develop comes from integrate/s3, which was already reviewed.",
+  "also_reviewed_by_brief": [
+    "src/pages/FreeAudit.tsx", "src/components/form/FormField.tsx", "src/components/form/FormError.tsx",
+    "src/components/form/FormSuccess.tsx", "src/components/LeadReferenceNote.tsx", "src/components/LeadSourceSelect.tsx",
+    "src/content/forms/contact-context.ts", "src/content/forms/lead-reference.ts", "src/content/forms/contact-form.ts",
+    "src/components/chatbot/AminaChatbot.tsx", "src/components/chatbot/ChatPanel.tsx", "src/components/chatbot/ChatLauncher.tsx",
+    "src/components/chatbot/chatLinks.ts", "src/components/chatbot/MarkdownRenderer.tsx", "src/components/ScrollToTop.tsx",
+    "src/components/RouteAnnouncer.tsx", "src/content/retiredComponents.test.tsx"
+  ],
+  "threat_model": "No threat model under docs/security/threat-models covers this front-end polish. None is needed: the diff adds no endpoint, no storage of user data and no new third-party origin. The relevant threats are reflected XSS through the query string, unsafe links in untrusted LLM output, PII leaking to analytics, URLs or storage, and the lead request shape drifting from the backend contract. Each is checked below.",
+  "checklist": ["data-authz", "privileged-credential", "boundary-validation", "secrets-pii", "webhooks", "storage", "headers-csp", "ai-context", "owasp-top-10"],
+  "checklist_results": {
+    "data-authz": "N/A: the static front end owns no data store, and the diff adds no table, RLS policy or endpoint.",
+    "privileged-credential": "pass: no key or token in the client. The /api/chat request carries only the Content-Type header and no credentials (src/services/openai.service.ts:96-101), and the probe asserted this over 40 turns.",
+    "boundary-validation": "pass: the contact payload is unchanged (Contact.tsx:145 spreads the same ContactPayload, and src/lib/contact-submit.ts is untouched). Client validation was added with noValidate (Contact.tsx:77-84, FreeAudit.tsx:80-90), but the payload is still what the visitor typed, and the backend validates it. The honeypot 'nickname' is unchanged (Contact.tsx:318-333, FreeAudit.tsx:223-238). FF-10 reads the query through an exact allow-list (contact-context.ts:44-83).",
+    "secrets-pii": "pass with one low finding. trackLead sends only the form id and the fixed lead-source value (Contact.tsx:151, FreeAudit.tsx:136). The reference goes to the visitor only. The debug console.debug of intent scores was removed (chatbot.service.ts). There is no PII in the URL after submit (browser-verified). ScrollToTop keeps full URLs, including the query, in sessionStorage (see the finding).",
+    "webhooks": "N/A: none in this front end or diff.",
+    "storage": "N/A: no file or bucket access. The only new client storage is the sessionStorage scroll map; see secrets-pii.",
+    "headers-csp": "pass: public/_headers, index.html and vite.config.ts are untouched. There is no new third-party origin, and the browser probe blocked nothing external because nothing was requested. All new target=_blank links have rel='noopener noreferrer' and static hrefs.",
+    "ai-context": "pass: replies render through react-markdown with no rehype-raw and no dangerouslySetInnerHTML. Images become alt text (MarkdownRenderer.tsx:133). Links go through the chat allow-list (chatLinks.ts:65-92 over lib/links.ts classifyHref). History is capped at 10 items client-side (openai.service.ts:66-86), and the backend enforces 10 items, 2000 chars each and 15000 in total (wt-be-next lib/validation.ts:165-210). Abort drops late replies and records no history (openai.service.ts:112-118, ChatPanel.tsx:150).",
+    "owasp-top-10": "pass: no injection sink was added (the only dangerouslySetInnerHTML in src is the unchanged shadcn chart.tsx). No reflected XSS through ?service= or ?package=, verified in a real browser. No prototype pollution, because lookups use Array.find/includes over constant arrays. No open redirect through chat links. No vulnerable dependency was introduced."
+  },
+  "evidence": {
+    "npm_test": "69 files, 1302 tests passed (vitest, cwd E:/sarayatech-solutions/wt-fe-polish).",
+    "tsc": "npx tsc --noEmit exit 0.",
+    "scan_vulns_introduced": "npm audit clean. OSV.dev: 616 packages, no known vulnerability. Exit 0.",
+    "scan_quality_changed_strict": "eslint clean, cross-language security patterns: none matched. Exit 0. semgrep is not installed, so that layer did not run.",
+    "reviewer_probe_unit": "141 throwaway vitest probes, deleted afterwards and never committed, all passed. (1) The shipped chat policy turns 62 hrefs into plain text: javascript:/JavaScript:/JAVASCRIPT:, leading-space and tab and NUL variants, java\\tscript:, javascript&colon;, data:, vbscript: in mixed case, //host, \\\\host, /\\host, \\/host, /%2f%2f, /%5c, /.//, /a/..//, /%2e//, site.com.evil.tld, site.com@evil, evil@site.com, user:pw@site, %2f@ and %40 tricks, port 8443, http://site, /%2e%2e// and //path on the site host, backslash-at tricks, a Cyrillic homograph, a trailing-dot host, https:evil, https:/evil, fullwidth solidus, blob:, intent:, file:, ftp:, /api/chat, non-routes and relative paths. (2) The populated policy refuses look-alikes of the allow-listed booking host. (3) 38 markdown payloads (reference links, autolinks, GFM www and email autolinks, footnotes, tables, raw <a>/<img>/<script>/<iframe>/<svg>, title-attribute breakout, entity-encoded schemes, labels that look like links) render only anchors to live routes, with no img, script, iframe or on* attribute. (4) 31 contactContext queries (__proto__, constructor, toString, hasOwnProperty, prototype, service[], __proto__[service], repeated keys, case, whitespace, NUL, encoded HTML, ';' separator) yield only SERVICE_INTERESTS constants or our own package sentences. (5) After 40 turns of 3000-char messages and 5000-char replies, the request keys are exactly {message, history}, the message is 1000 chars or less, history has at most 10 entries and 15000 chars or less, and the only header is Content-Type. An aborted request records no history.",
+    "reviewer_probe_browser": "Built preview (dist built 17:50 by the verify run after HEAD 17:41) served on localhost:4182, driven by headless Chrome through CDP. Fetch interception allowed only localhost:4182, gave localhost:3001/api/contact a canned reply and would have failed every other request. Nothing else was requested, and nothing went to the live site. Five deny URLs (?service=<img onerror>&package=__proto__, ?service=__proto__&package=constructor, repeated service keys, ?service=Local-SEO, ?package=\"><svg onload>) left the select at 'Not sure yet / Something else' and the message empty. No onerror, onload, __proto__, constructor or alert(1) appeared in the DOM, title or field values, and no dialog fired. Allow: ?service=local-seo&package=local-starter preselected 'Local SEO' and prefilled 'I'd like a quote for the Local Starter package.' The submit POST body keys were exactly name, email, phone, company, service, message, nickname, with no credential header. Referer was origin-only. The success panel showed REF-7K3QX9PM. The URL carried no PII after submit. localStorage was empty, and window.dataLayer was null without consent. Chrome and the preview were stopped by PID, and the profile was deleted."
+  },
+  "tests_executed_by_reviewer": {
+    "mutation_checks": [
+      {"guard": "chat external-host allow-list, chatLinks.ts:91 replaced with an unconditional external", "result": "caught: 4 tests failed (AminaChatbot hostile reply; MarkdownRenderer //evil.tld, no calendly special case, off-list https deny)"},
+      {"guard": "contactContext single-value rule, contact-context.ts:52 changed to return all[0]", "result": "caught: 4 tests failed (3 contact-context repeated-key denies, Contact.test FF-10 repeated-key deny)"},
+      {"guard": "contactContext exact match, contact-context.ts:45 changed to compare slug.trim().toLowerCase()", "result": "caught: 4 tests failed (Local-SEO, leading and trailing space denies, Contact.test FF-10 Local-SEO deny)"},
+      {"guard": "retired guard, a static import of StatsSection added to src/pages/Index.tsx", "result": "caught: 2 tests failed (reachable from entry; imported by a source file)"},
+      {"guard": "retired guard, a dynamic lazy(import('./components/home/ClientLogos')) added to src/routes.tsx", "result": "caught: 2 tests failed (same two)"},
+      {"guard": "no image from a reply, MarkdownRenderer.tsx:133 changed to render <img src>", "result": "caught: 1 test failed (never renders a markdown image)"},
+      {"guard": "late-reply drop, ChatPanel.tsx:150 guard replaced with if(false)", "result": "caught: 1 test failed (closing cancels the pending request and its late reply is never shown)"}
+    ],
+    "restore": "Each mutant was reverted with git checkout -- <file>. git status --short was clean after all of them and after the probe file was removed."
+  },
+  "findings": [
+    {
+      "severity": "low",
+      "file": "src/components/ScrollToTop.tsx",
+      "line": 64,
+      "introduced_by_this_diff": true,
+      "summary": "FF-8 stores more than positions. The sessionStorage key is `${location.key}|${pathname}${search}${hash}`, so every visited URL's full query string and fragment is kept in sessionStorage['sarayatech:scroll-positions'] for the life of the tab (up to 50 entries, saved on pagehide). The browser probe confirmed it: hostile query strings were stored verbatim. The values are only JSON-parsed into a Map and compared as keys, never rendered or sent, so there is no injection. The site itself never puts PII in a URL: forms POST JSON, and FF-10 values are allow-listed. The residual risk is data minimisation only. An inbound link carrying PII in its query (an email-campaign ?email=, a third-party ?name=) would be copied into storage. That storage is readable by any same-origin script, though such a script could read location and history anyway. The comment at line 11 says 'positions are kept per history entry', which understates what is kept.",
+      "fix": "Key the map by `${location.key}|${location.pathname}` only, without search or hash. Location.key is already unique per history entry, and the 'default' key on a first load then shares one slot per path, which is acceptable. Or hash the search part before storing it. Add a ScrollToTop test asserting that sessionStorage never contains a query value such as '?email=a@b.c'. Non-blocking."
+    }
+  ],
+  "backend_follow_ups": [
+    "None blocking. Confirmed that wt-be-next lib/validation.ts:165-210 caps chat history at 10 items, 2000 chars each and 15000 chars in total. The client's maximum (5 x 1000 user + 5 x 2000 assistant) is exactly 15000, so raising CHAT_LIMITS.message on either side without the other turns every long conversation into a 400 and a silent local fallback. Keep the two constants pinned by a contract test.",
+    "Informational, pre-existing: history 'assistant' turns are asserted by the client, so a visitor can forge prior assistant content to prime the model. The backend must keep treating history as untrusted. It must never use history to grant tools or data, and its system prompt must not rely on prior assistant turns being genuine."
+  ],
+  "accepted_risks": [],
+  "not_verified": [
+    "semgrep layer (not installed).",
+    "The backend was read for the history caps only, not reviewed."
+  ],
+  "verdict_rationale": "Every sensitive area in the brief was checked against code, executed tests, probes and a real browser. The lead request shape and honeypot are unchanged against the contract. The FF-10 allow-list is exact and reflects nothing. Chat links are allow-listed with every probed obfuscation refused, there is no raw HTML or images, the request is {message, history} with no credentials, and abort leaks no state. The retired components are unreachable, and their guard bites on static and dynamic imports. The only finding is low and non-blocking, so no Critical or High remains. PASS against bde572b."
+}

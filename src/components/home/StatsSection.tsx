@@ -1,3 +1,11 @@
+/**
+ * RETIRED (design audit B9 / FD-36). DO NOT IMPORT.
+ * This component holds invented statistics: client counts, ROI, countries and satisfaction rates.
+ * It is not true of SarayaTech and must never be shown on the site. No page renders it; the
+ * file is kept only because front-end code files are never deleted (owner rule).
+ * Guarded by src/content/retiredComponents.test.tsx (import graph and server render) and by
+ * RETIRED_FAKE_CONTENT_PHRASES in tests/smoke/smoke.mjs (built HTML).
+ */
 import { useEffect, useRef, useState } from "react";
 import { TrendingUp, Users, Globe, Award } from "lucide-react";
 import { motion } from "@/components/motion";
@@ -107,7 +115,7 @@ const StatsSection = () => {
                   className="mb-6 flex justify-center"
                   whileHover={{ scale: 1.1 }}
                 >
-                  <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-smooth border border-white/20">
+                  <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/20 transition-colors duration-fast ease-standard border border-white/20">
                     <Icon className="w-10 h-10 text-gold" />
                   </div>
                 </motion.div>

@@ -21,6 +21,8 @@
  * future translation layer would read from.
  */
 
+import { CONSULTATION_CTA_LABEL } from "@/content/cta";
+
 /** How a price is written (REQ-066 to REQ-069). */
 export type PriceKind = "one-time" | "monthly" | "monthly-plus-ad-spend" | "quote-from";
 
@@ -55,7 +57,7 @@ export const PRICING_HERO = {
   // OWNER REVIEW: intro written for STS-033 from the home packages intro; promises no price or guarantee.
   intro:
     "Pick the package that fits where your business is today. Each one is quoted for your business, so you see a clear price in writing before anything starts.",
-  cta: "Book a Free Consultation",
+  cta: CONSULTATION_CTA_LABEL,
 } as const;
 
 export const PRICING_PACKAGES: { heading: string; forLabel: string; includesLabel: string; packages: readonly PackageDef[] } = {
@@ -115,7 +117,11 @@ export const PRICING_LABELS = {
   quoteWording: "Get a fixed quote",
   /** Shown on the custom card while its price is null (REQ-069). */
   customQuoteWording: "Custom quote",
-  packageCta: "Get a fixed quote",
+  /**
+   * One CTA per card (design audit B5, FD-25): the price slot already reads "Get a fixed quote",
+   * so the button names the package instead of repeating it. OWNER REVIEW (design audit section 5).
+   */
+  packageCta: (name: string) => `Get a quote for ${name}`,
   customCta: "Request a custom quote",
   auditCta: "Get My Free Audit",
 } as const;
@@ -124,7 +130,7 @@ export const PRICING_HOW = {
   // OWNER REVIEW: written for STS-033 from the home "How it works" steps; no price, time or result promised.
   heading: "How a quote works",
   steps: [
-    "Book a free consultation. We review your website, Google profile and competitors with you.",
+    "Request a free consultation. We review your website, Google profile and competitors with you.",
     "You get a written plan with a clear price.",
     "If it fits, we build and launch, then grow it every month.",
   ],
@@ -133,8 +139,10 @@ export const PRICING_HOW = {
 export const PRICING_CTA = {
   // OWNER REVIEW: closing call to action written for STS-033.
   heading: "Not sure which package fits?",
-  copy: "Tell us about your business and we will recommend one, or ask for a free audit first. No obligation either way.",
-  button: "Book a Free Consultation",
+  // Design audit B7 (FD-27): one offer per block. The copy describes the primary (a consultation);
+  // the free audit stays the secondary button, not a second offer in the sentence.
+  copy: "Request a free consultation. Tell us about your business and we will recommend the package that fits. No obligation.",
+  button: CONSULTATION_CTA_LABEL,
 } as const;
 
 const usd = (n: number): string => `$${n.toLocaleString("en-US")}`;
