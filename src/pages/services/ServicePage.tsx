@@ -107,7 +107,8 @@ const SectionBody = ({ section }: { section: ServiceSection }) => {
             </ul>
           )}
           <p className="mt-6">
-            <Link to={PROOF_PATH} className={textLink}>
+            {/* A standalone link, so a full 44 px touch target (WCAG 2.5.8 / design audit). */}
+            <Link to={PROOF_PATH} data-service-proof-link className={`${textLink} min-h-11`}>
               {L.proofCta}
               <ArrowRight aria-hidden="true" className="w-4 h-4" />
             </Link>

@@ -110,6 +110,14 @@ describe.each(SERVICE_PAGES)("service page /services/$slug (STS-032)", (page) =>
     for (const a of main.querySelectorAll("a")) expect(a.getAttribute("aria-label") || text(a)).not.toBe("");
   });
 
+  it("gives the standalone 'See all our work' link a 44 px touch target", () => {
+    const proof = main.querySelector("[data-service-proof-link]");
+    if (!page.sections.some((s) => s.kind === "projects")) return expect(proof).toBeNull();
+    expect(text(proof)).toBe("See all our work");
+    const classes = (proof?.className ?? "").split(/\s+/);
+    for (const cls of ["inline-flex", "items-center", "min-h-11"]) expect(classes).toContain(cls);
+  });
+
   it("renders no image, so no stock photo can read as team or client (REQ-015)", () => {
     expect(main.querySelectorAll("img")).toHaveLength(0);
   });
