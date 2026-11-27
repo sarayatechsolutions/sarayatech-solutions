@@ -41,6 +41,8 @@ Since B8 the chat launcher and panel use tokens too (section 7); no raw colour i
 | `--destructive-surface` | `0 85% 97%` | Inline error panel background |
 | `--success` / `--success-foreground` | `152 65% 26%` / `0 0% 100%` | Success text and icons, confirmation states |
 | `--success-surface` | `152 45% 95%` | Success panel background |
+| `--warning` / `--warning-surface` | `26 90% 22%` / `48 100% 96%` | Caution text on its panel (the legal draft notice), `text-warning` / `bg-warning-surface` |
+| `--warning-border` | `32 95% 44%` | Caution panel edge, `border-warning-border` (3.04:1 on the surface) |
 | `--brand-azure` | `211 93% 49%` | **Decorative only**: icons, rules, illustration. 4.18:1 on white, so never text under 24 px |
 | `--border` | `220 15% 88%` | Decorative dividers and card edges only (1.34:1, not a control boundary) |
 | `--border-strong` | `220 15% 80%` | Card edges on `--surface-subtle` (decorative, 1.54:1 there) |
@@ -116,6 +118,9 @@ Enforced by [`src/design/contrast.test.ts`](../../src/design/contrast.test.ts):
 | `--success` on `--background` | 6.31 | 4.5 |
 | `--success` on `--success-surface` | 5.80 | 4.5 |
 | `--success-foreground` on `--success` | 6.31 | 4.5 |
+| `--warning` on `--warning-surface` | 9.78 | 4.5 |
+| `--warning` on `--background` | 10.15 | 4.5 |
+| `--warning-border` on `--warning-surface` | 3.04 | 3 |
 | `--foreground` on `--surface-subtle` | 14.76 | 4.5 |
 | `--secondary` on `--surface-subtle` | 5.25 | 4.5 |
 | `--muted-foreground` on `--surface-subtle` | 5.81 | 4.5 |

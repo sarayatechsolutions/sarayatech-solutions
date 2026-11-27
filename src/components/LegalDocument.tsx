@@ -38,7 +38,7 @@ const LegalDocument = ({ doc, name }: { doc: LegalDoc; name: string }) => (
           role="note"
           aria-label={DRAFT_NOTICE.heading}
           data-legal-draft
-          className="mb-8 rounded-xl border-2 border-amber-500 bg-amber-50 p-4 text-amber-950"
+          className="mb-8 rounded-xl border-2 border-warning-border bg-warning-surface p-4 text-warning"
         >
           <p className="font-bold">{DRAFT_NOTICE.heading}</p>
           <p className="mt-1">{DRAFT_NOTICE.body}</p>
@@ -53,7 +53,8 @@ const LegalDocument = ({ doc, name }: { doc: LegalDoc; name: string }) => (
           <h2 id={`${name}-${s.id}`} className="text-2xl font-bold mb-4">
             {s.heading}
           </h2>
-          <div className="space-y-4 text-foreground/80 leading-relaxed">
+          {/* Design review: the reading measure (about 72 characters a line at every width). */}
+          <div className="space-y-4 max-w-measure text-foreground/80 leading-relaxed">
             {s.blocks.map((b, i) =>
               "p" in b ? (
                 <p key={i}>{renderInline(b.p)}</p>

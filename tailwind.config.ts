@@ -68,6 +68,12 @@ export default {
           foreground: "hsl(var(--success-foreground))",
           surface: "hsl(var(--success-surface))",
         },
+        // Design review: caution states (the legal draft notice). Text, surface, and edge.
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          surface: "hsl(var(--warning-surface))",
+          border: "hsl(var(--warning-border))",
+        },
         "destructive-surface": "hsl(var(--destructive-surface))",
         "surface-subtle": "hsl(var(--surface-subtle))",
         "border-strong": "hsl(var(--border-strong))",

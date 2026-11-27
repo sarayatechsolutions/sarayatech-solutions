@@ -98,6 +98,12 @@ All colors MUST be HSL.
     --success-foreground: 0 0% 100%;
     --success-surface: 152 45% 95%;
 
+    /* Design review (legal draft notice): caution states. Text on its surface 9.78:1, on white
+       10.15:1; the border is 3.04:1 on the surface, so the box edge also passes WCAG 1.4.11. */
+    --warning: 26 90% 22%;
+    --warning-surface: 48 100% 96%;
+    --warning-border: 32 95% 44%;
+
     /* Design audit B1: decorative brand blue for icons, rules and illustration only.
        4.14:1 on white, so never text under 24 px. */
     --brand-azure: 211 93% 49%;

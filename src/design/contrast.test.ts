@@ -46,6 +46,11 @@ describe("design tokens meet WCAG 2.1 AA (STS-041)", () => {
     ["success text (--success on --background)", t("success"), t("background"), TEXT],
     ["success text (--success on --success-surface)", t("success"), t("success-surface"), TEXT],
     ["--success-foreground on --success", t("success-foreground"), t("success"), TEXT],
+    // Design review: the legal draft notice (caution). Text 9.78:1 on its surface; edge 3.04:1.
+    ["warning text (--warning on --warning-surface)", t("warning"), t("warning-surface"), TEXT],
+    ["warning text (--warning on --background)", t("warning"), t("background"), TEXT],
+    ["--warning-border edge on --warning-surface", t("warning-border"), t("warning-surface"), NON_TEXT],
+    ["--warning-border edge on --background", t("warning-border"), t("background"), NON_TEXT],
     // Design audit B1: alternate bands. Text that sits on --muted must also pass on the lighter
     // --surface-subtle that replaces bg-muted/30.
     ["--foreground on --surface-subtle", t("foreground"), t("surface-subtle"), TEXT],
