@@ -38,6 +38,9 @@ export const WORK_HERO = {
 } as const;
 
 export const WORK_LABELS = {
+  /** Name of the projects region. Not the page headline: the hero region already carries that name
+   * and two landmarks of one role must not share it (axe landmark-unique). */
+  projectsRegion: "Projects",
   whatItIs: "What it is",
   whatWeBuilt: "What we built",
   visit: (company: string) => `Visit the ${company} website`,

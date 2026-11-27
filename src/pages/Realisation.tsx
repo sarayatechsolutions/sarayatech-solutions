@@ -42,7 +42,7 @@ const Realisation = () => {
         sectionAttrs={{ "data-work-section": "hero" }}
       />
 
-      <section data-work-section="projects" aria-label={WORK_HERO.headline} className="section bg-surface-subtle">
+      <section data-work-section="projects" aria-label={WORK_LABELS.projectsRegion} className="section bg-surface-subtle">
         <div className={container}>
           <ul className="space-y-10">
             {projects.map((p, i) => (
@@ -79,7 +79,7 @@ const Realisation = () => {
                         href={p.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 font-semibold text-primary hover:underline"
+                        className="inline-flex min-h-11 items-center gap-2 font-semibold text-primary hover:underline"
                       >
                         {WORK_LABELS.visit(p.company)}
                         <ExternalLink aria-hidden="true" className="w-4 h-4" />

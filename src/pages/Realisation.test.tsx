@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render } from "@/entry-server";
 import { bookingHref } from "@/config/business";
 import { getSeo } from "@/seo/seo";
-import { PROJECT_COPY, WORK_HERO } from "@/content/work/work";
+import { PROJECT_COPY, WORK_HERO, WORK_LABELS } from "@/content/work/work";
 import { workProjects } from "@/pages/Realisation";
 import realisations from "../../data/realisations.json";
 import { WORK_FORBIDDEN_PHRASES, buildRoutes } from "../../tests/smoke/smoke.mjs";
@@ -107,6 +107,23 @@ describe("Our Work has no banned copy or unverified claims (REQ-011, REQ-012, RE
 
   it("leaves no placeholder text", () => {
     expect(mainText).not.toMatch(/\[[^\]]*\]|lorem|TODO|placeholder/i);
+  });
+});
+
+describe("Our Work touch targets and landmarks (design review)", () => {
+  it("gives every 'Visit the ... website' link a 44 px touch target", () => {
+    const visits = projects.map((p) => p.querySelector('a[target="_blank"]')).filter(Boolean) as HTMLElement[];
+    expect(visits.length).toBeGreaterThan(0);
+    for (const a of visits) {
+      const classes = (a.getAttribute("class") ?? "").split(/\s+/);
+      for (const cls of ["inline-flex", "items-center", "min-h-11"]) expect(classes, text(a)).toContain(cls);
+    }
+  });
+
+  it("names the projects region apart from the hero region", () => {
+    const region = main.querySelector('[data-work-section="projects"]');
+    expect(region?.getAttribute("aria-label")).toBe(WORK_LABELS.projectsRegion);
+    expect(WORK_LABELS.projectsRegion).not.toBe(WORK_HERO.headline);
   });
 });
 

@@ -58,6 +58,15 @@ describe.each(PAGES)("landmarks, outline and names on %s (STS-041)", (url) => {
     expect(new Set(names).size).toBe(names.length);
   });
 
+  it("gives no two named regions (section, aside, form) of one role the same name (axe landmark-unique)", () => {
+    // A <section> or <form> is a landmark only when it is named; an <aside> always is.
+    const named = [...doc.querySelectorAll("section, aside, form")].filter(
+      (el) => el.tagName === "ASIDE" || el.hasAttribute("aria-label") || el.hasAttribute("aria-labelledby"),
+    );
+    const keys = named.map((el) => `${el.getAttribute("role") ?? el.tagName.toLowerCase()}|${accessibleName(el, doc)}`);
+    expect(keys.filter((k, i) => keys.indexOf(k) !== i)).toEqual([]);
+  });
+
   it("has exactly one h1, inside main", () => {
     const h1s = doc.querySelectorAll("h1");
     expect(h1s).toHaveLength(1);
